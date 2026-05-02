@@ -5,7 +5,6 @@ import { BookOpen, ChevronLeft, ChevronRight, LogOut, Plus, Sparkles } from 'luc
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import CardZoomModal from "@/features/punchpass/CardZoomModal";
-import CreateHabitModal from "@/features/habits/CreateHabitModal";
 import HabitCard from "@/features/habits/HabitCard";
 import JournalModal from "@/features/habits/JournalModal";
 import Layout from "@/ui/Layout";
@@ -13,24 +12,19 @@ import ReflectionModal from "@/features/habits/ReflectionModal";
 import { auth } from "@/services/firebase";
 import { useAuth } from "@/features/auth/useAuth";
 import { useHabitStore } from "@/features/habits/habitStore";
-
-// Load bunny icon
-const iconModules = import.meta.glob("@/assets/icons/*.png", { eager: true });
-const iconMap = {};
-for (const path in iconModules) {
-  const filename = path.split('/').pop();
-  iconMap[filename] = iconModules[path].default;
-}
-const bunnyIcon = iconMap['bunny.png'] || null;
+import HatchedBunny from "@/features/bunny/HatchedBunny";
+import ProfileSquares from "./ProfileSquares";
+import "./EmptyState.css";
+import "./Carousel.css";
 
 export default function Dashboard() {
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
+  const bunnyKind = profile?.bunny?.kind || 'bun';
   const navigate = useNavigate();
   const habits = useHabitStore(state => state.habits);
   const punchHabit = useHabitStore(state => state.punchHabit);
   const undoPunch = useHabitStore(state => state.undoPunch);
   const fetchHabits = useHabitStore(state => state.fetchHabits);
-  const [showCreateModal, setShowCreateModal] = useState(false);
   const [showReflection, setShowReflection] = useState(false);
   const [showJournals, setShowJournals] = useState(false);
   const [activeIndex, setActiveIndex] = useState(0);
@@ -67,11 +61,6 @@ export default function Dashboard() {
 
   // Filter out completed habits for carousel
   const uncompletedHabits = habits.filter(h => h.currentPunches < h.targetPunches);
-  
-  // Calculate stats
-  const todayHabits = habits.filter(h => h.currentPunches < h.targetPunches).length;
-  const totalPunches = habits.reduce((acc, h) => acc + h.currentPunches, 0);
-  const completedHabits = habits.filter(h => h.currentPunches === h.targetPunches).length;
 
   // Reset active index when uncompleted habits change
   useEffect(() => {
@@ -95,22 +84,14 @@ export default function Dashboard() {
             <Sparkles size={18} />
             <span className="btn-reflection-text">Reflection</span>
           </button>
-          {bunnyIcon && (
-            <button
-              onClick={() => {
-                console.log('Bunny clicked!');
-              }}
-              className="btn-bunny"
-              title="Bunny"
-              aria-label="Bunny"
-            >
-              <img 
-                src={bunnyIcon} 
-                alt="Bunny" 
-                style={{ width: '24px', height: '24px', objectFit: 'contain' }}
-              />
-            </button>
-          )}
+          <button
+            onClick={() => navigate('/student-id')}
+            className="btn-bunny"
+            title="Student ID"
+            aria-label="Student ID"
+          >
+            <HatchedBunny kind={bunnyKind} size={48} />
+          </button>
           <button
             onClick={handleLogout}
             className="btn-logout-new"
@@ -126,26 +107,19 @@ export default function Dashboard() {
           </h1>
         </header>
 
-        {!(showCreateModal || showReflection || showJournals || zoomedHabit) && (
-          <button
-            onClick={() => setShowCreateModal(true)}
-            className="btn-new-habit"
-          >
-            <Plus size={20} />
-            <span>New Habit</span>
-          </button>
-        )}
-
         {uncompletedHabits.length === 0 ? (
-          <div className="empty-state">
-            <div className="empty-state-emoji">🐰</div>
-            <h3 className="empty-state-title">No habits right now</h3>
-            <p className="empty-state-text">Create your first punch card to start your journey ✨</p>
+          <div className="dashboard-empty">
+            <div className="dashboard-empty-bunny"><HatchedBunny kind={bunnyKind} size={140} /></div>
+            <div className="dashboard-empty-eyebrow">★ A fresh start ★</div>
+            <h3 className="dashboard-empty-title">No habits yet</h3>
+            <p className="dashboard-empty-text">
+              Make your first punch card and your bunny will start growing.
+            </p>
             <button
-              onClick={() => setShowCreateModal(true)}
-              className="btn-create-first"
+              onClick={() => navigate('/passes/new')}
+              className="dashboard-empty-btn"
             >
-              Create Your First Habit
+              Create your first card ▸
             </button>
           </div>
         ) : (
@@ -178,35 +152,31 @@ export default function Dashboard() {
                       : offset + uncompletedHabits.length;
                   }
                   
-                  // Determine styling based on offset
-                  let scale = 0.85;
-                  let opacity = 0.3;
+                  // Determine styling based on offset (softer scale curve)
+                  let scale = 0.78;
+                  let opacity = 0.35;
                   let zIndex = 10;
-                  
+
                   if (offset === 0) {
-                    // Center card
-                    scale = 1.05;
+                    scale = 1;
                     opacity = 1;
                     zIndex = 20;
                   } else if (Math.abs(offset) === 1) {
-                    // Adjacent cards (left and right)
-                    scale = 0.85;
-                    opacity = 0.7;
+                    scale = 0.88;
+                    opacity = 0.85;
                     zIndex = 15;
                   } else if (Math.abs(offset) === 2) {
-                    // Further cards
-                    scale = 0.75;
-                    opacity = 0.5;
+                    scale = 0.82;
+                    opacity = 0.55;
                     zIndex = 12;
                   } else {
-                    // Cards further away
-                    scale = 0.65;
+                    scale = 0.76;
                     opacity = 0.3;
                     zIndex = 5;
                   }
-                  
-                  // Calculate x position in pixels for proper centering
-                  const xPosition = offset * 140;
+
+                  // Tighter horizontal spacing so neighbors don't feel cramped
+                  const xPosition = offset * 124;
                   const isCenterCard = offset === 0;
 
                   return (
@@ -277,49 +247,30 @@ export default function Dashboard() {
           </div>
         )}
 
-        {/* Stats Overview */}
-        <div className="stats-container">
-          <div className="stats-card">
-            <h2 className="stats-title">
-              Today's Overview 
-            </h2>
-            <div className="stats-grid">
-              <div className="stat-card stat-card-pink">
-                <div className="stat-number stat-number-pink">{todayHabits}</div>
-                <div className="stat-label">Habits to punch today</div>
-              </div>
-              <div className="stat-card stat-card-purple">
-                <div className="stat-number stat-number-purple">{totalPunches}</div>
-                <div className="stat-label">Total punches</div>
-              </div>
-              <div className="stat-card stat-card-green">
-                <div className="stat-number stat-number-green">{completedHabits}</div>
-                <div className="stat-label">Rewards unlocked</div>
-              </div>
-            </div>
-            
-            {/* View Journals Button */}
-            <div className="mt-6 flex justify-center">
-              <button
-                onClick={() => setShowJournals(true)}
-                className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-full font-semibold hover:from-purple-600 hover:to-pink-600 transition-all shadow-lg hover:shadow-xl transform hover:scale-105"
-              >
-                <BookOpen size={20} />
-                <span>View My Journals</span>
-              </button>
-            </div>
-          </div>
+        {!(showReflection || showJournals || zoomedHabit) && (
+          <button
+            onClick={() => navigate('/passes/new')}
+            className="btn-new-habit"
+          >
+            <Plus size={20} />
+            <span>New Habit</span>
+          </button>
+        )}
+
+        <ProfileSquares habits={habits} />
+
+        <div className="dashboard-journal-row">
+          <button
+            onClick={() => setShowJournals(true)}
+            className="dashboard-journal-btn"
+          >
+            <BookOpen size={18} />
+            <span>View my journals</span>
+          </button>
         </div>
       </div>
 
       {/* Modals */}
-      {showCreateModal && user && (
-        <CreateHabitModal
-          userId={user.uid}
-          onClose={() => setShowCreateModal(false)}
-        />
-      )}
-
       {showReflection && (
         <ReflectionModal onClose={() => setShowReflection(false)} user={user} />
       )}
@@ -343,3 +294,4 @@ export default function Dashboard() {
     </Layout>
   );
 }
+

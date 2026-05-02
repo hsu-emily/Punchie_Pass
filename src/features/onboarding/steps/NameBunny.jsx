@@ -9,11 +9,11 @@
  * one-tap chip suggestions. Disables continue until the field has text.
  */
 import React, { useEffect, useState } from 'react';
-import Bunny from '@/features/bunny/Bunny.jsx';
+import HatchedBunny from '@/features/bunny/HatchedBunny.jsx';
 
 const SUGGESTIONS = ['Mochi', 'Biscuit', 'Dumpling', 'Peach', 'Marshmallow', 'Pudding'];
 
-export default function NameBunny({ value, onChange, onContinue }) {
+export default function NameBunny({ value, onChange, onContinue, kind = 'bun' }) {
   const [placeholder, setPlaceholder] = useState(SUGGESTIONS[0]);
 
   useEffect(() => {
@@ -29,7 +29,7 @@ export default function NameBunny({ value, onChange, onContinue }) {
 
   return (
     <div className="pp-stage">
-      <Bunny />
+      <HatchedBunny kind={kind} size={140} />
 
       <h1 className="pp-h1">What should we call them?</h1>
       <p className="pp-lede">A good name is the start of a good friendship.</p>

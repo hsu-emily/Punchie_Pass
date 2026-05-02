@@ -3,6 +3,8 @@ import { doc, serverTimestamp, setDoc } from 'firebase/firestore';
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { auth, db } from '../../services/firebase';
+import MascotBunny from '@/features/bunny/MascotBunny';
+import './auth.css';
 
 export default function Signup() {
   const [email, setEmail] = useState('');
@@ -27,41 +29,41 @@ export default function Signup() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4">
-      <div className="w-full max-w-sm space-y-6">
-        <h1 className="text-2xl font-semibold text-center">Sign up</h1>
-        <form onSubmit={handleSignup} className="space-y-3">
+    <div className="auth-page">
+      <div className="auth-card">
+        <div className="auth-bunny"><MascotBunny size={140} /></div>
+        <div className="auth-eyebrow">★ A new beginning ★</div>
+        <h1 className="auth-title">Hi, friend</h1>
+        <p className="auth-subtitle">Let's hatch your bunny.</p>
+
+        <form onSubmit={handleSignup} className="auth-form">
           <input
             type="email"
             placeholder="Email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
-            className="w-full px-3 py-2 border border-gray-300 rounded-md"
+            className="auth-input"
           />
           <input
             type="password"
-            placeholder="Password"
+            placeholder="Password (6+ characters)"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
             minLength={6}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md"
+            className="auth-input"
           />
-          {error && <p className="text-sm text-red-600">{error}</p>}
-          <button
-            type="submit"
-            className="w-full py-2 bg-pink-500 text-white rounded-md hover:bg-pink-600"
-          >
-            Create account
+          {error && <div className="auth-error">{error}</div>}
+          <button type="submit" className="auth-btn auth-btn-primary">
+            Create my pass ▸
           </button>
         </form>
-        <p className="text-center text-sm">
-          Already have an account?{' '}
-          <Link to="/login" className="text-pink-500 underline">
-            Log in
-          </Link>
-        </p>
+
+        <div className="auth-footer">
+          Already have a bunny?{' '}
+          <Link to="/login">Log in</Link>
+        </div>
       </div>
     </div>
   );

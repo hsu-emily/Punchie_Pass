@@ -1,6 +1,14 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import holePunchCursor from "@/assets/cursors/holePunch.png";
 import holePunchClickCursor from "@/assets/cursors/holePunchClick.png";
+import defaultPunchIcon from "@/assets/icons/punch.png";
+
+// Card layouts in cardLayouts.config.js (font sizes, punch circle sizes, gaps)
+// were calibrated against this rendered card size. The inner stage is rendered
+// at these dimensions and then transform-scaled to whatever the container is,
+// so a 80px circle stays at the same proportion of the card on every screen.
+const DESIGN_WIDTH = 600;
+const DESIGN_HEIGHT = 600 * 591 / 1004; // ≈ 353.19, matches card aspect ratio
 
 export default function PunchCardPreview({
   name,
@@ -17,6 +25,28 @@ export default function PunchCardPreview({
   size = 'medium', // 'medium' or 'large' - kept for compatibility but not used
 }) {
   const [isClicking, setIsClicking] = useState(false);
+  const containerRef = useRef(null);
+  const [scale, setScale] = useState(1);
+
+  useLayoutEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    const update = () => {
+      const w = el.clientWidth;
+      const h = el.clientHeight;
+      if (w <= 0 || h <= 0) return;
+      // Use the smaller of width/height ratios so the design always fits inside
+      // the container without overflow even if the parent's aspect ratio is off.
+      setScale(Math.min(w / DESIGN_WIDTH, h / DESIGN_HEIGHT));
+    };
+    update();
+    const ro = new ResizeObserver(update);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+
+  const stagePixelWidth = DESIGN_WIDTH * scale;
+  const stagePixelHeight = DESIGN_HEIGHT * scale;
 
   // Track mouse down/up for cursor change
   useEffect(() => {
@@ -41,7 +71,7 @@ export default function PunchCardPreview({
 
   const getPunchIcon = (index) => {
     const icon = (index % 2 === 0 ? icon1 : icon2);
-    if (!icon) return isDailyPunch ? '🌟' : '🌸';
+    if (!icon) return defaultPunchIcon;
     return icon;
   };
 
@@ -106,17 +136,47 @@ export default function PunchCardPreview({
 
   return (
     <div
+      ref={containerRef}
       className="relative w-full h-full rounded-2xl overflow-hidden punch-card-preview-container"
       style={{
-        backgroundImage: `url(${cardImage})`,
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-        backgroundRepeat: 'no-repeat',
         border: 'none',
         boxShadow: '0 4px 24px rgba(248, 187, 208, 0.5)',
         cursor: `url(${isClicking ? holePunchClickCursor : holePunchCursor}) 32 32, auto`,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        background: 'transparent',
       }}
     >
+      <div
+        className="punch-card-preview-stage"
+        style={{
+          position: 'relative',
+          width: `${DESIGN_WIDTH}px`,
+          height: `${DESIGN_HEIGHT}px`,
+          transform: `scale(${scale})`,
+          transformOrigin: 'center center',
+          flexShrink: 0,
+        }}
+      >
+      {/* Card background image — sits inside the stage so it scales together
+          with the punches, keeping painted holes aligned with punch slots. */}
+      <img
+        src={cardImage}
+        alt=""
+        draggable={false}
+        style={{
+          position: 'absolute',
+          inset: 0,
+          width: '100%',
+          height: '100%',
+          objectFit: 'cover',
+          objectPosition: 'center',
+          pointerEvents: 'none',
+          userSelect: 'none',
+          zIndex: 0,
+        }}
+      />
       {/* Title - Absolute Positioned: Fully controlled by titlePlacement */}
       <h2
         className="absolute punch-card-title-text"
@@ -213,6 +273,7 @@ export default function PunchCardPreview({
             })}
           </div>
         ))}
+      </div>
       </div>
     </div>
   );

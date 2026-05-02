@@ -1,0 +1,8 @@
+.dashboard-progress-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  align-items: flex-start;
+  justify-content: center;
+  margin: 16px auto 24px;
+}

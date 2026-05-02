@@ -1,40 +1,56 @@
 import { Link } from 'react-router-dom';
-import { useAuth } from '../features/auth/useAuth';
+import MascotBunny from '@/features/bunny/MascotBunny';
+import { useAuth } from '@/features/auth/useAuth';
+import './Home.css';
 
 export default function Home() {
   const { user } = useAuth();
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center px-4 text-center space-y-6">
-      <h1 className="text-4xl font-bold">Punchie Pass</h1>
-      <p className="text-gray-600 max-w-md">
-        Build habits with a tiny bunny companion.
-      </p>
-      <div className="flex gap-3">
-        {user ? (
-          <Link
-            to="/dashboard"
-            className="px-4 py-2 bg-pink-500 text-white rounded-md hover:bg-pink-600"
-          >
-            Go to dashboard
-          </Link>
-        ) : (
-          <>
-            <Link
-              to="/signup"
-              className="px-4 py-2 bg-pink-500 text-white rounded-md hover:bg-pink-600"
-            >
-              Sign up
+    <div className="home-page">
+      <div className="home-inner">
+        <MascotBunny size={220} className="home-mascot" />
+
+        <span className="home-eyebrow">★ Punchie Pass ★</span>
+        <h1 className="home-title">Hi, friend.</h1>
+        <p className="home-tagline">
+          Build little habits with a tiny bunny companion. Punch a card, earn a treat,
+          and let your bunny grow alongside you.
+        </p>
+
+        <div className="home-actions">
+          {user ? (
+            <Link to="/dashboard" className="home-btn home-btn-primary">
+              Go to dashboard ▸
             </Link>
-            <Link
-              to="/login"
-              className="px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50"
-            >
-              Log in
-            </Link>
-          </>
-        )}
+          ) : (
+            <>
+              <Link to="/signup" className="home-btn home-btn-primary">
+                Start your pass ▸
+              </Link>
+              <Link to="/login" className="home-btn home-btn-ghost">
+                I already have one
+              </Link>
+            </>
+          )}
+        </div>
+
+        <div className="home-features">
+          <Feature emoji="🥚" label="Hatch" text="Meet your bunny" />
+          <Feature emoji="🎫" label="Punch" text="One stamp at a time" />
+          <Feature emoji="🌸" label="Treat" text="Earn a sweet reward" />
+        </div>
       </div>
+    </div>
+  );
+}
+
+function Feature({ emoji, label, text }) {
+  return (
+    <div className="home-feature">
+      <div className="home-feature-emoji">{emoji}</div>
+      <div className="home-feature-label">{label}</div>
+      <div className="home-feature-text">{text}</div>
     </div>
   );
 }

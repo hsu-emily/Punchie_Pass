@@ -1,16 +1,15 @@
 /**
  * HatchScene — the "egg → cracking → bunny appears" intro animation.
  *
- * Drives a 3-phase animation: shaking → cracking → hatched. When hatched,
- * shows confetti + the new bunny + a button that calls onContinue.
+ * Drives a 3-phase animation: shaking → cracking → hatched. Picks one of the
+ * three bunny variants at random on mount, then passes the chosen `kind` to
+ * onContinue so the rest of onboarding can persist it.
  *
- * Drop in your onboarding route as the second screen (after a Landing).
- * Keep it short — the goal is delight, not interrupt.
- *
- * @param {() => void} props.onContinue
+ * @param {(kind: string) => void} props.onContinue
  */
-import React, { useEffect, useState } from 'react';
-import Bunny from '@/features/bunny/Bunny.jsx';
+import React, { useEffect, useMemo, useState } from 'react';
+import HatchedBunny from '@/features/bunny/HatchedBunny.jsx';
+import { BUNNY_VARIANTS, pickRandomBunny } from '@/features/bunny/bunnyVariants';
 
 const SHARDS = [
   { x: -40, y: -30, rot: -25, delay: 0.10 },
@@ -23,12 +22,16 @@ const CONFETTI_COLORS = ['#EC4899', '#F472B6', '#FBCFE8', '#C5B8FF', '#F3D279', 
 
 export default function HatchScene({ onContinue }) {
   const [phase, setPhase] = useState('shaking');
+  const kind = useMemo(() => pickRandomBunny(), []);
+  const variant = BUNNY_VARIANTS[kind];
 
   useEffect(() => {
     const t1 = setTimeout(() => setPhase('cracking'), 1800);
     const t2 = setTimeout(() => setPhase('hatched'),  2700);
     return () => { clearTimeout(t1); clearTimeout(t2); };
   }, []);
+
+  const handleContinue = () => onContinue?.(kind);
 
   return (
     <div className="pp-stage">
@@ -55,21 +58,33 @@ export default function HatchScene({ onContinue }) {
 
         {phase === 'hatched' && <>
           <Confetti />
-          <Bunny size="large" popIn />
+          <HatchedBunny
+            kind={kind}
+            size={220}
+            style={{ animation: 'pp-pop-in 0.5s var(--pp-ease-bounce) both' }}
+          />
         </>}
       </div>
 
       {phase === 'hatched' && (
-        <button
-          className="pp-btn pp-btn-primary"
-          style={{ marginTop: 64, animation: 'pp-fade-in 0.5s 0.3s both' }}
-          onClick={onContinue}
-        >
-          Hi there ▸
-        </button>
+        <>
+          <div className="pp-hatch-name" style={{ animation: 'pp-fade-in 0.5s 0.2s both' }}>
+            It's {variant.name}!
+          </div>
+          <div className="pp-hatch-tagline" style={{ animation: 'pp-fade-in 0.5s 0.35s both' }}>
+            {variant.tagline}
+          </div>
+          <button
+            className="pp-btn pp-btn-primary"
+            style={{ marginTop: 32, animation: 'pp-fade-in 0.5s 0.5s both' }}
+            onClick={handleContinue}
+          >
+            Hi there ▸
+          </button>
+        </>
       )}
 
-      <button className="pp-skip" onClick={onContinue}>skip ›</button>
+      <button className="pp-skip" onClick={handleContinue}>skip ›</button>
     </div>
   );
 }
@@ -77,7 +92,7 @@ export default function HatchScene({ onContinue }) {
 function Confetti({ count = 18 }) {
   return Array.from({ length: count }).map((_, i) => {
     const angle = (Math.PI * 2 * i) / count;
-    const dist  = 80 + (Math.sin(i * 17.3) * 30 + 30); // deterministic-ish jitter
+    const dist  = 80 + (Math.sin(i * 17.3) * 30 + 30);
     return (
       <div
         key={i}

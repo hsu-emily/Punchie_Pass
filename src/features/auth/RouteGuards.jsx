@@ -1,28 +1,38 @@
-import { Navigate } from 'react-router-dom';
+import { Link, Navigate } from 'react-router-dom';
+import MascotBunny from '@/features/bunny/MascotBunny';
 import { useAuth } from './useAuth';
+import './guards.css';
 
 function LoadingScreen() {
   return (
-    <div className="min-h-screen flex items-center justify-center text-pink-500">
-      Loading…
+    <div className="guard-page">
+      <div className="guard-card">
+        <MascotBunny size={160} />
+        <div className="guard-eyebrow">★ One sec ★</div>
+        <p className="guard-msg">Hopping over…</p>
+        <div className="guard-dots" aria-hidden>
+          <span /><span /><span />
+        </div>
+      </div>
     </div>
   );
 }
 
 function ProfileErrorScreen({ error }) {
   return (
-    <div className="min-h-screen flex items-center justify-center px-4">
-      <div className="max-w-md text-center space-y-3">
-        <h2 className="text-xl font-semibold text-red-600">
-          Couldn't load your profile
-        </h2>
-        <p className="text-sm text-gray-600 break-words">
-          {error?.code || 'unknown'}: {error?.message || String(error)}
+    <div className="guard-page">
+      <div className="guard-card">
+        <MascotBunny size={160} />
+        <div className="guard-eyebrow">★ Hmm ★</div>
+        <h2 className="guard-title">Couldn't load your profile</h2>
+        <p className="guard-msg">
+          <strong>{error?.code || 'unknown'}</strong>: {error?.message || String(error)}
         </p>
-        <p className="text-sm text-gray-500">
+        <p className="guard-hint">
           Most common cause: Firestore security rules haven't been deployed.
-          Open the browser console for the full error.
+          The browser console has the full error.
         </p>
+        <Link to="/" className="guard-btn">Back home</Link>
       </div>
     </div>
   );

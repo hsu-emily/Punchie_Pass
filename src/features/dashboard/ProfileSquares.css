@@ -1,0 +1,148 @@
+.ps-section {
+  max-width: 980px;
+  margin: 32px auto 16px;
+  padding: 0 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  align-items: center;
+}
+
+.ps-eyebrow {
+  font-family: var(--pp-font-pixel);
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  color: var(--pp-pink-500);
+  text-transform: uppercase;
+}
+
+.ps-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+  width: 100%;
+  max-width: 720px;
+}
+
+@media (max-width: 720px) {
+  .ps-grid { grid-template-columns: 1fr 1fr; }
+  .ps-tile-avatar { grid-column: 1 / -1; }
+}
+
+.ps-tile {
+  background: white;
+  border-radius: var(--pp-r-xl);
+  padding: 20px 16px;
+  box-shadow: var(--pp-shadow-sm);
+  border: 1.5px solid var(--pp-line);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 6px;
+  font-family: var(--pp-font-body);
+  color: var(--pp-ink);
+  aspect-ratio: 1 / 1;
+  min-height: 200px;
+  transition: transform var(--pp-dur-fast) var(--pp-ease),
+              box-shadow var(--pp-dur-fast) var(--pp-ease),
+              border-color var(--pp-dur-fast) var(--pp-ease);
+}
+
+.ps-tile-avatar {
+  border: none;
+  background: white;
+  cursor: pointer;
+  font: inherit;
+}
+
+.ps-tile-avatar:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--pp-shadow-md);
+  border-color: var(--pp-pink-300);
+}
+
+.ps-avatar-wrap {
+  width: 88px;
+  height: 88px;
+  border-radius: 18px;
+  overflow: hidden;
+  background: var(--pp-pink-50);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 4px;
+}
+
+.ps-tile-name {
+  font-family: var(--pp-font-script);
+  font-size: 26px;
+  line-height: 1;
+  color: var(--pp-pink-ink);
+  margin-top: 2px;
+}
+
+.ps-tile-sub {
+  font-family: var(--pp-font-pixel);
+  font-size: 9px;
+  letter-spacing: 0.08em;
+  color: var(--pp-mute);
+  text-transform: uppercase;
+}
+
+.ps-tile-link {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--pp-pink-500);
+  margin-top: 2px;
+}
+
+.ps-tile-num {
+  font-size: 44px;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--pp-ink);
+}
+
+.ps-tile-label {
+  font-size: 13px;
+  color: var(--pp-mute);
+  margin-top: -2px;
+}
+
+/* Streak tile tints */
+.ps-tile-streak .ps-flame { color: #C4B0B6; }
+.ps-cold { background: white; }
+.ps-warm { border-color: var(--pp-pink-300); }
+.ps-warm .ps-flame { color: var(--pp-pink-500); }
+.ps-hot {
+  background: linear-gradient(135deg, #fff 0%, #FFF3F8 100%);
+  border-color: var(--pp-pink-400);
+}
+.ps-hot .ps-flame {
+  color: var(--pp-pink-600);
+  filter: drop-shadow(0 0 6px rgba(236, 72, 153, 0.4));
+}
+.ps-gold {
+  background: linear-gradient(135deg, #FFFBE8 0%, #FFF3F8 100%);
+  border-color: var(--pp-amber-300);
+}
+.ps-gold .ps-flame {
+  color: #E8A02C;
+  filter: drop-shadow(0 0 8px rgba(243, 210, 121, 0.6));
+}
+
+/* Punches tile big star stamp */
+.ps-tile-punches .ps-stamp {
+  font-family: var(--pp-font-pixel);
+  font-size: 24px;
+  color: var(--pp-pink-300);
+  margin-bottom: -6px;
+}
+
+.ps-heatmap-wrap {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}

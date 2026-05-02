@@ -1,16 +1,18 @@
-import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
+import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import { AuthProvider } from '@/features/auth/AuthContext';
 import { RequireAuth, RequireProfile } from '@/features/auth/RouteGuards';
 import Login from '@/features/auth/Login';
 import Signup from '@/features/auth/Signup';
 import OnboardingFlow from '@/features/onboarding/OnboardingFlow';
 import Dashboard from '@/features/dashboard/Dashboard';
-import CreatePunchPass from '@/features/punchpass/CreatePunchPass';
+import NewPassPage from '@/features/punchpass/NewPassPage';
+import StudentIdPage from '@/features/studentId/StudentIdPage';
 import CardLayoutEditor from '@/features/punchpass/layout-editor/CardLayoutEditor';
 import CelebrationPage from '@/features/celebration/CelebrationPage';
 import Home from '@/pages/Home';
 import About from '@/pages/About';
 import TestCelebration from '@/pages/TestCelebration';
+import NotFound from '@/pages/NotFound';
 import AvatarCustomizer from '@/features/avatar/AvatarCustomizer';
 
 export default function App() {
@@ -41,10 +43,10 @@ export default function App() {
             }
           />
           <Route
-            path="/create-punch-pass"
+            path="/passes/new"
             element={
               <RequireProfile>
-                <CreatePunchPass />
+                <NewPassPage />
               </RequireProfile>
             }
           />
@@ -56,12 +58,20 @@ export default function App() {
               </RequireProfile>
             }
           />
+          <Route
+            path="/student-id"
+            element={
+              <RequireProfile>
+                <StudentIdPage />
+              </RequireProfile>
+            }
+          />
 
           <Route path="/dev/card-layout-editor" element={<CardLayoutEditor />} />
           <Route path="/dev/test-celebration" element={<TestCelebration />} />
           <Route path="/avatar" element={<AvatarCustomizer />} />
 
-          <Route path="*" element={<Navigate to="/" replace />} />
+          <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
     </AuthProvider>

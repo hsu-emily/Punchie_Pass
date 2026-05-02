@@ -5,6 +5,7 @@
   --cpc-pink-soft: #F9A8D4;
   --cpc-pink-bg: #FCE7F3;
   --cpc-pink-bg-soft: #FFF3F8;
+  --cpc-pink-ink: #61283B;
   --cpc-ink: #2A1E22;
   --cpc-mute: #8B6F77;
   --cpc-line: #F1D8E2;
@@ -24,10 +25,8 @@
   align-items: flex-start;
   justify-content: space-between;
   gap: 16px;
-  background: white;
-  border-radius: var(--cpc-radius);
-  padding: 20px 28px;
-  box-shadow: 0 8px 18px rgba(220, 60, 130, 0.08);
+  padding: 4px 8px;
+  background: transparent;
 }
 
 .cpc-eyebrow {
@@ -39,11 +38,13 @@
 }
 
 .cpc-title {
-  font-size: 28px;
+  font-family: 'Instrument Sans', system-ui, sans-serif;
+  font-size: 44px;
   font-weight: 700;
+  line-height: 1.05;
   margin: 0;
-  letter-spacing: -0.01em;
-  color: var(--cpc-ink);
+  letter-spacing: -0.02em;
+  color: var(--cpc-pink-ink);
 }
 
 .cpc-header-right {
@@ -56,12 +57,11 @@
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  padding: 8px 16px;
-  border-radius: 999px;
-  background: var(--cpc-pink-bg-soft);
+  padding: 6px 4px;
+  background: transparent;
   font-family: 'Press Start 2P', monospace;
   font-size: 11px;
-  color: var(--cpc-ink);
+  color: var(--cpc-pink-ink);
 }
 
 .cpc-user-icon {
@@ -82,25 +82,35 @@
 
 .cpc-x:hover { background: var(--cpc-pink-bg-soft); color: var(--cpc-pink); }
 
-/* Main grid */
+/* Main layout — vertical: preview on top, controls below */
 .cpc-grid {
-  max-width: 1200px;
+  max-width: 1100px;
   margin: 0 auto;
-  background: white;
-  border-radius: var(--cpc-radius);
-  padding: 32px clamp(20px, 4vw, 48px);
+  background: transparent;
+  padding: 16px clamp(8px, 4vw, 24px) 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+/* Controls row beneath the preview */
+.cpc-controls {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  gap: 48px;
-  box-shadow: 0 18px 36px rgba(220, 60, 130, 0.08);
+  gap: 32px;
+  padding-top: 24px;
+  border-top: 2px dashed var(--cpc-line);
 }
 
-@media (max-width: 900px) {
-  .cpc-grid { grid-template-columns: 1fr; gap: 32px; }
+.cpc-controls-col {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
 }
 
-/* Form */
-.cpc-form { display: flex; flex-direction: column; gap: 24px; }
+@media (max-width: 760px) {
+  .cpc-controls { grid-template-columns: 1fr; gap: 24px; }
+}
 
 .cpc-field {
   display: flex;
@@ -219,8 +229,16 @@
 
 .cpc-ai-pill:hover { background: var(--cpc-pink-bg); }
 
-/* Right column / preview */
-.cpc-preview { display: flex; flex-direction: column; gap: 18px; }
+/* Top preview block — sits on the page background, no white panel */
+.cpc-preview {
+  max-width: 1100px;
+  margin: 0 auto 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  align-items: center;
+  background: transparent;
+}
 
 .cpc-preview-header {
   font-family: 'Press Start 2P', monospace;
@@ -232,17 +250,64 @@
 
 .cpc-preview-theme { color: var(--cpc-pink); }
 
+.cpc-preview-stage-wrap {
+  position: relative;
+  width: 100%;
+  max-width: 640px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .cpc-preview-card {
+  width: 100%;
+  max-width: 600px;
+  aspect-ratio: 1004 / 591;
   display: flex;
   justify-content: center;
   align-items: center;
-  min-height: 280px;
+  background: transparent;
+}
+
+.cpc-nav-arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 44px;
+  height: 44px;
+  border-radius: 999px;
+  border: none;
+  background: white;
+  color: var(--cpc-pink);
+  font-size: 28px;
+  line-height: 1;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 6px 16px rgba(220, 60, 130, 0.18);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 5;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.cpc-nav-arrow:hover {
+  transform: translateY(-50%) scale(1.08);
+  box-shadow: 0 10px 22px rgba(220, 60, 130, 0.28);
+}
+
+.cpc-nav-arrow-left { left: -8px; }
+.cpc-nav-arrow-right { right: -8px; }
+
+@media (min-width: 720px) {
+  .cpc-nav-arrow-left { left: -28px; }
+  .cpc-nav-arrow-right { right: -28px; }
 }
 
 /* Swatch row */
 .cpc-swatch-row {
   display: flex;
-  justify-content: center;
+  justify-content: flex-start;
   gap: 12px;
   flex-wrap: wrap;
 }
@@ -282,6 +347,34 @@
   text-align: center;
 }
 
+.cpc-bucket-tabs {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 10px;
+  flex-wrap: wrap;
+}
+
+.cpc-bucket-tab {
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--cpc-pink-soft);
+  background: white;
+  color: var(--cpc-pink);
+  font-family: 'Press Start 2P', monospace;
+  font-size: 9px;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  text-transform: uppercase;
+  transition: all 0.15s ease;
+}
+
+.cpc-bucket-tab:hover { background: var(--cpc-pink-bg); }
+.cpc-bucket-tab.is-active {
+  background: var(--cpc-pink);
+  color: white;
+  border-color: var(--cpc-pink);
+}
+
 .cpc-icon-strip {
   display: flex;
   gap: 8px;
@@ -313,6 +406,83 @@
   border-color: var(--cpc-pink);
   background: white;
   box-shadow: 0 4px 10px rgba(236, 72, 153, 0.20);
+}
+
+/* Two-slot punch picker */
+.cpc-slot-row {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.cpc-slot {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px 12px;
+  background: white;
+  border: 2px solid transparent;
+  border-radius: 14px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.cpc-slot:hover { border-color: var(--cpc-pink-soft); }
+
+.cpc-slot.is-active {
+  border-color: var(--cpc-pink);
+  box-shadow: 0 4px 10px rgba(236, 72, 153, 0.18);
+}
+
+.cpc-slot-label {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 9px;
+  color: var(--cpc-ink);
+  letter-spacing: 0.05em;
+}
+
+.cpc-slot-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 999px;
+  background: var(--cpc-pink-bg-soft);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+}
+
+.cpc-slot-icon img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+/* Upload (+) tile in the "yours" bucket */
+.cpc-icon-upload {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  color: var(--cpc-pink);
+  font-weight: 700;
+  border: 2px dashed var(--cpc-pink-soft);
+  background: white;
+}
+
+.cpc-icon-upload:hover {
+  background: var(--cpc-pink-bg-soft);
+  border-color: var(--cpc-pink);
+}
+
+.cpc-upload-error {
+  margin-top: 8px;
+  font-size: 12px;
+  color: #C2185B;
+  font-family: 'Press Start 2P', monospace;
+  letter-spacing: 0.04em;
 }
 
 /* Footer */

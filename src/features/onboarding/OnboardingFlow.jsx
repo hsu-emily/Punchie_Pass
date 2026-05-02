@@ -1,60 +1,31 @@
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 import { doc, serverTimestamp, setDoc } from 'firebase/firestore';
 import { useNavigate } from 'react-router-dom';
 import { db } from '@/services/firebase';
 import { useAuth } from '@/features/auth/useAuth';
 import AvatarCustomizer from '@/features/avatar/AvatarCustomizer';
-import CreatePunchCard from '@/features/punchpass/CreatePunchCard';
+import CreatePunchCard, { FIRST_ICON_ID } from '@/features/punchpass/CreatePunchCard';
+import '@/features/auth/guards.css';
 import HatchScene from './steps/HatchScene';
 import NameBunny from './steps/NameBunny';
-import BorderPicker from './steps/BorderPicker';
-
-const borderModules = import.meta.glob('@/assets/borders/*.png', { eager: true });
-const iconModules = import.meta.glob('@/assets/icons/*.png', { eager: true });
-
-const BORDER_LIST = Object.entries(borderModules)
-  .map(([path, mod]) => {
-    const id = path.split('/').pop().replace('.png', '');
-    return { id, name: `Border ${id}`, url: mod.default };
-  })
-  .sort((a, b) => Number(a.id) - Number(b.id));
-
-const UNLOCKED_DEFAULT = new Set(['1', '2', '3']);
-
-const ICON_LIST = Object.entries(iconModules)
-  .map(([path, mod]) => {
-    const id = path.split('/').pop().replace('.png', '');
-    return { id, url: mod.default };
-  })
-  .sort((a, b) => Number(a.id) - Number(b.id));
 
 export default function OnboardingFlow() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [step, setStep] = useState(0);
   const [bunnyName, setBunnyName] = useState('');
+  const [bunnyKind, setBunnyKind] = useState('bun');
   const [avatar, setAvatar] = useState(null);
-  const [borderId, setBorderId] = useState('1');
   const [pass, setPass] = useState({
     title: '',
     subtitle: '',
     frequency: 'daily',
-    iconId: ICON_LIST[0]?.id || '1',
+    iconId: FIRST_ICON_ID,
     reward: '',
   });
   const [saving, setSaving] = useState(false);
 
   const next = () => setStep((s) => s + 1);
-
-  const borders = useMemo(
-    () =>
-      BORDER_LIST.map((b) => ({
-        ...b,
-        unlocked: UNLOCKED_DEFAULT.has(b.id),
-        lockedHint: 'Complete a pass to unlock',
-      })),
-    []
-  );
 
   const finish = async () => {
     if (!user) return;
@@ -63,8 +34,8 @@ export default function OnboardingFlow() {
       await setDoc(
         doc(db, 'users', user.uid),
         {
-          bunny: { name: bunnyName, avatar },
-          studentId: { borderId, memberSince: serverTimestamp() },
+          bunny: { name: bunnyName, kind: bunnyKind, avatar },
+          studentId: { memberSince: serverTimestamp() },
           firstPass: pass,
           onboardingCompleted: true,
           updatedAt: serverTimestamp(),
@@ -80,13 +51,21 @@ export default function OnboardingFlow() {
 
   switch (step) {
     case 0:
-      return <HatchScene onContinue={next} />;
+      return (
+        <HatchScene
+          onContinue={(kind) => {
+            if (kind) setBunnyKind(kind);
+            next();
+          }}
+        />
+      );
     case 1:
       return (
         <NameBunny
           value={bunnyName}
           onChange={setBunnyName}
           onContinue={next}
+          kind={bunnyKind}
         />
       );
     case 2:
@@ -100,15 +79,6 @@ export default function OnboardingFlow() {
         />
       );
     case 3:
-      return (
-        <BorderPicker
-          borders={borders}
-          value={borderId}
-          onChange={setBorderId}
-          onContinue={next}
-        />
-      );
-    case 4:
       return (
         <CreatePunchCard
           pass={pass}
@@ -126,8 +96,21 @@ export default function OnboardingFlow() {
       );
     default:
       return (
-        <div className="pp-stage">
-          <p>{saving ? 'Saving…' : 'Almost there…'}</p>
+        <div className="guard-page">
+          <div className="guard-card">
+            <div className="guard-eyebrow">★ {saving ? 'Saving' : 'Almost there'} ★</div>
+            <h2 className="guard-title">{saving ? 'Tucking everything in' : 'Welcome'}</h2>
+            <p className="guard-msg">
+              {saving
+                ? 'Sealing your bunny pass with a wax stamp…'
+                : 'A new chapter is about to begin.'}
+            </p>
+            {saving && (
+              <div className="guard-dots" aria-hidden>
+                <span /><span /><span />
+              </div>
+            )}
+          </div>
         </div>
       );
   }

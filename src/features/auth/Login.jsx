@@ -2,6 +2,8 @@ import { signInWithEmailAndPassword, signInWithPopup } from 'firebase/auth';
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { auth, googleProvider } from '../../services/firebase';
+import MascotBunny from '@/features/bunny/MascotBunny';
+import './auth.css';
 
 export default function Login() {
   const [email, setEmail] = useState('');
@@ -31,17 +33,21 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4">
-      <div className="w-full max-w-sm space-y-6">
-        <h1 className="text-2xl font-semibold text-center">Log in</h1>
-        <form onSubmit={handleLogin} className="space-y-3">
+    <div className="auth-page">
+      <div className="auth-card">
+        <div className="auth-bunny"><MascotBunny size={140} /></div>
+        <div className="auth-eyebrow">★ Welcome back ★</div>
+        <h1 className="auth-title">Hi again</h1>
+        <p className="auth-subtitle">Your bunny missed you.</p>
+
+        <form onSubmit={handleLogin} className="auth-form">
           <input
             type="email"
             placeholder="Email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
-            className="w-full px-3 py-2 border border-gray-300 rounded-md"
+            className="auth-input"
           />
           <input
             type="password"
@@ -49,29 +55,26 @@ export default function Login() {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
-            className="w-full px-3 py-2 border border-gray-300 rounded-md"
+            className="auth-input"
           />
-          {error && <p className="text-sm text-red-600">{error}</p>}
-          <button
-            type="submit"
-            className="w-full py-2 bg-pink-500 text-white rounded-md hover:bg-pink-600"
-          >
-            Log in
+          {error && <div className="auth-error">{error}</div>}
+          <button type="submit" className="auth-btn auth-btn-primary">
+            Log in ▸
           </button>
+          <div className="auth-divider">or</div>
           <button
             type="button"
             onClick={handleGoogleLogin}
-            className="w-full py-2 border border-gray-300 rounded-md hover:bg-gray-50"
+            className="auth-btn auth-btn-ghost"
           >
             Continue with Google
           </button>
         </form>
-        <p className="text-center text-sm">
-          Don't have an account?{' '}
-          <Link to="/signup" className="text-pink-500 underline">
-            Sign up
-          </Link>
-        </p>
+
+        <div className="auth-footer">
+          New here?{' '}
+          <Link to="/signup">Make a bunny</Link>
+        </div>
       </div>
     </div>
   );

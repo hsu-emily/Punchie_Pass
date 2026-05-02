@@ -1,0 +1,77 @@
+/* Polished overrides for the legacy .habits-carousel-* classes */
+
+.habits-carousel-container {
+  padding: 8px 0 4px !important;
+  margin-top: 8px;
+}
+
+.habits-carousel-wrapper {
+  min-height: 380px !important;
+}
+
+.carousel-nav-btn {
+  background: white !important;
+  border: 1.5px solid var(--pp-pink-300) !important;
+  box-shadow: var(--pp-shadow-md) !important;
+  color: var(--pp-pink-500) !important;
+  width: 44px !important;
+  height: 44px !important;
+}
+
+.carousel-nav-btn:hover:not(:disabled) {
+  background: white !important;
+  border-color: var(--pp-pink-500) !important;
+  transform: translateY(-50%) scale(1.08) !important;
+  box-shadow: var(--pp-shadow-lg) !important;
+}
+
+.carousel-card {
+  transition: filter 0.3s ease;
+}
+
+.carousel-card.disabled {
+  filter: saturate(0.85);
+}
+
+/* Section eyebrow above the carousel */
+.dashboard-carousel-eyebrow {
+  font-family: var(--pp-font-pixel);
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  color: var(--pp-pink-500);
+  text-transform: uppercase;
+  text-align: center;
+  margin: 8px 0 -8px;
+}
+
+/* Journal row below ProfileSquares */
+.dashboard-journal-row {
+  display: flex;
+  justify-content: center;
+  margin: 28px 0 0;
+}
+
+.dashboard-journal-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 11px 22px;
+  border-radius: var(--pp-r-pill);
+  border: 1.5px solid var(--pp-pink-300);
+  background: white;
+  color: var(--pp-ink);
+  font-family: var(--pp-font-body);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: var(--pp-shadow-sm);
+  transition: transform var(--pp-dur-fast) var(--pp-ease),
+              box-shadow var(--pp-dur-fast) var(--pp-ease),
+              background var(--pp-dur-fast) var(--pp-ease);
+}
+
+.dashboard-journal-btn:hover {
+  background: var(--pp-pink-50);
+  transform: translateY(-1px);
+  box-shadow: var(--pp-shadow-md);
+}

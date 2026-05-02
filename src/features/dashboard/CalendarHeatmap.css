@@ -1,0 +1,58 @@
+.ch-wrap {
+  background: white;
+  border-radius: 22px;
+  padding: 16px 20px;
+  box-shadow: 0 8px 18px rgba(220, 60, 130, 0.08);
+  font-family: 'Fredoka', system-ui, sans-serif;
+  color: #2A1E22;
+  display: inline-block;
+}
+
+.ch-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 12px;
+}
+
+.ch-title {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  color: #EC4899;
+}
+
+.ch-legend {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  color: #8B6F77;
+}
+
+.ch-grid {
+  display: flex;
+  gap: 4px;
+}
+
+.ch-col {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.ch-cell {
+  width: 14px;
+  height: 14px;
+  border-radius: 4px;
+  background: #FFE4F0;
+  display: inline-block;
+}
+
+.ch-i-0 { background: #FFE4F0; }
+.ch-i-1 { background: #F9A8D4; }
+.ch-i-2 { background: #EC4899; }
+.ch-i-3 { background: #BE185D; }
+
+.ch-future { opacity: 0.35; }

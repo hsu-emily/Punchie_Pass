@@ -1,0 +1,33 @@
+.sw-widget {
+  display: inline-flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 22px;
+  border-radius: 22px;
+  background: white;
+  box-shadow: 0 8px 18px rgba(220, 60, 130, 0.10);
+  font-family: 'Fredoka', system-ui, sans-serif;
+  color: #2A1E22;
+  border: 2px solid transparent;
+  transition: border-color 0.2s, transform 0.2s;
+}
+
+.sw-cold .sw-flame { color: #C4B0B6; }
+.sw-warm { border-color: #F9A8D4; }
+.sw-warm .sw-flame { color: #EC4899; }
+.sw-hot  { border-color: #F472B6; background: linear-gradient(135deg, #fff 0%, #FFF3F8 100%); }
+.sw-hot  .sw-flame { color: #DB2777; filter: drop-shadow(0 0 6px rgba(236, 72, 153, 0.4)); }
+.sw-gold {
+  border-color: #F3D279;
+  background: linear-gradient(135deg, #FFFBE8 0%, #FFF3F8 100%);
+}
+.sw-gold .sw-flame {
+  color: #E8A02C;
+  filter: drop-shadow(0 0 8px rgba(243, 210, 121, 0.6));
+}
+
+.sw-numbers { display: flex; flex-direction: column; gap: 2px; }
+.sw-current { display: flex; align-items: baseline; gap: 6px; }
+.sw-current-num { font-size: 28px; font-weight: 700; line-height: 1; }
+.sw-current-label { font-size: 13px; color: #8B6F77; }
+.sw-longest { font-size: 12px; color: #8B6F77; font-family: 'Press Start 2P', monospace; letter-spacing: 0.04em; }
