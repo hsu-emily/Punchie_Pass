@@ -6,11 +6,17 @@ import { downloadCard, generateShareableCard, shareCard } from "@/services/share
 import PunchCard from '@/features/punchpass/PunchCard';
 
 export default function HabitCard({ habit, onPunch, hideControls = false }) {
-  const { resetHabit, deleteHabit } = useHabitStore();
+  const { resetHabit, deleteHabit, canPunchToday } = useHabitStore();
   const cardRef = useRef(null);
   const [sharing, setSharing] = useState(false);
   const progress = (habit.currentPunches / habit.targetPunches) * 100;
   const isComplete = habit.currentPunches >= habit.targetPunches;
+  const punchAllowed = canPunchToday(habit);
+  const lockLabel = {
+    daily: 'Come back tomorrow 🌙',
+    weekly: 'Come back next week 🗓️',
+    monthly: 'Come back next month 🗓️',
+  }[habit.frequency || habit.timeWindow || 'daily'];
 
   const handleReset = () => {
     if (confirm('Reset this habit card? This will clear all punches.')) {
@@ -129,8 +135,9 @@ export default function HabitCard({ habit, onPunch, hideControls = false }) {
             <button
               onClick={onPunch}
               className="habit-punch-btn"
+              disabled={!punchAllowed}
             >
-              Punch Today! 👊
+              {punchAllowed ? 'Punch Today! 👊' : lockLabel}
             </button>
           ) : (
             <div className="habit-complete">

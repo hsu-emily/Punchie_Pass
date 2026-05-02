@@ -2,6 +2,7 @@
 import { create } from 'zustand';
 import { collection, addDoc, updateDoc, deleteDoc, doc, getDocs } from 'firebase/firestore';
 import { db } from "@/services/firebase";
+import { canPunchToday as canPunchByFrequency } from '@/features/punchpass/useCanPunchToday';
 
 const habitsCol = (userId) => collection(db, 'users', userId, 'habits');
 const habitDoc = (userId, habitId) => doc(db, 'users', userId, 'habits', habitId);
@@ -57,6 +58,7 @@ export const useHabitStore = create((set, get) => ({
     const { userId } = get();
     const habit = get().habits.find(h => h.id === habitId);
     if (!habit || !userId || habit.currentPunches >= habit.targetPunches) return false;
+    if (!get().canPunchToday(habit)) return false;
 
     try {
       const newPunches = habit.currentPunches + 1;
@@ -204,24 +206,13 @@ export const useHabitStore = create((set, get) => ({
   // Clear error
   clearError: () => set({ error: null }),
 
-  // Check if habit can be punched today (based on time_window)
+  // Check if habit can be punched now — locks based on the previous punch
+  // timestamp and the habit's frequency (daily/weekly/monthly).
   canPunchToday: (habit) => {
-    if (!habit.lastPunchedAt) return true;
-
-    const lastPunch = new Date(habit.lastPunchedAt);
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    lastPunch.setHours(0, 0, 0, 0);
-
-    const timeWindow = habit.timeWindow || 'daily';
-
-    if (timeWindow === 'daily') {
-      return lastPunch.getTime() < today.getTime();
-    } else if (timeWindow === 'weekly') {
-      const daysDiff = Math.floor((today - lastPunch) / (1000 * 60 * 60 * 24));
-      return daysDiff >= 7;
-    }
-    return true; // custom - allow anytime
+    return canPunchByFrequency({
+      lastPunchedAt: habit.lastPunchedAt,
+      frequency: habit.frequency || habit.timeWindow || 'daily',
+    });
   },
 
   // Get habits that can be punched today

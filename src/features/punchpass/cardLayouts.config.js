@@ -55,22 +55,22 @@ export const cardLayouts = {
   'LacePink.png': {
     ...baseLayout,
     title: {
-      top: '14%',
+      top: '15%',
       left: '0%',
       textAlign: 'center',
       color: '#f677a2',
-      fontSize: '3.2rem',
-      fontFamily: '"Great Vibes", "Playfair Display", "Allura", "Parisienne", cursive',
+      fontSize: '2.8rem',
+      fontFamily: 'Great Vibes',
       fontWeight: 'normal',
       width: '100%'
     },
     description: {
-      top: '28%',
+      top: '32%',
       left: '0%',
       textAlign: 'center',
       color: '#f677a2',
-      fontSize: '1rem',
-      fontFamily: '"Dancing Script", "Great Vibes", cursive',
+      fontSize: '1.1rem',
+      fontFamily: 'Dancing Script',
       width: '100%'
     },
     punchGrid: {
@@ -88,23 +88,23 @@ export const cardLayouts = {
   'LaceRed.png': {
     ...baseLayout,
     title: {
-      top: '14%',
+      top: '12%',
       left: '0%',
       textAlign: 'center',
       color: '#ffffff',
-      fontSize: '1.8rem',
-      fontFamily: '"Great Vibes", "Playfair Display", "Allura", "Parisienne", cursive',
+      fontSize: '2.2rem',
+      fontFamily: 'Great Vibes',
       fontWeight: 'bold',
       width: '100%'
     },
     description: {
-      top: '23%',
-      left: '8%',
+      top: '24%',
+      left: '16%',
       textAlign: 'center',
       color: '#ffffff',
-      fontSize: '1rem',
-      fontFamily: '"Dancing Script", "Great Vibes", cursive',
-      width: '80%'
+      fontSize: '1.2em',
+      fontFamily: 'Dancing Script',
+      width: '70%'
     },
     punchGrid: {
       top: '37%',
@@ -187,23 +187,23 @@ export const cardLayouts = {
   'DigiCam.png': {
     ...baseLayout,
     title: {
-      top: '12%',
-      left: '-2%',
+      top: '13%',
+      left: '+2%',
       textAlign: 'center',
       color: '#ffffff',
-      fontSize: '1rem',
+      fontSize: '1.1rem',
       fontFamily: '"Press Start 2P", monospace',
       fontWeight: 'bold',
-      width: '80%'
+      width: '75%'
     },
     description: {
-      top: '22%',
-      left: '9%',
+      top: '25%',
+      left: '15%',
       textAlign: 'center',
       color: '#ffffff',
-      fontSize: '.7rem',
-      fontFamily: '"Press Start 2P", monospace',
-      width: '60%'
+      fontSize: '.55rem',
+      fontFamily: 'Press Start 2P',
+      width: '50%'
     },
     punchGrid: {
       top: '40%',
@@ -220,21 +220,21 @@ export const cardLayouts = {
   'FilmCam.png': {
     ...baseLayout,
     title: {
-      top: '9%',
+      top: '12%',
       left: '0%',
       textAlign: 'center',
       color: '#f3d279',
-      fontSize: '1.7rem',
+      fontSize: '1.3rem',
       fontFamily: '"Press Start 2P", monospace',
       fontWeight: 'bold',
       width: '100%'
     },
     description: {
-      top: '20%',
+      top: '23%',
       left: '15%',
       textAlign: 'center',
       color: '#ffffff',
-      fontSize: '0.8rem',
+      fontSize: '0.65rem',
       fontFamily: '"Press Start 2P", monospace',
       width: '70%'
     },

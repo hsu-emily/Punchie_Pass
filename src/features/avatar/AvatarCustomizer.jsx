@@ -188,6 +188,15 @@ const ICONS = {
       />
     </svg>
   ),
+  card: (
+    <svg viewBox="0 0 22 22" fill="none">
+      <rect x="2.5" y="5" width="17" height="12" rx="2" stroke={ICON_STROKE} strokeWidth="2" />
+      <rect x="5" y="8" width="5" height="3.5" fill={ICON_STROKE} opacity="0.5" />
+      <line x1="11.5" y1="9" x2="17" y2="9" stroke={ICON_STROKE} strokeWidth="1.5" strokeLinecap="round" />
+      <line x1="11.5" y1="12" x2="17" y2="12" stroke={ICON_STROKE} strokeWidth="1.5" strokeLinecap="round" />
+      <line x1="5" y1="14" x2="17" y2="14" stroke={ICON_STROKE} strokeWidth="1.5" strokeLinecap="round" />
+    </svg>
+  ),
   blush: (
     <svg viewBox="0 0 22 22" fill="none">
       <circle cx="7" cy="11" r="3" fill={ICON_STROKE} opacity="0.4" />
@@ -212,6 +221,16 @@ const BASE_TABS = [
   { id: 'blush', label: 'Blush' },
 ];
 const BUNNY_TAB = { id: 'bunny', label: 'Bunny' };
+const CARD_TAB = { id: 'card', label: 'Card' };
+
+export const ID_SKIN_OPTIONS = [
+  { id: 'default',  name: 'Classic',      swatch: 'linear-gradient(135deg,#fef0fa,#dcebff)' },
+  { id: 'holo',     name: 'Holographic',  swatch: 'linear-gradient(135deg,#FBCFE8,#C5B8FF,#A5C2F0)' },
+  { id: 'wishz',    name: 'Frosty Blue',   swatch: 'linear-gradient(135deg,#BFDCFF,#7FB3F0)' },
+  { id: 'inari',    name: 'Maroon',        swatch: 'linear-gradient(135deg,#7E1F2C,#F4E6CE)' },
+  { id: 'lottsa',   name: 'Princess Pink', swatch: 'linear-gradient(135deg,#FFE4F0,#FFB6CF,#E94B8C)' },
+  { id: 'babymoon', name: 'Beige',         swatch: 'linear-gradient(135deg,#F2EBDD,#1F1A18)' },
+];
 
 function pickRandom(arr) {
   return arr[Math.floor(Math.random() * arr.length)];
@@ -225,6 +244,9 @@ export default function AvatarCustomizer({
   bunnyKind: bunnyKindProp,
   onBunnyKindChange,
   unlockedBunnies,
+  skin: skinProp,
+  onSkinChange,
+  unlockedSkins,
   confirmLabel,
   title: pageTitle,
 } = {}) {
@@ -239,8 +261,21 @@ export default function AvatarCustomizer({
     if (bunnyKindProp === undefined) setInternalBunnyKind(k);
     onBunnyKindChange?.(k);
   };
+  const [internalSkin, setInternalSkin] = useState(
+    skinProp ?? profile?.studentId?.skin ?? 'default'
+  );
+  const skin = skinProp ?? internalSkin;
+  const setSkin = (s) => {
+    if (skinProp === undefined) setInternalSkin(s);
+    onSkinChange?.(s);
+  };
   const showBunnyTab = Array.isArray(unlockedBunnies);
-  const TABS = showBunnyTab ? [...BASE_TABS, BUNNY_TAB] : BASE_TABS;
+  const showCardTab = Array.isArray(unlockedSkins);
+  const TABS = [
+    ...BASE_TABS,
+    ...(showBunnyTab ? [BUNNY_TAB] : []),
+    ...(showCardTab ? [CARD_TAB] : []),
+  ];
 
   const update = (patch) => setAvatar((a) => ({ ...a, ...patch }));
 
@@ -320,6 +355,7 @@ export default function AvatarCustomizer({
               progressPct={0}
               totalPunches={0}
               streakDays={0}
+              skin={skin}
               onNameChange={(name) => update({ name })}
             />
             <button
@@ -348,6 +384,9 @@ export default function AvatarCustomizer({
               bunnyKind={bunnyKind}
               setBunnyKind={setBunnyKind}
               unlockedBunnies={unlockedBunnies}
+              skin={skin}
+              setSkin={setSkin}
+              unlockedSkins={unlockedSkins}
             />
           </div>
         </div>
@@ -365,7 +404,7 @@ export default function AvatarCustomizer({
             ✦ SHUFFLE ALL ✦
           </button>
           {onConfirm ? (
-            <button className="av-btn av-btn-primary" onClick={() => onConfirm(avatar, bunnyKind)}>
+            <button className="av-btn av-btn-primary" onClick={() => onConfirm(avatar, bunnyKind, skin)}>
               {confirmLabel || 'Looks cute → Next'}
             </button>
           ) : (
@@ -391,11 +430,12 @@ function countOptions(tab) {
     case 'accessory': return ACCESSORY_OPTIONS.length;
     case 'blush': return 2;
     case 'bunny': return BUNNY_KINDS.length;
+    case 'card': return ID_SKIN_OPTIONS.length;
     default: return 0;
   }
 }
 
-function ActivePanel({ activeTab, avatar, update, bunnyKind, setBunnyKind, unlockedBunnies }) {
+function ActivePanel({ activeTab, avatar, update, bunnyKind, setBunnyKind, unlockedBunnies, skin, setSkin, unlockedSkins }) {
   switch (activeTab) {
     case 'background':
       return (
@@ -606,6 +646,33 @@ function ActivePanel({ activeTab, avatar, update, bunnyKind, setBunnyKind, unloc
           />
         </Grid>
       );
+    case 'card': {
+      const unlocked = new Set(unlockedSkins || ID_SKIN_OPTIONS.map((s) => s.id));
+      return (
+        <Grid>
+          {ID_SKIN_OPTIONS.map((s) => {
+            const isUnlocked = unlocked.has(s.id);
+            return (
+              <button
+                key={s.id}
+                className={`av-option ${skin === s.id ? 'active' : ''} ${isUnlocked ? '' : 'locked'}`}
+                onClick={() => isUnlocked && setSkin?.(s.id)}
+                disabled={!isUnlocked}
+                title={isUnlocked ? s.name : `${s.name} — locked`}
+              >
+                <span
+                  className="av-skin-swatch"
+                  style={{ background: s.swatch }}
+                />
+                <span className="av-toggle-label">
+                  {isUnlocked ? s.name : '🔒'}
+                </span>
+              </button>
+            );
+          })}
+        </Grid>
+      );
+    }
     case 'bunny': {
       const unlocked = new Set(unlockedBunnies || BUNNY_KINDS);
       return (

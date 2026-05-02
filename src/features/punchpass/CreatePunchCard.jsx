@@ -7,6 +7,8 @@ import { AiTitleSuggest, AiRewardSuggest } from './AiSuggest';
 import defaultPunchIcon from '@/assets/icons/punch.png';
 import { CURSOR_LIST, DEFAULT_PUNCH_CURSOR_ID } from '@/assets/cursors/cursors';
 import useGacha from '@/features/gacha/useGacha';
+import useUploadSlots from '@/features/gacha/useUploadSlots';
+import ShardIcon from '@/features/gacha/ShardIcon';
 import './CreatePunchCard.css';
 
 const iconModules = import.meta.glob('@/assets/icons/*/*.png', { eager: true });
@@ -141,6 +143,7 @@ export default function CreatePunchCard({
   const fileInputRef = useRef(null);
   const [uploadError, setUploadError] = useState('');
   const [uploading, setUploading] = useState(false);
+  const { slotsUnlocked, nextSlotCost, canUnlockNext } = useUploadSlots();
 
   const setSlotIcon = (id) => {
     if (activeSlot === 1) onChange((p) => ({ ...p, icon1Id: id, iconId: id }));
@@ -155,10 +158,22 @@ export default function CreatePunchCard({
       setUploadError('Sign in to upload custom icons.');
       return;
     }
-    setUploadError('');
+    const remaining = Math.max(0, slotsUnlocked - (pass.customIcons?.length || 0));
+    if (remaining <= 0) {
+      setUploadError(
+        canUnlockNext
+          ? `All ${slotsUnlocked} upload slots used. Unlock another in your inventory.`
+          : `All ${slotsUnlocked} upload slots used. Recycle ${nextSlotCost} shards to unlock another.`
+      );
+      return;
+    }
+    if (files.length > remaining) {
+      setUploadError(`Only ${remaining} slot${remaining === 1 ? '' : 's'} left — extras skipped.`);
+    }
+    const accepted = files.slice(0, remaining);
     setUploading(true);
     try {
-      const uploaded = await Promise.all(files.map(async (file, i) => {
+      const uploaded = await Promise.all(accepted.map(async (file, i) => {
         const safeName = file.name.replace(/[^\w.\-]+/g, '_');
         const path = `user-icons/${user.uid}/${Date.now()}-${i}-${safeName}`;
         const sref = storageRef(storage, path);
@@ -436,19 +451,33 @@ export default function CreatePunchCard({
                     <img src={ic.url} alt="" />
                   </button>
                 ))}
-                {activeBucket === 'yours' && (
-                  <button
-                    type="button"
-                    className="cpc-icon-tile cpc-icon-upload"
-                    onClick={() => fileInputRef.current?.click()}
-                    aria-label="Upload image"
-                    title="Upload image"
-                    disabled={uploading}
-                  >
-                    {uploading ? '…' : '+'}
-                  </button>
-                )}
+                {activeBucket === 'yours' && (() => {
+                  const used = customIcons.length;
+                  const slotsFull = used >= slotsUnlocked;
+                  return (
+                    <button
+                      type="button"
+                      className="cpc-icon-tile cpc-icon-upload"
+                      onClick={() => fileInputRef.current?.click()}
+                      aria-label="Upload image"
+                      title={slotsFull
+                        ? `All ${slotsUnlocked} slots used — recycle shards in inventory to unlock more`
+                        : `Upload image (${used}/${slotsUnlocked} slots used)`}
+                      disabled={uploading || slotsFull}
+                    >
+                      {uploading ? '…' : '+'}
+                    </button>
+                  );
+                })()}
               </div>
+              {activeBucket === 'yours' && (
+                <div className="cpc-upload-meta">
+                  {customIcons.length}/{slotsUnlocked} upload slot{slotsUnlocked === 1 ? '' : 's'} used
+                  {customIcons.length >= slotsUnlocked && (
+                    <> · need <ShardIcon size={12} /> {nextSlotCost} shards for next slot</>
+                  )}
+                </div>
+              )}
               {uploadError && <div className="cpc-upload-error">{uploadError}</div>}
               <input
                 ref={fileInputRef}

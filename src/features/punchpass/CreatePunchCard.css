@@ -501,6 +501,13 @@
   letter-spacing: 0.04em;
 }
 
+.cpc-upload-meta {
+  margin-top: 8px;
+  font-size: 11px;
+  color: #8B6F77;
+  font-family: 'Fredoka', system-ui, sans-serif;
+}
+
 /* Footer */
 .cpc-footer {
   max-width: 1200px;

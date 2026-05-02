@@ -87,18 +87,80 @@
   color: var(--g-mute);
 }
 
+.gacha-dev-grant {
+  margin-top: 8px;
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px;
+  border-radius: 999px;
+  border: 1px dashed var(--g-pink-300);
+  background: white;
+  color: var(--g-pink-ink);
+  font-family: 'Press Start 2P', monospace;
+  font-size: 8px;
+  letter-spacing: 0.6px;
+  cursor: pointer;
+  opacity: 0.75;
+  transition: opacity 0.15s ease, background 0.15s ease;
+}
+.gacha-dev-grant:hover {
+  opacity: 1;
+  background: var(--g-pink-100);
+}
+
 /* ── Punchie Machine ─────────────────────────────────────── */
 .pm-frame {
   position: relative;
-  width: 280px;
-  height: 380px;
-  margin-bottom: 18px;
-  filter: drop-shadow(0 12px 18px rgba(220, 60, 130, 0.20));
+  width: min(370px, 82vw);
+  margin: 36px auto 28px;
+  filter: drop-shadow(0 24px 36px rgba(219, 39, 119, 0.18));
 }
-.pm-svg { width: 100%; height: 100%; display: block; }
 
-.pm-frame.crank .pm-svg { animation: pm-shake 0.5s ease-in-out 6; }
+.pm-svg {
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
 
+/* Soft pink halo behind the machine */
+.pm-frame::before {
+  content: "";
+  position: absolute;
+  inset: 16% 4% 4%;
+  background: radial-gradient(circle, rgba(244, 114, 182, 0.25), transparent 64%);
+  filter: blur(26px);
+  z-index: -1;
+  pointer-events: none;
+}
+
+.pm-frame.crank {
+  animation: pm-machine-shake 0.16s infinite;
+}
+
+@keyframes pm-machine-shake {
+  0%, 100% { transform: translateX(0) rotate(0deg); }
+  25%      { transform: translateX(-1px) rotate(-0.35deg); }
+  75%      { transform: translateX(1px) rotate(0.35deg); }
+}
+
+@keyframes pm-crank {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(1080deg); }
+}
+
+/* Idle: gentle globe bob keeps the machine feeling alive */
+.pm-frame.idle .pm-svg circle[fill="url(#pmGlobe)"] {
+  animation: pm-globe-bob 4s ease-in-out infinite;
+  transform-origin: 110px 86px;
+}
+@keyframes pm-globe-bob {
+  0%, 100% { transform: translateY(0) scale(1); }
+  50%      { transform: translateY(-1px) scale(1.005); }
+}
+
+/* Falling / cracking capsule overlay */
 .pm-capsule {
   position: absolute;
   left: 50%;
@@ -109,29 +171,6 @@
   z-index: 2;
 }
 .pm-capsule svg { width: 100%; height: 100%; display: block; }
-
-.pm-frame.idle .pm-svg circle[fill="url(#pmGlobe)"] {
-  animation: pm-globe-bob 4s ease-in-out infinite;
-  transform-origin: 110px 86px;
-}
-
-@keyframes pm-shake {
-  0%, 100% { transform: translateX(0); }
-  15%      { transform: translateX(-4px) rotate(-0.8deg); }
-  35%      { transform: translateX(4px) rotate(0.8deg); }
-  55%      { transform: translateX(-3px) rotate(-0.5deg); }
-  80%      { transform: translateX(3px) rotate(0.5deg); }
-}
-/* Three full turns over 3s with a build-up that eases out at the end —
- * matches the wind-up music's accelerate→hold feel. */
-@keyframes pm-crank {
-  0%   { transform: rotate(0deg); }
-  100% { transform: rotate(1080deg); }
-}
-@keyframes pm-globe-bob {
-  0%, 100% { transform: translateY(0) scale(1); }
-  50%      { transform: translateY(-1px) scale(1.005); }
-}
 
 /* ── Crack split ─────────────────────────────────────────── */
 .pm-crack-wrap {
@@ -172,66 +211,71 @@
 /* ── Pull buttons ────────────────────────────────────────── */
 .gacha-actions {
   display: flex;
-  gap: 12px;
-  flex-wrap: wrap;
   justify-content: center;
+  align-items: center;
+  gap: 18px;
+  flex-wrap: wrap;
+  margin-top: 8px;
   margin-bottom: 18px;
 }
 
-.gacha-pull-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 12px 20px;
+.gacha-pull-btn,
+.gacha-droplist-btn {
+  min-height: 58px;
   border-radius: 999px;
-  border: none;
+  padding: 0 24px;
   font-family: inherit;
   font-size: 15px;
-  font-weight: 600;
-  background: linear-gradient(135deg, #F472B6, #EC4899);
-  color: white;
+  font-weight: 800;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
   cursor: pointer;
-  box-shadow: 0 6px 14px rgba(236, 72, 153, 0.30);
-  transition: transform 0.1s ease, box-shadow 0.15s ease;
+  transition: transform 160ms ease, box-shadow 160ms ease, opacity 160ms ease;
 }
-.gacha-pull-btn:hover:not(:disabled) {
-  transform: translateY(-1px);
-  box-shadow: 0 10px 20px rgba(236, 72, 153, 0.35);
+
+.gacha-pull-btn:not(:disabled) {
+  background: linear-gradient(180deg, #ffffff 0%, #ffe4f1 100%);
+  color: #7a284c;
+  border: 2px solid #f472b6;
+  box-shadow: 0 12px 24px rgba(244, 114, 182, 0.24);
 }
+
+.gacha-pull-btn:not(:disabled):hover,
+.gacha-droplist-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 16px 28px rgba(244, 114, 182, 0.28);
+}
+
 .gacha-pull-btn:disabled {
-  opacity: 0.5;
+  background: linear-gradient(180deg, #f4eef1 0%, #e8dde3 100%);
+  color: #7a284c;
+  border: 2px solid #f9a8d4;
+  box-shadow: 0 8px 18px rgba(120, 80, 100, 0.12);
+  opacity: 0.78;
   cursor: not-allowed;
-  background: linear-gradient(135deg, #ddd, #bbb);
 }
+
 .gacha-pull-cost {
+  background: rgba(255, 255, 255, 0.62);
+  border-radius: 999px;
+  padding: 4px 10px;
   font-family: 'Press Start 2P', monospace;
   font-size: 9px;
-  background: rgba(255,255,255,0.25);
-  padding: 3px 8px;
-  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.gacha-droplist-btn {
+  background: linear-gradient(180deg, #ffffff 0%, #fff1f8 100%);
+  color: #6b2943;
+  border: 2px solid #f9a8d4;
+  box-shadow: 0 10px 22px rgba(244, 114, 182, 0.18);
 }
 
 .gacha-error {
   color: #B83A6E;
   font-size: 13px;
-}
-
-.gacha-droplist-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 12px 18px;
-  border-radius: 999px;
-  border: 1.5px solid var(--g-pink-300);
-  font-family: inherit;
-  font-size: 14px;
-  font-weight: 600;
-  background: white;
-  color: var(--g-pink-ink);
-  cursor: pointer;
-  transition: background 0.15s ease, transform 0.1s ease;
-}
-.gacha-droplist-btn:hover {
-  background: var(--g-pink-100);
-  transform: translateY(-1px);
 }

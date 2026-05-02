@@ -1,0 +1,57 @@
+.lvlup-toast {
+  position: fixed;
+  top: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1200;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px 12px 16px;
+  min-width: 240px;
+  max-width: 360px;
+  background: linear-gradient(135deg, #fff5fa 0%, #ffe4f0 100%);
+  border: 2px solid #f472b6;
+  border-radius: 16px;
+  box-shadow: 0 12px 32px rgba(220, 60, 130, 0.28);
+  font-family: 'Fredoka', system-ui, sans-serif;
+  color: #61283B;
+}
+
+.lvlup-toast.is-milestone {
+  background:
+    linear-gradient(135deg, #FFF6D6 0%, #FBCFE8 50%, #C5B8FF 100%);
+  border-color: #FFD27A;
+  box-shadow: 0 14px 40px rgba(255, 200, 80, 0.45);
+}
+
+.lvlup-icon {
+  color: #DB2777;
+  flex-shrink: 0;
+}
+
+.lvlup-text { flex: 1; min-width: 0; }
+
+.lvlup-title {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  color: #DB2777;
+  margin-bottom: 2px;
+}
+
+.lvlup-toast.is-milestone .lvlup-title { color: #9D4A02; }
+
+.lvlup-sub { font-size: 14px; font-weight: 600; }
+
+.lvlup-close {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: #8B6F77;
+  padding: 4px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+}
+.lvlup-close:hover { background: rgba(220, 60, 130, 0.1); color: #DB2777; }

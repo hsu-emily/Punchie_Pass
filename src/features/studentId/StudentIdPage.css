@@ -458,9 +458,17 @@
   width: 22px; height: 22px;
   filter: drop-shadow(0 1px 2px rgba(220,60,130,0.2));
   z-index: 2;
+  display: none;
 }
 .psid-heart.tl { top: 56px; left: 8px; }
 .psid-heart.br { bottom: 36px; right: 8px; transform: rotate(15deg); }
+/* Skins that show the heart stamps. */
+.psid-card.psid-skin-default .psid-heart,
+.psid-card.psid-skin-lottsa .psid-heart { display: block; }
+.psid-card.psid-skin-lottsa .psid-heart path {
+  fill: #FFC9DD;
+  stroke: #D8508A;
+}
 
 /* ── Collection ──────────────────────────────────────── */
 .sid-collection {
@@ -571,4 +579,391 @@
   font-size: 11px;
   color: var(--sid-mute);
   line-height: 1.3;
+}
+
+/* ── ID skins (gacha-unlocked alternate looks) ─────────────── */
+
+.psid-card.psid-skin-holo {
+  background-image:
+    repeating-linear-gradient(45deg,
+      rgba(255,255,255,0.0) 0 6px,
+      rgba(197,184,255,0.18) 6px 12px,
+      rgba(244,114,182,0.18) 12px 18px,
+      rgba(165,194,240,0.20) 18px 24px),
+    radial-gradient(circle at 25% 30%, rgba(255,210,122,0.30) 0%, transparent 55%),
+    radial-gradient(circle at 75% 70%, rgba(165,194,240,0.30) 0%, transparent 55%),
+    linear-gradient(180deg, #fef0fa 0%, #f0eaff 50%, #e6f0ff 100%);
+  background-size: 28px 28px, 100% 100%, 100% 100%, 100% 100%;
+  box-shadow: 0 12px 40px rgba(165, 130, 255, 0.32), inset 0 0 0 1.5px rgba(197,184,255,0.5);
+  animation: psid-holo-shimmer 6s linear infinite;
+}
+
+.psid-card.psid-skin-holo .psid-header {
+  background: linear-gradient(90deg,
+    #f9b8e1 0%, #c5b8ff 50%, #a5c2f0 100%);
+}
+
+.psid-card.psid-skin-holo .psid-stamp,
+.psid-card.psid-skin-holo .psid-cert-title {
+  text-shadow: 0 0 6px rgba(255,255,255,0.6);
+}
+
+@keyframes psid-holo-shimmer {
+  0%   { background-position: 0 0, 0 0, 0 0, 0 0; }
+  100% { background-position: 56px 0, 0 0, 0 0, 0 0; }
+}
+
+/* ── Wishz Blue (clean sky-blue card) ──────────────────────── */
+.psid-card.psid-skin-wishz {
+  background-image:
+    linear-gradient(180deg, #DCEAFF 0%, #B6D2F2 100%);
+  box-shadow: 0 12px 32px rgba(70, 130, 200, 0.30), inset 0 0 0 1.5px rgba(255,255,255,0.55);
+}
+/* White panel behind the info column to lift the text. Padding/gap match
+   the default psid-info so the card height stays the same. */
+.psid-card.psid-skin-wishz .psid-info {
+  background: rgba(255,255,255,0.92);
+  border: 1px solid rgba(91, 160, 229, 0.35);
+  border-radius: 10px;
+  padding: 4px 10px;
+  gap: 8px;
+}
+.psid-card.psid-skin-wishz .psid-header {
+  background: linear-gradient(90deg, #5BA0E5 0%, #3F84CF 100%);
+  border-bottom-color: rgba(255,255,255,0.5);
+}
+.psid-card.psid-skin-wishz .psid-cert-title,
+.psid-card.psid-skin-wishz .psid-stamp-p { color: white; }
+.psid-card.psid-skin-wishz .psid-row-label { color: #1B4F8A; }
+.psid-card.psid-skin-wishz .psid-row-value,
+.psid-card.psid-skin-wishz .psid-tier-text,
+.psid-card.psid-skin-wishz .psid-title-text { color: #1B4F8A; }
+.psid-card.psid-skin-wishz .psid-row { border-bottom-color: rgba(63, 132, 207, 0.3); }
+.psid-card.psid-skin-wishz .psid-mini-stat {
+  background: rgba(255,255,255,0.7);
+  border-color: #5BA0E5;
+}
+.psid-card.psid-skin-wishz .psid-mini-num { color: #1B4F8A; }
+.psid-card.psid-skin-wishz .psid-mini-label { color: #3F84CF; }
+.psid-card.psid-skin-wishz .psid-footer {
+  background: linear-gradient(90deg, #BFDCFF 0%, #7FB3F0 100%);
+  border-top-color: rgba(255,255,255,0.5);
+}
+.psid-card.psid-skin-wishz .psid-footer-text { color: #1B4F8A; }
+.psid-card.psid-skin-wishz .psid-barcode-bar { background: #1B4F8A; }
+.psid-card.psid-skin-wishz .psid-xp-track { background: rgba(255,255,255,0.4); }
+.psid-card.psid-skin-wishz .psid-xp-fill {
+  background: linear-gradient(90deg, #5BA0E5, #1B4F8A);
+}
+
+/* ── Inari Maroon (cream + maroon ID card) ─────────────────── */
+.psid-card.psid-skin-inari {
+  background-image:
+    linear-gradient(180deg, #F4E6CE 0%, #ECDDC2 100%);
+  box-shadow: 0 12px 32px rgba(126, 31, 44, 0.25), inset 0 0 0 1.5px #D9C7A7;
+}
+.psid-card.psid-skin-inari .psid-header {
+  background: linear-gradient(180deg, #8C2533 0%, #6E1922 100%);
+  border-bottom-color: #4E1018;
+}
+.psid-card.psid-skin-inari .psid-cert-title,
+.psid-card.psid-skin-inari .psid-stamp-p { color: #F4E6CE; }
+.psid-card.psid-skin-inari .psid-row-label { color: #6E1922; }
+.psid-card.psid-skin-inari .psid-row-value,
+.psid-card.psid-skin-inari .psid-tier-text,
+.psid-card.psid-skin-inari .psid-title-text { color: #2A1010; }
+.psid-card.psid-skin-inari .psid-row { border-bottom-color: rgba(110, 25, 34, 0.25); }
+.psid-card.psid-skin-inari .psid-mini-stat {
+  background: rgba(255,250,238,0.8);
+  border-color: #8C2533;
+}
+.psid-card.psid-skin-inari .psid-mini-num { color: #6E1922; }
+.psid-card.psid-skin-inari .psid-mini-label { color: #8C2533; }
+.psid-card.psid-skin-inari .psid-footer {
+  background: linear-gradient(90deg, #6E1922 0%, #8C2533 100%);
+  border-top-color: #4E1018;
+}
+.psid-card.psid-skin-inari .psid-footer-text { color: #F4E6CE; }
+.psid-card.psid-skin-inari .psid-barcode-bar { background: #F4E6CE; }
+.psid-card.psid-skin-inari .psid-xp-track { background: rgba(110, 25, 34, 0.18); }
+.psid-card.psid-skin-inari .psid-xp-fill {
+  background: linear-gradient(90deg, #8C2533, #6E1922);
+}
+.psid-card.psid-skin-inari .psid-frame { border-color: #8C2533; }
+.psid-card.psid-skin-inari .psid-bunny-pocket {
+  border-color: #8C2533;
+  box-shadow: 0 4px 10px rgba(110, 25, 34, 0.35);
+}
+
+/* ── Princess Pink (soft shoujo / lace card) ───────────────── */
+.psid-card.psid-skin-lottsa {
+  background-image:
+    /* soft shimmer */
+    radial-gradient(ellipse at 25% 20%, rgba(255,255,255,0.6) 0%, transparent 45%),
+    radial-gradient(ellipse at 80% 75%, rgba(255,255,255,0.45) 0%, transparent 40%),
+    /* warm pink base */
+    linear-gradient(160deg, #FFF5FA 0%, #FFE0EC 50%, #FFCEDD 100%);
+  box-shadow:
+    0 14px 36px rgba(238, 124, 167, 0.30),
+    inset 0 0 0 1px rgba(255,255,255,0.9);
+  border: 4px double #F5A8C4;
+}
+.psid-card.psid-skin-lottsa .psid-header {
+  background: linear-gradient(180deg, #FFFFFF 0%, #FFF0F7 100%);
+  border-bottom: 1px solid #F5A8C4;
+  padding-top: 16px;
+  padding-bottom: 14px;
+}
+.psid-card.psid-skin-lottsa .psid-header::after { display: none; }
+.psid-card.psid-skin-lottsa .psid-cert-title {
+  color: #D8508A;
+  text-shadow: 0 1px 0 rgba(255,255,255,0.9);
+}
+/* Bow flanking the cert title — emoji ribbons, kept simple. */
+.psid-card.psid-skin-lottsa .psid-cert-title::before,
+.psid-card.psid-skin-lottsa .psid-cert-title::after {
+  content: '🎀';
+  font-family: 'Apple Color Emoji', 'Segoe UI Emoji', sans-serif;
+  font-size: 12px;
+  margin: 0 8px;
+  vertical-align: middle;
+  filter: drop-shadow(0 1px 1px rgba(216, 80, 138, 0.25));
+}
+.psid-card.psid-skin-lottsa .psid-row-label { color: #D8508A; }
+.psid-card.psid-skin-lottsa .psid-row-value,
+.psid-card.psid-skin-lottsa .psid-tier-text,
+.psid-card.psid-skin-lottsa .psid-title-text {
+  color: #B43670;
+  font-weight: 600;
+}
+.psid-card.psid-skin-lottsa .psid-row {
+  border-bottom: 1.5px solid #F5A8C4;
+  padding-bottom: 6px;
+}
+.psid-card.psid-skin-lottsa .psid-mini-stat {
+  background: rgba(255,255,255,0.85);
+  border: 1px solid #F5A8C4;
+  border-style: solid;
+}
+.psid-card.psid-skin-lottsa .psid-mini-num { color: #B43670; }
+.psid-card.psid-skin-lottsa .psid-mini-label { color: #D8508A; }
+.psid-card.psid-skin-lottsa .psid-footer {
+  background: linear-gradient(180deg, #FFF0F7 0%, #FFFFFF 100%);
+  border-top: 1px solid #F5A8C4;
+}
+.psid-card.psid-skin-lottsa .psid-footer::before { display: none; }
+.psid-card.psid-skin-lottsa .psid-footer-text { color: #D8508A; }
+.psid-card.psid-skin-lottsa .psid-barcode-bar { background: #D8508A; }
+.psid-card.psid-skin-lottsa .psid-xp-track { background: rgba(216, 80, 138, 0.18); }
+.psid-card.psid-skin-lottsa .psid-xp-fill {
+  background: linear-gradient(90deg, #FFB6CF, #D8508A);
+}
+.psid-card.psid-skin-lottsa .psid-frame {
+  border: 2px solid #FFFFFF;
+  outline: 1.5px solid #F5A8C4;
+  outline-offset: 2px;
+  border-radius: 4px;
+  box-shadow: 0 4px 14px rgba(216, 80, 138, 0.20);
+}
+.psid-card.psid-skin-lottsa .psid-bunny-pocket {
+  border: 2px solid #F5A8C4;
+  box-shadow: 0 4px 10px rgba(216, 80, 138, 0.30);
+}
+
+/* ── Babymoon University (formal cream + ink) ──────────────── */
+.psid-card.psid-skin-babymoon {
+  background-image:
+    linear-gradient(180deg, #F5EEDF 0%, #E8DCC2 100%);
+  box-shadow: 0 12px 32px rgba(40, 30, 20, 0.28), inset 0 0 0 2px #1F1A18;
+  font-family: 'Times New Roman', Georgia, serif;
+}
+.psid-card.psid-skin-babymoon .psid-header {
+  background: #F5EEDF;
+  border-bottom: 2px solid #1F1A18;
+}
+.psid-card.psid-skin-babymoon .psid-header::after { display: none; }
+.psid-card.psid-skin-babymoon .psid-cert-title {
+  font-family: 'Times New Roman', Georgia, serif;
+  color: #1F1A18;
+  letter-spacing: 4px;
+  font-weight: 600;
+}
+.psid-card.psid-skin-babymoon .psid-stamp-p {
+  font-family: 'Times New Roman', Georgia, serif;
+  color: #1F1A18;
+  font-weight: 700;
+}
+.psid-card.psid-skin-babymoon .psid-row-label {
+  font-family: 'Times New Roman', Georgia, serif;
+  color: #1F1A18;
+  letter-spacing: 1.5px;
+  font-weight: 600;
+}
+.psid-card.psid-skin-babymoon .psid-row-value,
+.psid-card.psid-skin-babymoon .psid-tier-text,
+.psid-card.psid-skin-babymoon .psid-title-text {
+  font-family: 'Times New Roman', Georgia, serif;
+  color: #1F1A18;
+  letter-spacing: 0.5px;
+}
+.psid-card.psid-skin-babymoon .psid-row {
+  border-bottom-color: #1F1A18;
+  border-bottom-style: solid;
+}
+.psid-card.psid-skin-babymoon .psid-mini-stat {
+  background: #FFFFFF;
+  border: 1px solid #1F1A18;
+  border-style: solid;
+}
+.psid-card.psid-skin-babymoon .psid-mini-num,
+.psid-card.psid-skin-babymoon .psid-mini-label {
+  font-family: 'Times New Roman', Georgia, serif;
+  color: #1F1A18;
+}
+.psid-card.psid-skin-babymoon .psid-footer {
+  background: #F5EEDF;
+  border-top: 2px solid #1F1A18;
+}
+.psid-card.psid-skin-babymoon .psid-footer::before { display: none; }
+.psid-card.psid-skin-babymoon .psid-footer-text {
+  font-family: 'Times New Roman', Georgia, serif;
+  color: #1F1A18;
+  letter-spacing: 1.5px;
+}
+.psid-card.psid-skin-babymoon .psid-barcode-bar { background: #1F1A18; }
+.psid-card.psid-skin-babymoon .psid-frame {
+  border: 1.5px solid #1F1A18;
+  border-radius: 0;
+}
+.psid-card.psid-skin-babymoon .psid-bunny-pocket {
+  border: 1.5px solid #1F1A18;
+}
+.psid-card.psid-skin-babymoon .psid-xp-track {
+  background: rgba(31, 26, 24, 0.15);
+}
+.psid-card.psid-skin-babymoon .psid-xp-fill {
+  background: #1F1A18;
+}
+
+/* ── Stage: card + vertical skin rail ──────────────────────── */
+.sid-stage {
+  width: 100%;
+  max-width: 760px;
+  display: grid;
+  grid-template-columns: minmax(0, 560px) 168px;
+  gap: 18px;
+  align-items: start;
+  margin: 0 auto 24px;
+}
+.sid-stage .sid-card-wrap { margin-bottom: 0; }
+
+.sid-skins {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  padding: 12px;
+  background: white;
+  border: 2px solid var(--sid-pink-100);
+  border-radius: 18px;
+  box-shadow: 0 4px 16px rgba(220, 60, 130, 0.06);
+  position: sticky;
+  top: 16px;
+}
+.sid-skins.is-collapsed { padding: 8px 12px; }
+.sid-skins-title {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 9px;
+  letter-spacing: 1.2px;
+  color: var(--sid-pink-ink);
+  text-align: center;
+  padding: 4px 0 8px;
+  border: none;
+  background: transparent;
+  border-bottom: 1px dashed var(--sid-pink-200);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-family: 'Press Start 2P', monospace;
+}
+.sid-skins.is-collapsed .sid-skins-title {
+  border-bottom: none;
+  padding-bottom: 4px;
+}
+.sid-skins-title:hover { color: var(--sid-pink); }
+.sid-skins-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-top: 10px;
+  /* Roughly 5 buttons (~46px each + 8px gap) before scrolling kicks in. */
+  max-height: 270px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--sid-pink-300) transparent;
+}
+.sid-skins-list::-webkit-scrollbar { width: 6px; }
+.sid-skins-list::-webkit-scrollbar-thumb {
+  background: var(--sid-pink-300);
+  border-radius: 999px;
+}
+.sid-skins-list::-webkit-scrollbar-track { background: transparent; }
+.sid-skin-btn {
+  padding: 8px 10px;
+  border-radius: 12px;
+  border: 2px solid var(--sid-pink-soft);
+  background: white;
+  font-family: inherit;
+  font-size: 12px;
+  color: var(--sid-pink-ink);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-align: left;
+  transition: transform 0.1s ease, border-color 0.15s ease;
+}
+.sid-skin-btn:hover:not(:disabled) {
+  transform: translateX(2px);
+  border-color: var(--sid-pink);
+}
+.sid-skin-btn.is-active {
+  border-color: var(--sid-pink);
+  background: var(--sid-pink-100);
+  font-weight: 600;
+}
+.sid-skin-btn.is-locked {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.sid-skin-swatch {
+  width: 28px;
+  height: 22px;
+  border-radius: 6px;
+  border: 1px solid rgba(0,0,0,0.1);
+  display: inline-block;
+  flex-shrink: 0;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+}
+.sid-skin-name {
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+@media (max-width: 720px) {
+  .sid-stage {
+    grid-template-columns: 1fr;
+  }
+  .sid-skins { position: static; }
+  .sid-skins-list {
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+    max-height: none;
+    overflow: visible;
+  }
+  .sid-skin-btn { flex: 0 1 auto; }
 }

@@ -1,7 +1,7 @@
 // src/pages/Dashboard.jsx
 import { signOut } from 'firebase/auth';
 import { motion } from 'framer-motion';
-import { BookOpen, ChevronLeft, ChevronRight, Egg, LogOut, Plus, Sparkles } from 'lucide-react';
+import { BookOpen, ChevronLeft, ChevronRight, LogOut, Plus, Sparkles } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import CardZoomModal from "@/features/punchpass/CardZoomModal";
@@ -13,8 +13,11 @@ import { auth } from "@/services/firebase";
 import { useAuth } from "@/features/auth/useAuth";
 import { useHabitStore } from "@/features/habits/habitStore";
 import HatchedBunny from "@/features/bunny/HatchedBunny";
-import useGacha from "@/features/gacha/useGacha";
-import ProfileSquares from "./ProfileSquares";
+import useUserProgress from "@/features/habits/useUserProgress";
+import useUserLevel from "@/features/progress/useUserLevel";
+import useLevelRewards from "@/features/progress/useLevelRewards";
+import LevelUpToast from "@/features/progress/LevelUpToast";
+import DashboardCards from "./DashboardCards";
 import "./EmptyState.css";
 import "./Carousel.css";
 
@@ -26,7 +29,9 @@ export default function Dashboard() {
   const punchHabit = useHabitStore(state => state.punchHabit);
   const undoPunch = useHabitStore(state => state.undoPunch);
   const fetchHabits = useHabitStore(state => state.fetchHabits);
-  const { tokensAvailable } = useGacha();
+  const progress = useUserProgress(habits);
+  const { level } = useUserLevel(progress);
+  const { event: levelUpEvent, acknowledge: dismissLevelUp } = useLevelRewards(level);
   const [showReflection, setShowReflection] = useState(false);
   const [showJournals, setShowJournals] = useState(false);
   const [activeIndex, setActiveIndex] = useState(0);
@@ -259,17 +264,9 @@ export default function Dashboard() {
           </button>
         )}
 
-        <ProfileSquares habits={habits} />
+        <DashboardCards habits={habits} />
 
         <div className="dashboard-quick-row">
-          <button
-            onClick={() => navigate('/gacha')}
-            className="dashboard-quick-btn dashboard-gacha-tile"
-          >
-            <Egg size={18} />
-            <span>Punchie Machine</span>
-            <span className="dashboard-token-pill">✦ {tokensAvailable}</span>
-          </button>
           <button
             onClick={() => setShowJournals(true)}
             className="dashboard-quick-btn dashboard-journal-btn"
@@ -279,6 +276,8 @@ export default function Dashboard() {
           </button>
         </div>
       </div>
+
+      <LevelUpToast event={levelUpEvent} onClose={dismissLevelUp} />
 
       {/* Modals */}
       {showReflection && (

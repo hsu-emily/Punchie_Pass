@@ -40,9 +40,37 @@ export const PULL_COST = 1;
 export const PULL_BUNDLES = [1, 10];
 
 /**
- * GACHA_ITEMS — the live drop pool, keyed off the assets that exist on disk
- * today. Stickers / decorations / avatar-decorations are seeded with
- * `_artPending: true` so the renderer can show a placeholder until art lands.
+ * Shards — recycling a duplicate (any item with count > 1) yields shards
+ * scaled by rarity. Spend shards on upload slots, future cosmetic skins, etc.
+ */
+export const SHARD_VALUE = {
+  common: 1,
+  cute:   2,
+  rare:   5,
+  holo:   12,
+  secret: 30,
+};
+
+/**
+ * Custom-icon upload slots — slot 1 is free. Additional slots cost shards
+ * per the schedule below (slot 2 = 5, slot 3 = 20, slot 4 = 30, …). The
+ * array is open-ended; if the user blasts past the end, future slots cost
+ * the last value in the schedule.
+ */
+export const UPLOAD_SLOT_COSTS = [5, 20, 30, 50, 80];
+
+export function uploadSlotCost(nextSlotIndex) {
+  // nextSlotIndex is 1-based: 1 = the slot you already have free, so first
+  // *purchasable* slot is index 2 → schedule[0].
+  const i = Math.max(0, nextSlotIndex - 2);
+  return UPLOAD_SLOT_COSTS[Math.min(i, UPLOAD_SLOT_COSTS.length - 1)];
+}
+
+/**
+ * GACHA_ITEMS — the live drop pool, restricted to kinds that have real art
+ * on disk today (cursor / icon / pass-template / egg). Sticker, decoration,
+ * and avatar-decoration entries are removed from the pool until their art
+ * folders exist; re-add them here once the PNGs land.
  */
 export const GACHA_ITEMS = [
   // ── Cursors (src/assets/cursors/{ref}/) ──
@@ -94,27 +122,15 @@ export const GACHA_ITEMS = [
   { id: 'tpl.digiCam',       kind: 'pass-template', rarity: 'holo',   ref: 'DigiCam.png',       name: 'Digi-Cam Memory' },
   { id: 'tpl.filmCam',       kind: 'pass-template', rarity: 'holo',   ref: 'FilmCam.png',       name: 'Film-Cam Memory' },
 
+  // ── ID skins (alt looks for the StudentIdCard) ──
+  // `ref` is the skin id consumed by StudentIdCard's `psid-skin-{ref}` class.
+  { id: 'idSkin.holo', kind: 'idSkin', rarity: 'holo',   ref: 'holo', name: 'Holographic ID' },
+
   // ── Eggs → bunny variants (kawaii pets) ──
+  { id: 'egg.sea',      kind: 'egg', rarity: 'cute',   ref: 'seabun',      name: 'Sea Egg' },
+  { id: 'egg.choco',    kind: 'egg', rarity: 'rare',   ref: 'chocobun',    name: 'Choco Egg' },
   { id: 'egg.stardust', kind: 'egg', rarity: 'holo',   ref: 'stardustbun', name: 'Stardust Egg' },
   { id: 'egg.golden',   kind: 'egg', rarity: 'secret', ref: 'goldbun',     name: 'Golden Egg' },
-
-  // ── Stickers (art pending — renderer falls back to placeholder) ──
-  { id: 'sticker.heart',       kind: 'sticker', rarity: 'common', ref: 'heart',       name: 'Lil Heart',       _artPending: true },
-  { id: 'sticker.cloud',       kind: 'sticker', rarity: 'common', ref: 'cloud',       name: 'Tiny Cloud',      _artPending: true },
-  { id: 'sticker.starBit',     kind: 'sticker', rarity: 'common', ref: 'star-bit',    name: 'Star Bit',        _artPending: true },
-  { id: 'sticker.bow',         kind: 'sticker', rarity: 'cute',   ref: 'bow',         name: 'Pink Bow',        _artPending: true },
-  { id: 'sticker.cake',        kind: 'sticker', rarity: 'cute',   ref: 'cake',        name: 'Slice of Cake',   _artPending: true },
-  { id: 'sticker.bunnyChibi',  kind: 'sticker', rarity: 'rare',   ref: 'bunny-chibi', name: 'Chibi Bunny',     _artPending: true },
-  { id: 'sticker.galaxyBow',   kind: 'sticker', rarity: 'holo',   ref: 'galaxy-bow',  name: 'Galaxy Bow ✦',    _artPending: true },
-  { id: 'sticker.goldenBunny', kind: 'sticker', rarity: 'secret', ref: 'gold-bunny',  name: '★ Golden Bunny ★', _artPending: true },
-
-  // ── Decorations (frame stickers for the Student ID — art pending) ──
-  { id: 'decoration.lace',   kind: 'decoration', rarity: 'cute', ref: 'lace',   name: 'Lace Trim',   _artPending: true },
-  { id: 'decoration.pearls', kind: 'decoration', rarity: 'rare', ref: 'pearls', name: 'Pearl String', _artPending: true },
-
-  // ── Avatar decorations (worn on the avatar — art pending) ──
-  { id: 'avatar.tinyCrown', kind: 'avatar-decoration', rarity: 'rare', ref: 'tinyCrown', name: 'Tiny Crown', _artPending: true },
-  { id: 'avatar.haloRing',  kind: 'avatar-decoration', rarity: 'holo', ref: 'haloRing',  name: 'Halo Ring',  _artPending: true },
 ];
 
 export const GACHA_KINDS = [...new Set(GACHA_ITEMS.map((i) => i.kind))];

@@ -37,7 +37,8 @@ export default function useUserLevel({
 } = {}) {
   const { profile } = useAuth();
   const activeKind = profile?.bunny?.kind || 'bun';
-  const { xpMultiplier } = getPetBonus(activeKind);
+  const upgradeLv = profile?.pets?.upgrades?.[activeKind] || 0;
+  const { xpMultiplier } = getPetBonus(activeKind, upgradeLv);
 
   return useMemo(() => {
     const xp =

@@ -1,0 +1,60 @@
+.hatch-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1500;
+  background: radial-gradient(circle at 50% 40%, #fff5fa 0%, rgba(255, 228, 240, 0.92) 60%, rgba(220, 60, 130, 0.55) 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  font-family: 'Fredoka', system-ui, sans-serif;
+  color: #61283B;
+}
+
+.hatch-stage {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 14px;
+  max-width: 420px;
+}
+
+.hatch-title {
+  font-family: 'Fredoka', cursive;
+  font-size: 28px;
+  font-weight: 600;
+  margin: 0;
+  color: #DB2777;
+}
+
+.hatch-lede {
+  margin: 0;
+  font-size: 14px;
+  color: #8B6F77;
+}
+
+.hatch-nest {
+  margin: 8px 0;
+}
+
+.hatch-tagline {
+  font-size: 14px;
+  color: #61283B;
+  font-style: italic;
+}
+
+.hatch-btn {
+  margin-top: 12px;
+  padding: 12px 28px;
+  border-radius: 999px;
+  border: none;
+  background: #EC4899;
+  color: white;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 6px 16px rgba(220, 60, 130, 0.35);
+}
+.hatch-btn:hover { background: #DB2777; }

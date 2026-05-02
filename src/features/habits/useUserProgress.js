@@ -11,13 +11,20 @@ import useStreak from './useStreak';
  * Pulls the active pet's `streakShield` from the profile and forwards it
  * to useStreak so the streak number reflects the equipped pet's grace.
  *
- * @returns {{ totalPunches, completedPasses, currentStreak, longestStreak,
- *             shieldUsed, punchDates: Date[] }}
+ * `passTokens` weights each completed pass by its frequency category
+ * (daily=1, weekly=4, monthly=10) — used by the gacha as the base token
+ * grant. `completedPasses` remains a raw count for level/XP math.
+ *
+ * @returns {{ totalPunches, completedPasses, passTokens, currentStreak,
+ *             longestStreak, shieldUsed, punchDates: Date[] }}
  */
+const PASS_TOKEN_VALUE = { daily: 1, weekly: 4, monthly: 10 };
+
 export default function useUserProgress(habits) {
   const { profile } = useAuth();
   const activeKind = profile?.bunny?.kind || 'bun';
-  const { streakShield } = getPetBonus(activeKind);
+  const upgradeLv = profile?.pets?.upgrades?.[activeKind] || 0;
+  const { streakShield } = getPetBonus(activeKind, upgradeLv);
 
   const punchDates = useMemo(() => {
     if (!habits?.length) return [];
@@ -34,12 +41,18 @@ export default function useUserProgress(habits) {
       (acc, h) => acc + (h.currentPunches || 0),
       0
     );
-    const completedPasses = (habits || []).filter(
+    const completed = (habits || []).filter(
       (h) => (h.currentPunches || 0) >= (h.targetPunches || 10)
-    ).length;
+    );
+    const completedPasses = completed.length;
+    const passTokens = completed.reduce((acc, h) => {
+      const freq = h.frequency || h.timeWindow || 'daily';
+      return acc + (PASS_TOKEN_VALUE[freq] ?? 1);
+    }, 0);
     return {
       totalPunches,
       completedPasses,
+      passTokens,
       currentStreak: current,
       longestStreak: longest,
       shieldUsed,

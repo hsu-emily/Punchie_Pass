@@ -17,6 +17,7 @@ import { useNavigate } from 'react-router-dom';
 import useGacha from './useGacha';
 import DropListModal from './DropListModal';
 import RewardRevealOverlay from './RewardRevealOverlay';
+import TokenIcon from './TokenIcon';
 import { PITY_RULES, PULL_BUNDLES, RARITY_META } from './gachaCatalog';
 import { POP_URL, WINDUP_URL, playLoop, playOneShot } from './sounds';
 import './GachaPage.css';
@@ -42,8 +43,17 @@ const CRACK_MS = 1200;
 
 export default function GachaPage() {
   const navigate = useNavigate();
-  const { tokensAvailable, pullsUsed, pityCounter, bonusTokens, inventory, pull, pulling, error } =
-    useGacha();
+  const {
+    tokensAvailable,
+    pullsUsed,
+    pityCounter,
+    bonusTokens,
+    inventory,
+    pull,
+    pulling,
+    error,
+    grantBonusTokens,
+  } = useGacha();
   const [phase, setPhase] = useState('idle'); // idle | crank | drop | crack
   const [revealItems, setRevealItems] = useState(null);
   const [showDropList, setShowDropList] = useState(false);
@@ -114,12 +124,25 @@ export default function GachaPage() {
       <div className="gacha-token-card">
         <div className="gacha-token-row">
           <span className="gacha-token-label">PUNCHIE TOKENS</span>
-          <span className="gacha-token-num">✦ {tokensAvailable}</span>
+          <span className="gacha-token-num">
+            <TokenIcon size={26} style={{ verticalAlign: '-0.22em', marginRight: 4 }} />
+            {tokensAvailable}
+          </span>
         </div>
         <div className="gacha-token-meta">
           {pullsUsed} pulls all-time · {pityHintFor(pityCounter)}
           {bonusTokens > 0 && ` · ${bonusTokens} bonus`}
         </div>
+        {import.meta.env.DEV && (
+          <button
+            type="button"
+            className="gacha-dev-grant"
+            onClick={() => grantBonusTokens(20).catch((e) => setPendingError(e.message))}
+            title="Dev only — grants 20 bonus tokens"
+          >
+            <TokenIcon size={12} /> +20 (dev)
+          </button>
+        )}
       </div>
 
       <PunchieMachine phase={phase} accent={leadAccent} />
@@ -133,7 +156,7 @@ export default function GachaPage() {
             onClick={() => handlePull(n)}
           >
             <Sparkles size={16} /> Pull ×{n}
-            <span className="gacha-pull-cost">{n} ✦</span>
+            <span className="gacha-pull-cost">{n} <TokenIcon size={11} /></span>
           </button>
         ))}
         <button
@@ -172,43 +195,114 @@ function PunchieMachine({ phase, accent }) {
 
   return (
     <div className={`pm-frame ${phase}`}>
-      <svg viewBox="0 0 220 320" className="pm-svg" xmlns="http://www.w3.org/2000/svg">
+      <svg viewBox="0 0 220 330" className="pm-svg" xmlns="http://www.w3.org/2000/svg">
         <defs>
-          <radialGradient id="pmGlobe" cx="50%" cy="38%" r="60%">
-            <stop offset="0%" stopColor="#FFFFFF" stopOpacity="0.9" />
-            <stop offset="100%" stopColor="#FCE7F3" stopOpacity="0.85" />
+          <radialGradient id="pmGlobe" cx="45%" cy="32%" r="68%">
+            <stop offset="0%" stopColor="#FFFFFF" stopOpacity="0.96" />
+            <stop offset="45%" stopColor="#FFF7FB" stopOpacity="0.9" />
+            <stop offset="100%" stopColor="#FBCFE8" stopOpacity="0.78" />
           </radialGradient>
+
           <linearGradient id="pmBody" x1="0" x2="0" y1="0" y2="1">
             <stop offset="0%" stopColor="#F9A8D4" />
-            <stop offset="100%" stopColor="#F472B6" />
+            <stop offset="48%" stopColor="#F472B6" />
+            <stop offset="100%" stopColor="#EC4899" />
           </linearGradient>
+
           <linearGradient id="pmCrank" x1="0" x2="1" y1="0" y2="1">
             <stop offset="0%" stopColor="#FFD27A" />
             <stop offset="100%" stopColor="#F472B6" />
           </linearGradient>
+
+          <filter id="pmSoftShadow" x="-30%" y="-30%" width="160%" height="160%">
+            <feDropShadow dx="0" dy="10" stdDeviation="10" floodColor="#DB2777" floodOpacity="0.22" />
+          </filter>
         </defs>
 
-        <ellipse cx="110" cy="312" rx="86" ry="6" fill="rgba(220,60,130,0.18)" />
+        {/* soft machine aura */}
+        <ellipse cx="110" cy="176" rx="106" ry="140" fill="#FBCFE8" opacity="0.18" />
+        <ellipse cx="110" cy="318" rx="92" ry="8" fill="#DB2777" opacity="0.16" />
 
-        <rect x="28" y="148" width="164" height="148" rx="18" fill="url(#pmBody)"
-              stroke="#DB2777" strokeWidth="3" />
-        <rect x="48" y="170" width="124" height="46" rx="8" fill="#fff"
-              stroke="#DB2777" strokeWidth="2.5" />
-        <text x="110" y="194" textAnchor="middle"
-              fontFamily="Press Start 2P, monospace" fontSize="9" fill="#DB2777">
+        {/* floating decorations */}
+        <text x="32" y="126" fontSize="12" fill="#F472B6" opacity="0.8">✦</text>
+        <text x="180" y="122" fontSize="11" fill="#FFD27A" opacity="0.95">✦</text>
+        <text x="42" y="224" fontSize="9" fill="#FFFFFF" opacity="0.95">♡</text>
+        <text x="168" y="216" fontSize="9" fill="#FFFFFF" opacity="0.95">♡</text>
+        <text x="28" y="184" fontSize="8" fill="#F9A8D4" opacity="0.65">✧</text>
+        <text x="188" y="185" fontSize="8" fill="#F9A8D4" opacity="0.65">✧</text>
+
+        {/* feet */}
+        <rect x="50" y="292" width="30" height="10" rx="5" fill="#DB2777" opacity="0.9" />
+        <rect x="140" y="292" width="30" height="10" rx="5" fill="#DB2777" opacity="0.9" />
+
+        {/* body shadow/backplate */}
+        <rect x="25" y="149" width="170" height="151" rx="24" fill="#DB2777" opacity="0.16" />
+        <rect
+          x="28"
+          y="146"
+          width="164"
+          height="150"
+          rx="23"
+          fill="url(#pmBody)"
+          stroke="#DB2777"
+          strokeWidth="3.5"
+          filter="url(#pmSoftShadow)"
+        />
+
+        {/* soft body shine */}
+        <path
+          d="M43 158 Q110 136 177 158"
+          stroke="#FFFFFF"
+          strokeWidth="5"
+          opacity="0.24"
+          fill="none"
+          strokeLinecap="round"
+        />
+
+        {/* label panel */}
+        <rect
+          x="47"
+          y="169"
+          width="126"
+          height="48"
+          rx="10"
+          fill="#FFFFFF"
+          stroke="#DB2777"
+          strokeWidth="2.8"
+        />
+        <rect x="55" y="176" width="110" height="8" rx="4" fill="#FCE7F3" opacity="0.7" />
+
+        <text
+          x="110"
+          y="195"
+          textAnchor="middle"
+          fontFamily="Press Start 2P, monospace"
+          fontSize="9"
+          fill="#DB2777"
+        >
           ★ PUNCHIE ★
         </text>
-        <text x="110" y="208" textAnchor="middle"
-              fontFamily="Press Start 2P, monospace" fontSize="6.5" fill="#9D2A66">
+        <text
+          x="110"
+          y="209"
+          textAnchor="middle"
+          fontFamily="Press Start 2P, monospace"
+          fontSize="6.5"
+          fill="#9D2A66"
+        >
           INSERT TOKEN
         </text>
 
-        <rect x="98" y="226" width="24" height="5" rx="2.5" fill="#5B1B36" />
+        {/* token slot */}
+        <rect x="96" y="226" width="28" height="6" rx="3" fill="#5B1B36" />
 
-        <rect x="74" y="252" width="72" height="32" rx="6" fill="#5B1B36" />
-        <rect x="82" y="260" width="56" height="18" rx="3" fill="#2C0F1B" />
+        {/* prize chute */}
+        <rect x="73" y="250" width="74" height="34" rx="7" fill="#5B1B36" />
+        <rect x="82" y="259" width="56" height="18" rx="4" fill="#2C0F1B" />
+        <rect x="86" y="262" width="48" height="4" rx="2" fill="#FFFFFF" opacity="0.08" />
 
-        <circle cx="178" cy="240" r="11" fill="#5B1B36" />
+        {/* crank */}
+        <circle cx="178" cy="240" r="12" fill="#5B1B36" />
         <g
           style={{
             transformOrigin: '178px 240px',
@@ -216,26 +310,57 @@ function PunchieMachine({ phase, accent }) {
             animation: phase === 'crank' ? 'pm-crank 3s cubic-bezier(0.45, 0, 0.55, 1) 1' : 'none',
           }}
         >
-          <circle cx="178" cy="240" r="9" fill="url(#pmCrank)"
-                  stroke="#DB2777" strokeWidth="2" />
-          <rect x="187" y="237" width="14" height="6" rx="3" fill="#5B1B36" />
-          <circle cx="201" cy="240" r="4.5" fill="#FFD27A" stroke="#5B1B36" strokeWidth="1.5" />
+          <circle
+            cx="178"
+            cy="240"
+            r="9.5"
+            fill="url(#pmCrank)"
+            stroke="#DB2777"
+            strokeWidth="2"
+          />
+          <rect x="187" y="237" width="15" height="6" rx="3" fill="#5B1B36" />
+          <circle cx="203" cy="240" r="5" fill="#FFD27A" stroke="#5B1B36" strokeWidth="1.5" />
         </g>
 
-        <circle cx="110" cy="86" r="68" fill="url(#pmGlobe)"
-                stroke="#F472B6" strokeWidth="3" />
-        <path d="M70 60 Q86 38 110 38" stroke="#fff" strokeWidth="6"
-              strokeLinecap="round" fill="none" opacity="0.7" />
+        {/* glass globe */}
+        <circle
+          cx="110"
+          cy="86"
+          r="68"
+          fill="url(#pmGlobe)"
+          stroke="#F472B6"
+          strokeWidth="3.5"
+        />
+        <circle cx="110" cy="86" r="58" fill="none" stroke="#FFFFFF" strokeWidth="1.4" opacity="0.38" />
+        <path
+          d="M70 61 Q86 39 110 39"
+          stroke="#FFFFFF"
+          strokeWidth="6"
+          strokeLinecap="round"
+          fill="none"
+          opacity="0.72"
+        />
+        <path
+          d="M91 43 Q118 29 145 48"
+          stroke="#FFFFFF"
+          strokeWidth="3.5"
+          strokeLinecap="round"
+          fill="none"
+          opacity="0.38"
+        />
 
+        {/* capsules inside globe */}
         <CapsuleDot cx={86} cy={88} fill="#A5C2F0" />
         <CapsuleDot cx={120} cy={70} fill="#FFD27A" />
         <CapsuleDot cx={102} cy={118} fill="#C5B7FF" />
         <CapsuleDot cx={138} cy={102} fill="#F472B6" />
 
-        <rect x="84" y="142" width="52" height="14" rx="4" fill="#DB2777" />
+        {/* neck connector */}
+        <rect x="84" y="142" width="52" height="15" rx="5" fill="#DB2777" />
+        <rect x="92" y="144" width="36" height="4" rx="2" fill="#FFFFFF" opacity="0.16" />
 
-        <text x="46" y="266" fontSize="10" fill="#fff" opacity="0.9">♡</text>
-        <text x="160" y="266" fontSize="10" fill="#fff" opacity="0.9">♡</text>
+        <text x="46" y="266" fontSize="10" fill="#fff" opacity="0.92">♡</text>
+        <text x="160" y="266" fontSize="10" fill="#fff" opacity="0.92">♡</text>
       </svg>
 
       {/* Falling / cracking capsule overlay */}

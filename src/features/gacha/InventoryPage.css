@@ -172,6 +172,28 @@
 }
 .inv-tile:hover { transform: translateY(-2px); }
 
+button.inv-tile {
+  font-family: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+.inv-tile-egg {
+  background: linear-gradient(180deg, #FFF7FC, #FFE4F0);
+  animation: inv-egg-wiggle 2.4s ease-in-out infinite;
+}
+.inv-tile-cta {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 7px;
+  letter-spacing: 0.6px;
+  color: var(--i-pink);
+  margin-top: 2px;
+}
+@keyframes inv-egg-wiggle {
+  0%, 100% { transform: rotate(0deg); }
+  25% { transform: rotate(-1.5deg); }
+  75% { transform: rotate(1.5deg); }
+}
+
 .inv-art {
   display: flex;
   align-items: center;
@@ -194,3 +216,138 @@
   text-transform: uppercase;
 }
 .inv-dupe { color: var(--i-mute); }
+
+/* ── Shards balance + slot upgrade card ─────────────────────── */
+.inv-shards-card {
+  width: 100%;
+  max-width: 720px;
+  margin: 0 auto 18px;
+  padding: 14px 18px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #fff8fc 0%, #ffeaf3 60%, #f0eaff 100%);
+  border: 1.5px solid var(--i-pink-200);
+  box-shadow: 0 4px 14px rgba(220, 60, 130, 0.08);
+  font-family: 'Fredoka', system-ui, sans-serif;
+  color: var(--i-pink-ink);
+}
+.inv-shards-row {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  flex-wrap: wrap;
+}
+.inv-shards-balance,
+.inv-shards-stat {
+  display: flex;
+  flex-direction: column;
+}
+.inv-shards-num {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 18px;
+  color: var(--i-pink);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.inv-shards-num-sm {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 14px;
+  color: var(--i-pink-ink);
+}
+.inv-shards-label {
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  color: var(--i-mute);
+  text-transform: uppercase;
+}
+.inv-shards-actions {
+  margin-left: auto;
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+.inv-shards-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 16px;
+  border-radius: 999px;
+  border: none;
+  background: var(--i-pink);
+  color: white;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 4px 10px rgba(220, 60, 130, 0.3);
+}
+.inv-shards-btn:hover { background: #DB2777; }
+.inv-shards-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+.inv-shards-btn-ghost {
+  background: white;
+  color: var(--i-pink-ink);
+  border: 1.5px solid var(--i-pink-300);
+  box-shadow: 0 2px 6px rgba(220, 60, 130, 0.12);
+}
+.inv-shards-btn-ghost:hover { background: var(--i-pink-100); }
+
+/* Fixed-position toast — does not affect document layout. */
+.inv-toast {
+  position: fixed;
+  right: 20px;
+  bottom: 20px;
+  z-index: 1300;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  border-radius: 999px;
+  background: white;
+  border: 2px solid var(--i-pink);
+  color: var(--i-pink-ink);
+  font-family: 'Fredoka', system-ui, sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  box-shadow: 0 8px 22px rgba(220, 60, 130, 0.28);
+  animation: inv-toast-pop 0.32s cubic-bezier(0.34, 1.56, 0.64, 1);
+  pointer-events: none;
+}
+@keyframes inv-toast-pop {
+  0%   { transform: translateY(8px) scale(0.85); opacity: 0; }
+  60%  { transform: translateY(-2px) scale(1.04); opacity: 1; }
+  100% { transform: translateY(0) scale(1); opacity: 1; }
+}
+
+/* ── Tile additions: recycle button ─────────────────────────── */
+.inv-tile { position: relative; }
+.inv-tile-recycle {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 4px 7px;
+  border-radius: 999px;
+  border: 1px solid var(--i-pink-300);
+  background: white;
+  color: var(--i-pink);
+  font-family: 'Fredoka', system-ui, sans-serif;
+  font-size: 10px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 2px 4px rgba(220, 60, 130, 0.12);
+}
+.inv-tile-recycle:hover { background: var(--i-pink-100); }
+.inv-tile-recycle:disabled { opacity: 0.5; cursor: not-allowed; }
+.inv-tile-recycle-x {
+  margin-left: 2px;
+  font-size: 9px;
+  color: var(--i-mute);
+  font-weight: 500;
+}

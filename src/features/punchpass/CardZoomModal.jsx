@@ -5,12 +5,20 @@ import { useNavigate } from 'react-router-dom';
 import { useHabitStore } from "@/features/habits/habitStore";
 import PunchCard from '@/features/punchpass/PunchCard';
 
+const LOCK_MESSAGE = {
+  daily:   'Already punched today — come back tomorrow 🌙',
+  weekly:  'Already punched this week — come back next week 🗓️',
+  monthly: 'Already punched this month — come back next month 🗓️',
+};
+
 export default function CardZoomModal({ habit, onClose, onPunch, onUndo }) {
   const navigate = useNavigate();
-  const { deleteHabit } = useHabitStore();
+  const deleteHabit = useHabitStore((s) => s.deleteHabit);
+  const canPunchToday = useHabitStore((s) => s.canPunchToday);
   const [showSettings, setShowSettings] = useState(false);
   const [justPunched, setJustPunched] = useState(false);
   const [confettiTriggered, setConfettiTriggered] = useState(false);
+  const [lockToast, setLockToast] = useState(null);
 
   const isComplete = habit.currentPunches >= habit.targetPunches;
 
@@ -35,7 +43,15 @@ export default function CardZoomModal({ habit, onClose, onPunch, onUndo }) {
 
   const handleCardClick = (e) => {
     e.stopPropagation();
-    if (onPunch && habit.currentPunches < habit.targetPunches && !justPunched) {
+    if (habit.currentPunches >= habit.targetPunches || justPunched) return;
+    if (!canPunchToday(habit)) {
+      const freq = habit.frequency || habit.timeWindow || 'daily';
+      const id = Date.now();
+      setLockToast({ id, msg: LOCK_MESSAGE[freq] || LOCK_MESSAGE.daily });
+      setTimeout(() => setLockToast((t) => (t?.id === id ? null : t)), 2200);
+      return;
+    }
+    if (onPunch) {
       onPunch();
       setJustPunched(true);
       setTimeout(() => setJustPunched(false), 2000);
@@ -147,6 +163,22 @@ export default function CardZoomModal({ habit, onClose, onPunch, onUndo }) {
               }
             }}
           />
+
+          <AnimatePresence>
+            {lockToast && (
+              <motion.div
+                key={lockToast.id}
+                className="card-zoom-lock-toast"
+                initial={{ y: 12, opacity: 0, scale: 0.9 }}
+                animate={{ y: 0, opacity: 1, scale: 1 }}
+                exit={{ y: -8, opacity: 0 }}
+                transition={{ type: 'spring', stiffness: 320, damping: 22 }}
+                role="status"
+              >
+                {lockToast.msg}
+              </motion.div>
+            )}
+          </AnimatePresence>
         </motion.div>
       </motion.div>
     </AnimatePresence>

@@ -49,11 +49,10 @@ export const BUNNY_VARIANTS = {
     name: 'Sea Bun',
     tagline: "Don't forget to stay hydrated.",
     rarity: 'cute',
-    source: 'progress',
-    condition: (p) => p.totalPunches >= 25,
-    hint: '25 lifetime punches',
-    bonus: { xpMultiplier: 1.1, tokenChance: 0, streakShield: 0 },
-    bonusLabel: '+10% XP per punch',
+    source: 'egg',
+    hint: 'Hatch a Sea Egg from the Punchie Machine',
+    bonus: { xpMultiplier: 1.05, tokenChance: 0, streakShield: 0 },
+    bonusLabel: '+5% XP per punch',
     palette: {
       cream: '#E0EEFF',
       body:  '#5B8FD9',
@@ -67,11 +66,10 @@ export const BUNNY_VARIANTS = {
     name: 'Choco Bun',
     tagline: "Don't forget to reward yourself.",
     rarity: 'cute',
-    source: 'progress',
-    condition: (p) => p.completedPasses >= 1,
-    hint: 'Complete your first pass',
-    bonus: { xpMultiplier: 1, tokenChance: 0.25, streakShield: 0 },
-    bonusLabel: '+25% chance of bonus token on pass complete',
+    source: 'egg',
+    hint: 'Hatch a Choco Egg from the Punchie Machine',
+    bonus: { xpMultiplier: 1, tokenChance: 0.12, streakShield: 0 },
+    bonusLabel: '+12% chance of bonus token on pass complete',
     palette: {
       cream: '#AE8275',
       body:  '#9A6F62',
@@ -87,8 +85,8 @@ export const BUNNY_VARIANTS = {
     rarity: 'holo',
     source: 'egg',
     hint: 'Hatch a Stardust Egg from the Punchie Machine',
-    bonus: { xpMultiplier: 1.25, tokenChance: 0, streakShield: 1 },
-    bonusLabel: '+25% XP · 1-day streak shield',
+    bonus: { xpMultiplier: 1.12, tokenChance: 0, streakShield: 1 },
+    bonusLabel: '+12% XP · 1-day streak shield',
     palette: {
       cream: '#EDE7FF',
       body:  '#9B7CFF',
@@ -104,8 +102,8 @@ export const BUNNY_VARIANTS = {
     rarity: 'secret',
     source: 'egg',
     hint: 'Hatch a Golden Egg (Secret pull from the Punchie Machine)',
-    bonus: { xpMultiplier: 1.15, tokenChance: 0.5, streakShield: 0 },
-    bonusLabel: '+15% XP · +50% bonus token chance',
+    bonus: { xpMultiplier: 1.08, tokenChance: 0.25, streakShield: 0 },
+    bonusLabel: '+8% XP · +25% bonus token chance',
     palette: {
       cream: '#FFF6D6',
       body:  '#E5B845',
@@ -118,12 +116,10 @@ export const BUNNY_VARIANTS = {
 
 export const BUNNY_KINDS = Object.keys(BUNNY_VARIANTS);
 
-/** Starter bunnies are progression-source only — egg-source pets can never
- *  appear from HatchScene's roll, since those are gacha rewards. */
-const STARTER_KINDS = BUNNY_KINDS.filter((k) => BUNNY_VARIANTS[k].source !== 'egg');
-
+/** Every new user hatches the default `bun`. All other variants are unlocked
+ *  through progression or earned via the gacha system. */
 export function pickRandomBunny() {
-  return STARTER_KINDS[Math.floor(Math.random() * STARTER_KINDS.length)];
+  return 'bun';
 }
 
 /**

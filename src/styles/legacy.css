@@ -2454,3 +2454,22 @@ textarea {
   border-radius: 9999px;
   transition: width 0.3s;
 }
+/* Lock toast that appears when tapping an already-punched card. */
+.card-zoom-lock-toast {
+  position: absolute;
+  left: 50%;
+  bottom: -56px;
+  transform: translateX(-50%);
+  white-space: nowrap;
+  padding: 10px 18px;
+  border-radius: 999px;
+  background: white;
+  border: 2px solid #F472B6;
+  color: #61283B;
+  font-family: 'Fredoka', system-ui, sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  box-shadow: 0 8px 24px rgba(220, 60, 130, 0.32);
+  pointer-events: none;
+  z-index: 5;
+}

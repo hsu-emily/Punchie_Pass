@@ -58,6 +58,7 @@ export default function EditPassPage() {
       navigate('/dashboard');
     } catch (err) {
       console.error('Failed to update pass:', err);
+      alert(`Failed to save: ${err?.message || 'Unknown error'}`);
       setSaving(false);
     }
   };

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { ArrowLeft, Backpack, Download, PawPrint, Pencil, Share2 } from 'lucide-react';
+import { ArrowLeft, Backpack, ChevronDown, ChevronUp, Download, PawPrint, Pencil, Share2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { doc, serverTimestamp, setDoc } from 'firebase/firestore';
 import { db } from '@/services/firebase';
@@ -12,12 +12,21 @@ import AvatarCustomizer from '@/features/avatar/AvatarCustomizer';
 import StudentIdCard from './StudentIdCard';
 import './StudentIdPage.css';
 
+const ID_SKINS = [
+  { id: 'default',  name: 'Classic',      swatch: 'linear-gradient(135deg,#fef0fa,#dcebff)' },
+  { id: 'holo',     name: 'Holographic',  swatch: 'linear-gradient(135deg,#FBCFE8,#C5B8FF,#A5C2F0)' },
+  { id: 'wishz',    name: 'Frosty Blue',   swatch: 'linear-gradient(135deg,#BFDCFF,#7FB3F0)' },
+  { id: 'inari',    name: 'Maroon',        swatch: 'linear-gradient(135deg,#7E1F2C,#F4E6CE)' },
+  { id: 'lottsa',   name: 'Princess Pink', swatch: 'linear-gradient(135deg,#FFE4F0,#FFB6CF,#E94B8C)' },
+  { id: 'babymoon', name: 'Beige',         swatch: 'linear-gradient(135deg,#F2EBDD,#1F1A18)' },
+];
+
 function deriveIdNumber(uid) {
-  if (!uid) return 'PP-0042';
+  if (!uid) return 'PP-0000000';
   const num = Math.abs(
     uid.split('').reduce((acc, c) => (acc * 31 + c.charCodeAt(0)) | 0, 0)
-  ) % 10000;
-  return `PP-${String(num).padStart(4, '0')}`;
+  ) % 10_000_000;
+  return `PP-${String(num).padStart(7, '0')}`;
 }
 
 export default function StudentIdPage() {
@@ -28,6 +37,7 @@ export default function StudentIdPage() {
   const cardRef = useRef(null);
   const [busy, setBusy] = useState(null);
   const [editing, setEditing] = useState(false);
+  const [skinsOpen, setSkinsOpen] = useState(true);
 
   useEffect(() => {
     if (user) fetchHabits(user.uid);
@@ -43,6 +53,26 @@ export default function StudentIdPage() {
   const idNumber = deriveIdNumber(user?.uid);
   const memberSince = profile?.studentId?.memberSince?.toDate?.() ||
     user?.metadata?.creationTime;
+  const activeSkin = profile?.studentId?.skin || 'default';
+  // TEMP: every skin unlocked while we polish the new variants. Revert by
+  // restoring the inventory-derived Set once the designs are locked in.
+  const ownedSkins = useMemo(
+    () => new Set(ID_SKINS.map((s) => s.id)),
+    []
+  );
+
+  const handleSelectSkin = async (skinId) => {
+    if (!user || skinId === activeSkin || !ownedSkins.has(skinId)) return;
+    try {
+      await setDoc(
+        doc(db, 'users', user.uid),
+        { studentId: { skin: skinId }, updatedAt: serverTimestamp() },
+        { merge: true }
+      );
+    } catch (err) {
+      console.error('Failed to switch ID skin:', err);
+    }
+  };
 
   const hatchedPets = useMemo(() => profile?.pets?.hatched || [], [profile?.pets?.hatched]);
 
@@ -54,7 +84,7 @@ export default function StudentIdPage() {
     [totalPunches, completedPasses, currentStreak, longestStreak, hatchedPets]
   );
 
-  const handleSaveEdits = async (nextAvatar, nextBunnyKind) => {
+  const handleSaveEdits = async (nextAvatar, nextBunnyKind, nextSkin) => {
     if (!user) return;
     setBusy('save');
     try {
@@ -62,6 +92,7 @@ export default function StudentIdPage() {
         doc(db, 'users', user.uid),
         {
           bunny: { avatar: nextAvatar, kind: nextBunnyKind, name: nextAvatar?.name || bunnyName },
+          studentId: { skin: nextSkin || activeSkin },
           updatedAt: serverTimestamp(),
         },
         { merge: true }
@@ -130,6 +161,7 @@ export default function StudentIdPage() {
         initial={{ ...(avatar || {}), name: avatar?.name || bunnyName }}
         bunnyKind={bunnyKind}
         unlockedBunnies={unlockedBunnies}
+        unlockedSkins={[...ownedSkins]}
         title="EDIT YOUR ID"
         confirmLabel={busy === 'save' ? 'Saving…' : 'Save changes ✓'}
         onBack={() => setEditing(false)}
@@ -148,19 +180,54 @@ export default function StudentIdPage() {
         <div className="sid-spacer" />
       </header>
 
-      <div className="sid-card-wrap" ref={cardRef}>
-        <StudentIdCard
-          bunnyName={bunnyName}
-          bunnyKind={bunnyKind}
-          avatar={avatar}
-          totalPunches={totalPunches}
-          streakDays={currentStreak}
-          level={level}
-          title={title}
-          progressPct={progressPct}
-          idNumber={idNumber}
-          memberSince={memberSince}
-        />
+      <div className="sid-stage">
+        <div className="sid-card-wrap" ref={cardRef}>
+          <StudentIdCard
+            bunnyName={bunnyName}
+            bunnyKind={bunnyKind}
+            avatar={avatar}
+            totalPunches={totalPunches}
+            streakDays={currentStreak}
+            level={level}
+            title={title}
+            progressPct={progressPct}
+            idNumber={idNumber}
+            memberSince={memberSince}
+            skin={activeSkin}
+          />
+        </div>
+
+        <aside className={`sid-skins ${skinsOpen ? '' : 'is-collapsed'}`} aria-label="Card skin">
+          <button
+            type="button"
+            className="sid-skins-title"
+            onClick={() => setSkinsOpen((v) => !v)}
+            aria-expanded={skinsOpen}
+          >
+            <span>Card Skin</span>
+            {skinsOpen ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
+          </button>
+          {skinsOpen && (
+            <div className="sid-skins-list">
+              {ID_SKINS.map((s) => {
+                const owned = ownedSkins.has(s.id);
+                const isActive = activeSkin === s.id;
+                return (
+                  <button
+                    key={s.id}
+                    className={`sid-skin-btn ${isActive ? 'is-active' : ''} ${!owned ? 'is-locked' : ''}`}
+                    onClick={() => handleSelectSkin(s.id)}
+                    disabled={!owned}
+                    title={owned ? `Use ${s.name}` : `Pull ${s.name} from the Punchie Machine`}
+                  >
+                    <span className="sid-skin-swatch" style={{ background: s.swatch }} />
+                    <span className="sid-skin-name">{s.name}{!owned && ' 🔒'}</span>
+                  </button>
+                );
+              })}
+            </div>
+          )}
+        </aside>
       </div>
 
       <div className="sid-actions">

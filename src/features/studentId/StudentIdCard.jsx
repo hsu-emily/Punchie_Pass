@@ -20,18 +20,19 @@ export default function StudentIdCard({
   idNumber,
   memberSince,
   tier = 'Regular Member',
+  skin = 'default',
   onNameChange,
 }) {
   const bg = avatar?.background || '#FBCFE8';
   const stageBg = `linear-gradient(180deg, ${bg} 0%, #fff5fa 60%, ${bg}80 100%)`;
-  const memberLabel = memberSince
-    ? new Date(memberSince).toLocaleDateString('en-US', {
-        month: '2-digit', day: '2-digit', year: 'numeric',
-      }).replace(/\//g, ' · ')
-    : `EST ${new Date().getFullYear()}`;
+  const memberLabel = new Date(memberSince || Date.now())
+    .toLocaleDateString('en-US', {
+      month: '2-digit', day: '2-digit', year: 'numeric',
+    })
+    .replace(/\//g, ' · ');
 
   return (
-    <div className="psid-card">
+    <div className={`psid-card psid-skin-${skin}`}>
       <HeartStamp className="psid-heart tl" />
       <HeartStamp className="psid-heart br" />
 
@@ -119,7 +120,7 @@ export default function StudentIdCard({
             <span key={i} className="psid-barcode-bar" />
           ))}
         </div>
-        <span className="psid-footer-text">// {idNumber || 'PP-0042'}</span>
+        <span className="psid-footer-text">// {idNumber || 'PP-0000000'}</span>
       </div>
     </div>
   );

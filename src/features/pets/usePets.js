@@ -20,6 +20,7 @@ import {
   BUNNY_VARIANTS,
   evaluateUnlockedBunnies,
 } from '@/features/bunny/bunnyVariants';
+import { MAX_PET_UPGRADE, upgradeCost } from './petBonus';
 
 export default function usePets() {
   const { user, profile } = useAuth();
@@ -28,6 +29,10 @@ export default function usePets() {
 
   const activePet = profile?.bunny?.kind || 'bun';
   const hatched = useMemo(() => profile?.pets?.hatched || [], [profile?.pets?.hatched]);
+  const upgrades = useMemo(
+    () => profile?.pets?.upgrades || {},
+    [profile?.pets?.upgrades]
+  );
   const inventory = useMemo(
     () => profile?.gacha?.inventory || {},
     [profile?.gacha?.inventory]
@@ -54,15 +59,23 @@ export default function usePets() {
       const v = BUNNY_VARIANTS[id];
       const unlocked = unlockedIds.has(id);
       const eggsHeld = eggsByVariant[id] || 0;
+      const upgradeLevel = upgrades[id] || 0;
+      const nextCost = upgradeCost(upgradeLevel);
+      const enhanceable = v.source === 'egg';
       return {
         ...v,
         unlocked,
         active: id === activePet,
         eggsHeld,
+        upgradeLevel,
+        nextUpgradeCost: nextCost,
+        enhanceable,
+        atMaxUpgrade: upgradeLevel >= MAX_PET_UPGRADE,
         canHatch: !unlocked && v.source === 'egg' && eggsHeld > 0,
+        canEnhance: enhanceable && unlocked && upgradeLevel < MAX_PET_UPGRADE && eggsHeld >= nextCost,
       };
     }),
-    [unlockedIds, eggsByVariant, activePet]
+    [unlockedIds, eggsByVariant, activePet, upgrades]
   );
 
   const setActivePet = useCallback(
@@ -107,5 +120,41 @@ export default function usePets() {
     [user, hatched, inventory]
   );
 
-  return { activePet, variants, hatched, eggsByVariant, setActivePet, hatchEgg };
+  /**
+   * enhancePet — consume one egg of an already-hatched variant to increment
+   * its upgrade level by 1 (capped at MAX_PET_UPGRADE). Throws if no egg
+   * available, the bunny isn't hatched yet, or it's already maxed.
+   */
+  const enhancePet = useCallback(
+    async (variantId) => {
+      if (!user) throw new Error('Not signed in');
+      if (!hatched.includes(variantId)) throw new Error('Hatch this bunny first');
+      const currentLevel = upgrades[variantId] || 0;
+      if (currentLevel >= MAX_PET_UPGRADE) throw new Error('Already max upgrade');
+      const cost = upgradeCost(currentLevel);
+
+      const eggEntry = Object.values(inventory).find(
+        (it) => it.kind === 'egg' && it.ref === variantId && (it.count || 0) >= cost
+      );
+      if (!eggEntry) throw new Error(`Need ${cost} matching egg${cost === 1 ? '' : 's'} to upgrade`);
+
+      const nextInventory = { ...inventory };
+      const remaining = (eggEntry.count || 0) - cost;
+      if (remaining <= 0) {
+        delete nextInventory[eggEntry.id];
+      } else {
+        nextInventory[eggEntry.id] = { ...eggEntry, count: remaining };
+      }
+
+      await updateDoc(doc(db, 'users', user.uid), {
+        'gacha.inventory': nextInventory,
+        [`pets.upgrades.${variantId}`]: currentLevel + 1,
+        updatedAt: serverTimestamp(),
+      });
+      return { variantId, level: currentLevel + 1 };
+    },
+    [user, hatched, upgrades, inventory]
+  );
+
+  return { activePet, variants, hatched, eggsByVariant, setActivePet, hatchEgg, enhancePet };
 }
