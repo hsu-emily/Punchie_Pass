@@ -1,0 +1,331 @@
+/* Punchie Pass v2 — component styles
+ * Import AFTER tokens.css. Class names are prefixed `pp-` so they
+ * won't collide with Tailwind utilities or your existing styles.
+ */
+
+/* ── Layout primitives ──────────────────────────────────────────── */
+.pp-stage {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 60px 40px;
+  gap: 18px;
+  position: relative;
+  min-height: 100%;
+  background: var(--pp-halo);
+}
+.pp-stage-tight { padding: 60px 40px 30px; justify-content: flex-start; gap: 12px; }
+.pp-row  { display: flex; align-items: center; }
+.pp-gap-sm { gap: var(--pp-s-2); }
+.pp-gap-md { gap: var(--pp-s-4); }
+
+/* ── Type ───────────────────────────────────────────────────────── */
+.pp-h1, .pp-h1-script {
+  margin: 0;
+  color: var(--pp-pink-ink);
+  line-height: 1.1;
+}
+.pp-h1        { font-family: var(--pp-font-body);   font-weight: 600; font-size: 22px; }
+.pp-h1-script { font-family: var(--pp-font-script); font-weight: 400; font-size: 44px; white-space: nowrap; }
+.pp-lede      { color: var(--pp-mute); font-size: 14px; margin: 0; max-width: 32ch; }
+.pp-pixel-label {
+  font-family: var(--pp-font-pixel); font-size: 9px;
+  color: var(--pp-pink-ink); letter-spacing: 1px; margin: 14px 0 6px;
+}
+
+/* ── Buttons ────────────────────────────────────────────────────── */
+.pp-btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  font-family: var(--pp-font-pixel); font-size: 11px; letter-spacing: 0.5px;
+  border: none; border-radius: var(--pp-r-pill);
+  padding: 14px 28px; cursor: pointer; transition: transform var(--pp-dur-fast) var(--pp-ease), box-shadow var(--pp-dur-fast) var(--pp-ease);
+}
+.pp-btn-primary {
+  background: var(--pp-pink-500); color: white; box-shadow: var(--pp-shadow-md);
+}
+.pp-btn-primary:hover  { transform: translateY(-1px); box-shadow: var(--pp-shadow-lg); }
+.pp-btn-primary:active { transform: translateY(1px); }
+.pp-btn-ghost {
+  background: white; color: var(--pp-pink-ink);
+  border: 2px solid var(--pp-pink-100);
+}
+.pp-btn-tiny { padding: 6px 12px; font-size: 9px; }
+.pp-skip {
+  position: absolute; bottom: 24px; right: 24px;
+  font-size: 11px; background: rgba(255,255,255,0.7);
+  padding: 6px 12px; border-radius: var(--pp-r-pill);
+  color: var(--pp-mute); border: none; cursor: pointer;
+}
+
+/* ── Bunny / egg / hatch ────────────────────────────────────────── */
+.pp-bunny svg { display: block; }
+.pp-nest {
+  position: relative; width: 220px; height: 220px;
+  display: flex; align-items: center; justify-content: center;
+}
+.pp-egg {
+  width: 110px; height: 140px;
+  background: linear-gradient(180deg, #fff 0%, #fff7fb 50%, #ffd7e8 100%);
+  border-radius: 50% 50% 48% 48% / 60% 60% 40% 40%;
+  box-shadow: inset -10px -18px 0 rgba(245,178,207,0.35), 0 12px 24px rgba(220,60,130,0.12);
+  border: 2px solid #f5b8d0;
+  position: relative;
+}
+.pp-egg::before {
+  content: ''; position: absolute; top: 30%; left: 25%;
+  width: 12px; height: 12px; border-radius: 50%;
+  background: rgba(255,161,198,0.5);
+}
+.pp-egg.shaking  { animation: pp-egg-shake 0.4s ease-in-out infinite; }
+.pp-egg.cracked  { animation: pp-egg-shake 0.18s ease-in-out 6; }
+.pp-egg-shard {
+  position: absolute; width: 16px; height: 18px;
+  background: linear-gradient(180deg, #fff, #ffd7e8);
+  border-radius: 50% 50% 30% 30% / 60% 60% 40% 40%;
+  border: 1.5px solid #f5b8d0;
+  --rot: 0deg;
+}
+.pp-confetti {
+  position: absolute; width: 8px; height: 8px;
+  --cx: 0px; --cy: 0px;
+}
+
+/* ── Name input ─────────────────────────────────────────────────── */
+.pp-name-input-wrap { display: flex; flex-direction: column; align-items: center; gap: 12px; }
+.pp-name-input {
+  width: 320px; font-family: var(--pp-font-body); font-size: 22px;
+  text-align: center; padding: 14px 18px;
+  background: white; border: 2px solid var(--pp-pink-200);
+  border-radius: var(--pp-r-lg); color: var(--pp-pink-ink);
+  outline: none; transition: border-color var(--pp-dur-fast);
+}
+.pp-name-input:focus { border-color: var(--pp-pink-400); }
+.pp-name-input::placeholder { color: var(--pp-pink-300); font-style: italic; }
+.pp-chips { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
+.pp-chip {
+  background: var(--pp-pink-50); color: var(--pp-pink-ink);
+  border: 1px solid var(--pp-pink-100);
+  border-radius: var(--pp-r-pill); padding: 5px 12px;
+  font-size: 13px; cursor: pointer;
+}
+.pp-chip:hover { background: var(--pp-pink-100); }
+
+/* ── Avatar builder ─────────────────────────────────────────────── */
+.pp-avatar-stage {
+  display: grid; grid-template-columns: 280px 1fr;
+  gap: 28px; align-items: center;
+  width: 100%; max-width: 820px;
+}
+.pp-avatar-preview {
+  position: relative; width: 280px; height: 320px;
+  background: white; border: 2px solid var(--pp-pink-100);
+  border-radius: var(--pp-r-xl); box-shadow: var(--pp-shadow-sm);
+  display: flex; align-items: center; justify-content: center;
+}
+.pp-avatar-figure {
+  position: relative; width: 170px; height: 260px;
+  display: flex; align-items: flex-end; justify-content: center;
+}
+.pp-bunny-watching { position: absolute; bottom: 12px; left: 14px; }
+.pp-tabs {
+  display: flex; background: white; border-radius: var(--pp-r-pill);
+  padding: 4px; border: 2px solid var(--pp-pink-100);
+  margin-bottom: 14px; gap: 2px;
+}
+.pp-tab {
+  flex: 1; font-family: var(--pp-font-body); font-size: 13px;
+  background: transparent; border: none; padding: 8px 10px;
+  border-radius: var(--pp-r-pill); cursor: pointer;
+  color: var(--pp-mute); transition: all var(--pp-dur-fast);
+}
+.pp-tab.is-active { background: var(--pp-pink-500); color: white; }
+.pp-swatch-grid {
+  display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px;
+}
+.pp-swatch {
+  aspect-ratio: 1; border-radius: var(--pp-r-md);
+  background: white; border: 2px solid var(--pp-pink-100);
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; transition: all var(--pp-dur-fast);
+  font-size: 11px; font-weight: 600; color: var(--pp-pink-ink);
+}
+.pp-swatch:hover    { border-color: var(--pp-pink-300); }
+.pp-swatch.is-active { border-color: var(--pp-pink-500); transform: scale(1.05); }
+
+/* ── Border picker ──────────────────────────────────────────────── */
+.pp-border-grid {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px;
+  width: 100%; max-width: 480px;
+}
+.pp-border-tile {
+  aspect-ratio: 1; background: white;
+  border: 3px solid var(--pp-pink-100); border-radius: var(--pp-r-lg);
+  display: flex; align-items: center; justify-content: center;
+  padding: 8px; cursor: pointer; position: relative;
+  transition: all var(--pp-dur-fast);
+}
+.pp-border-tile img {
+  width: 100%; height: 100%; object-fit: contain;
+  image-rendering: pixelated;
+}
+.pp-border-tile:hover    { border-color: var(--pp-pink-300); }
+.pp-border-tile.is-active { border-color: var(--pp-pink-500); transform: scale(1.04); }
+.pp-border-tile.is-locked img { filter: grayscale(1) opacity(0.4); }
+.pp-border-tile.is-locked    { cursor: not-allowed; }
+.pp-lock-pip {
+  position: absolute; top: 6px; right: 6px;
+  background: white; border-radius: var(--pp-r-pill);
+  padding: 2px 6px; font-size: 11px;
+}
+
+/* ── First-pass creator ─────────────────────────────────────────── */
+.pp-creator {
+  display: grid; grid-template-columns: 1fr 280px; gap: 32px;
+  width: 100%; max-width: 760px; align-items: start;
+}
+.pp-field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px; }
+.pp-field-label {
+  font-family: var(--pp-font-pixel); font-size: 9px;
+  color: var(--pp-pink-ink); letter-spacing: 1px;
+}
+.pp-field input {
+  font-family: var(--pp-font-body); font-size: 14px;
+  padding: 10px 14px; background: white;
+  border: 2px solid var(--pp-pink-100); border-radius: var(--pp-r-md);
+  outline: none; color: var(--pp-ink);
+}
+.pp-field input:focus { border-color: var(--pp-pink-400); }
+.pp-freq-pill {
+  background: white; border: 2px solid var(--pp-pink-100);
+  padding: 6px 14px; border-radius: var(--pp-r-pill);
+  font-size: 12px; color: var(--pp-mute); cursor: pointer;
+}
+.pp-freq-pill.is-active { background: var(--pp-pink-500); color: white; border-color: var(--pp-pink-500); }
+.pp-icon-strip { display: flex; gap: 6px; flex-wrap: wrap; }
+.pp-icon-tile {
+  width: 40px; height: 40px; background: white;
+  border: 2px solid var(--pp-pink-100); border-radius: var(--pp-r-md);
+  padding: 4px; cursor: pointer;
+}
+.pp-icon-tile img { width: 100%; height: 100%; image-rendering: pixelated; }
+.pp-icon-tile.is-active { border-color: var(--pp-pink-500); }
+
+/* ── Mini pass card (preview) ───────────────────────────────────── */
+.pp-mini-card {
+  width: 280px; height: 168px;
+  background: linear-gradient(180deg, #ffe9f3 0%, #ffd7e8 100%);
+  border-radius: var(--pp-r-lg); border: 2px solid white;
+  box-shadow: var(--pp-shadow-md);
+  position: relative; overflow: hidden;
+}
+.pp-mini-title {
+  position: absolute; top: 14px; left: 0; right: 0; text-align: center;
+  font-family: var(--pp-font-script); font-size: 30px;
+  color: var(--pp-pink-500); line-height: 1;
+}
+.pp-mini-sub {
+  position: absolute; top: 48px; left: 0; right: 0; text-align: center;
+  font-size: 10px; color: var(--pp-pink-ink);
+}
+.pp-mini-grid {
+  position: absolute; bottom: 14px; left: 0; right: 0;
+  display: grid; grid-template-columns: repeat(5, 24px); grid-template-rows: repeat(2, 24px);
+  gap: 8px; justify-content: center; align-content: center;
+}
+.pp-mini-slot {
+  width: 24px; height: 24px; border-radius: 50%;
+  background: white; border: 1.5px dashed var(--pp-pink-300);
+  display: flex; align-items: center; justify-content: center;
+}
+.pp-mini-slot.is-filled {
+  background: var(--pp-pink-100); border-style: solid;
+}
+.pp-mini-slot img { width: 16px; height: 16px; image-rendering: pixelated; }
+
+/* ── Big punch card ─────────────────────────────────────────────── */
+.pp-punch-card {
+  width: 360px; height: 220px; position: relative;
+  background: linear-gradient(180deg, #ffe9f3 0%, #ffd7e8 100%);
+  border-radius: var(--pp-r-xl); border: 3px solid white;
+  box-shadow: var(--pp-shadow-lg); cursor: pointer;
+  overflow: hidden; transition: transform var(--pp-dur-fast);
+}
+.pp-punch-card:hover  { transform: translateY(-2px); }
+.pp-punch-card:active { transform: translateY(1px); }
+.pp-punch-card.pp-pc-locked { cursor: default; opacity: 0.85; }
+.pp-pc-mint {
+  background: linear-gradient(180deg, var(--pp-mint-100) 0%, var(--pp-mint-300) 100%);
+}
+.pp-pc-bg {
+  position: absolute; inset: 0; pointer-events: none;
+  background: radial-gradient(circle at 50% 0%, rgba(255,255,255,0.6) 0%, transparent 60%);
+}
+.pp-pc-title {
+  position: absolute; top: 18px; left: 0; right: 0; text-align: center;
+  font-family: var(--pp-font-script); font-size: 38px;
+  color: var(--pp-pink-500); line-height: 1;
+}
+.pp-pc-sub {
+  position: absolute; top: 60px; left: 0; right: 0; text-align: center;
+  font-size: 11px; color: var(--pp-pink-ink); letter-spacing: 0.4px;
+}
+.pp-pc-grid {
+  position: absolute; bottom: 20px; left: 0; right: 0;
+  display: grid; gap: 10px; justify-content: center; align-content: center;
+  grid-template-columns: repeat(5, 32px); grid-template-rows: repeat(2, 32px);
+}
+.pp-pc-slot {
+  width: 32px; height: 32px; border-radius: 50%;
+  background: white; border: 2px dashed var(--pp-pink-300);
+  display: flex; align-items: center; justify-content: center;
+  transition: all var(--pp-dur-base);
+}
+.pp-pc-slot.is-filled {
+  background: var(--pp-pink-100); border-style: solid; border-color: var(--pp-pink-300);
+}
+.pp-pc-slot.is-next   { box-shadow: 0 0 0 3px rgba(236, 72, 153, 0.18); }
+.pp-pc-slot img { width: 22px; height: 22px; image-rendering: pixelated; }
+
+/* ── Student ID ─────────────────────────────────────────────────── */
+.pp-id-card {
+  position: relative; width: 480px; max-width: 100%; padding: 24px;
+  background: white; border-radius: var(--pp-r-xl);
+  box-shadow: var(--pp-shadow-lg);
+  display: grid; grid-template-columns: 140px 1fr; gap: 18px;
+  align-items: center;
+}
+.pp-id-qr { width: 100px; height: 100px; position: absolute; top: 16px; right: 16px; }
+.pp-id-photo-frame {
+  position: relative; width: 140px; height: 140px;
+  display: flex; align-items: center; justify-content: center;
+}
+.pp-id-border {
+  position: absolute; inset: 0; width: 100%; height: 100%;
+  object-fit: contain; image-rendering: pixelated; pointer-events: none;
+}
+.pp-id-photo {
+  width: 80%; height: 80%;
+  display: flex; align-items: center; justify-content: center;
+  overflow: hidden;
+}
+.pp-id-info { display: flex; flex-direction: column; gap: 6px; }
+.pp-id-stamp {
+  font-family: var(--pp-font-pixel); font-size: 9px;
+  color: var(--pp-pink-500); letter-spacing: 1.5px;
+}
+.pp-id-name {
+  font-family: var(--pp-font-script); font-size: 44px;
+  color: var(--pp-pink-ink); line-height: 1;
+}
+.pp-id-meta { display: flex; gap: 6px; flex-wrap: wrap; }
+.pp-pill {
+  background: var(--pp-pink-50); color: var(--pp-pink-ink);
+  font-size: 11px; padding: 3px 10px; border-radius: var(--pp-r-pill);
+}
+.pp-id-watermark {
+  position: absolute; bottom: 8px; right: 16px;
+  font-family: ui-monospace, monospace; font-size: 10px;
+  color: var(--pp-pink-300);
+}

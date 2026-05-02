@@ -1,4 +1,6 @@
 @import "tailwindcss";
+@import "./styles/tokens.css";
+@import "./styles/handoff.css";
 @import "./styles/legacy.css";
 
 :root {

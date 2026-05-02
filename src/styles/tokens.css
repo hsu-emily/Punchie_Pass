@@ -1,0 +1,83 @@
+/* Punchie Pass v2 — Design Tokens
+ * Drop this once at the root of your app (e.g. import in main.jsx)
+ * before any component CSS. All component classes reference these vars.
+ *
+ * If you use Tailwind, mirror these into theme.extend.colors / fontFamily
+ * and keep this file as the source of truth.
+ */
+
+:root {
+  /* ── Color · Pink (primary) ───────────────────────────────────── */
+  --pp-pink-50:  #FFF3F8;
+  --pp-pink-100: #FCE7F3;
+  --pp-pink-200: #FBCFE8;
+  --pp-pink-300: #F9A8D4;
+  --pp-pink-400: #F472B6;
+  --pp-pink-500: #EC4899;  /* primary action */
+  --pp-pink-600: #DB2777;
+  --pp-pink-ink: #61283B;  /* darkest pink, for body copy on pink */
+
+  /* ── Color · Neutrals ─────────────────────────────────────────── */
+  --pp-cream:    #FFF9F0;
+  --pp-paper:    #FFFAFD;
+  --pp-ink:      #2A1E22;  /* near-black, slight warm */
+  --pp-mute:     #8B6F77;  /* subdued copy */
+  --pp-line:     #F1D8E2;  /* hairline rules */
+  --pp-halo:     radial-gradient(circle at 50% 30%, #fff5f9 0%, #ffe9f3 70%);
+
+  /* ── Color · Accents (used for non-pink passes / variety) ─────── */
+  --pp-mint-100: #D6F5E0;
+  --pp-mint-300: #B5E2C4;
+  --pp-mint-700: #0B693C;
+  --pp-lilac-300: #C5B8FF;
+  --pp-amber-300: #F3D279;
+
+  /* ── Type ─────────────────────────────────────────────────────── */
+  /* Add to <head>:
+     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Great+Vibes&family=Fredoka:wght@400;500;600;700&display=swap" rel="stylesheet">
+  */
+  --pp-font-body:   'Fredoka', system-ui, -apple-system, sans-serif;
+  --pp-font-script: 'Great Vibes', cursive;     /* hero, names, brand */
+  --pp-font-pixel:  'Press Start 2P', monospace; /* labels, system, tags */
+
+  /* ── Spacing scale (4-pt) ─────────────────────────────────────── */
+  --pp-s-1:  4px;
+  --pp-s-2:  8px;
+  --pp-s-3: 12px;
+  --pp-s-4: 16px;
+  --pp-s-5: 20px;
+  --pp-s-6: 24px;
+  --pp-s-8: 32px;
+  --pp-s-10: 40px;
+  --pp-s-12: 48px;
+
+  /* ── Radii ────────────────────────────────────────────────────── */
+  --pp-r-sm: 8px;
+  --pp-r-md: 12px;
+  --pp-r-lg: 16px;
+  --pp-r-xl: 22px;
+  --pp-r-pill: 999px;
+
+  /* ── Elevation ────────────────────────────────────────────────── */
+  --pp-shadow-sm: 0 2px 6px rgba(220, 60, 130, 0.08);
+  --pp-shadow-md: 0 6px 18px rgba(220, 60, 130, 0.14);
+  --pp-shadow-lg: 0 18px 36px rgba(220, 60, 130, 0.18);
+
+  /* ── Motion ───────────────────────────────────────────────────── */
+  --pp-ease:        cubic-bezier(0.4, 0, 0.2, 1);
+  --pp-ease-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --pp-dur-fast:    160ms;
+  --pp-dur-base:    240ms;
+  --pp-dur-slow:    420ms;
+}
+
+/* Hatch / hatch-burst keyframes used by HatchScene + Confetti */
+@keyframes pp-fade-in   { from { opacity: 0 } to { opacity: 1 } }
+@keyframes pp-pop-in    { 0% { transform: scale(0.4); opacity: 0 } 60% { transform: scale(1.15); opacity: 1 } 100% { transform: scale(1) } }
+@keyframes pp-bunny-bob { 0%, 100% { transform: translateY(0) } 50% { transform: translateY(-6px) } }
+@keyframes pp-egg-shake { 0%, 100% { transform: translate(0, 0) rotate(0) } 25% { transform: translate(-3px, 0) rotate(-3deg) } 75% { transform: translate(3px, 0) rotate(3deg) } }
+@keyframes pp-crack-burst { from { opacity: 1; transform: rotate(var(--rot, 0)) translateY(0) } to { opacity: 0; transform: rotate(var(--rot, 0)) translateY(40px) scale(0.6) } }
+@keyframes pp-confetti-burst {
+  from { transform: translate(-50%, -50%) scale(1); opacity: 1 }
+  to   { transform: translate(calc(-50% + var(--cx)), calc(-50% + var(--cy))) scale(0.4); opacity: 0 }
+}

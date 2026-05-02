@@ -11,6 +11,7 @@ import CelebrationPage from '@/features/celebration/CelebrationPage';
 import Home from '@/pages/Home';
 import About from '@/pages/About';
 import TestCelebration from '@/pages/TestCelebration';
+import AvatarCustomizer from '@/features/avatar/AvatarCustomizer';
 
 export default function App() {
   return (
@@ -58,6 +59,7 @@ export default function App() {
 
           <Route path="/dev/card-layout-editor" element={<CardLayoutEditor />} />
           <Route path="/dev/test-celebration" element={<TestCelebration />} />
+          <Route path="/avatar" element={<AvatarCustomizer />} />
 
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
