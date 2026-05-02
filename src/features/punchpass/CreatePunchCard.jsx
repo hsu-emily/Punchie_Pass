@@ -1,20 +1,15 @@
 import { useMemo, useRef, useState } from 'react';
 import { getDownloadURL, ref as storageRef, uploadBytes } from 'firebase/storage';
-import PunchCardPreview from '@/features/punchpass/PunchCardPreview';
+import PunchCard from '@/features/punchpass/PunchCard';
 import { getCardLayout } from '@/features/punchpass/cardLayouts.config';
 import { storage } from '@/services/firebase';
 import { AiTitleSuggest, AiRewardSuggest } from './AiSuggest';
 import defaultPunchIcon from '@/assets/icons/punch.png';
+import { CURSOR_LIST, DEFAULT_PUNCH_CURSOR_ID } from '@/assets/cursors/cursors';
+import useGacha from '@/features/gacha/useGacha';
 import './CreatePunchCard.css';
 
-const cardModules = import.meta.glob('@/assets/punch_cards/*.png', { eager: true });
 const iconModules = import.meta.glob('@/assets/icons/*/*.png', { eager: true });
-
-const CARD_MAP = {};
-for (const path in cardModules) {
-  const filename = path.split('/').pop();
-  CARD_MAP[filename] = cardModules[path].default;
-}
 
 // Bucketed icons: id = "bucket/number" (e.g. "pink/4")
 const ICONS_BY_BUCKET = {};
@@ -43,13 +38,21 @@ const ICON_BUCKETS = ['default', ...Object.keys(ICONS_BY_BUCKET).filter((b) => b
 export const FIRST_ICON_ID = DEFAULT_ICON_ID;
 export const iconUrlForId = (id) => ICON_URL_BY_ID[id];
 
+/**
+ * Templates: only `pink` is free. Everything else is unlocked via the
+ * Punchie Machine — `gacha: true` entries show as locked swatches until
+ * the user owns a `pass-template` capsule with that `cardImage` ref.
+ */
 const COLOR_THEMES = [
-  { id: 'pink',     label: 'PINK',     swatch: '#F9A8D4', cardImage: 'WindowsPink.png' },
-  { id: 'mint',     label: 'MINT',     swatch: '#A8E6C0', cardImage: 'WindowsGreen.png' },
-  { id: 'blue',     label: 'BLUE',     swatch: '#A8C8E8', cardImage: 'PlaidBlue.png' },
-  { id: 'honey',    label: 'HONEY',    swatch: '#F3D279', cardImage: 'FilmCam.png' },
-  { id: 'lavender', label: 'LAVENDER', swatch: '#C5B8FF', cardImage: 'WindowsPurple.png' },
-  { id: 'peach',    label: 'PEACH',    swatch: '#FFB59E', cardImage: 'LacePink.png' },
+  { id: 'pink',       label: 'PINK',       swatch: '#F9A8D4', cardImage: 'WindowsPink.png',   gacha: false },
+  { id: 'mint',       label: 'MINT',       swatch: '#A8E6C0', cardImage: 'WindowsGreen.png',  gacha: true  },
+  { id: 'lavender',   label: 'LAVENDER',   swatch: '#C5B8FF', cardImage: 'WindowsPurple.png', gacha: true  },
+  { id: 'blue',       label: 'BLUE',       swatch: '#A8C8E8', cardImage: 'PlaidBlue.png',     gacha: true  },
+  { id: 'sage',       label: 'SAGE',       swatch: '#B8E0B0', cardImage: 'PlaidGreen.png',    gacha: true  },
+  { id: 'peach',      label: 'PEACH',      swatch: '#FFB59E', cardImage: 'LacePink.png',      gacha: true  },
+  { id: 'coral',      label: 'CORAL',      swatch: '#F4A6A6', cardImage: 'LaceRed.png',       gacha: true  },
+  { id: 'orchid',     label: 'ORCHID',     swatch: '#E8C9F4', cardImage: 'DigiCam.png',       gacha: true  },
+  { id: 'honey',      label: 'HONEY',      swatch: '#F3D279', cardImage: 'FilmCam.png',       gacha: true  },
 ];
 
 const themeForCard = (cardImage) =>
@@ -71,6 +74,47 @@ export default function CreatePunchCard({
   const set = (k, v) => onChange((p) => ({ ...p, [k]: v }));
   const cardImage = pass.cardImage || COLOR_THEMES[0].cardImage;
   const theme = themeForCard(cardImage);
+
+  // Owned items from the Punchie Machine — used to filter pickers down to
+  // "free defaults + everything you've pulled". Anything you don't yet own
+  // is hidden from the pickers entirely (templates show as locked instead).
+  const { inventoryList } = useGacha();
+  const ownedTemplateRefs = useMemo(
+    () => new Set(
+      inventoryList
+        .filter((it) => it.kind === 'pass-template')
+        .map((it) => it.ref)
+    ),
+    [inventoryList]
+  );
+  const ownedCursorRefs = useMemo(
+    () => new Set(
+      inventoryList.filter((it) => it.kind === 'cursor').map((it) => it.ref)
+    ),
+    [inventoryList]
+  );
+  const ownedIconRefs = useMemo(
+    () => new Set(
+      inventoryList.filter((it) => it.kind === 'icon').map((it) => it.ref)
+    ),
+    [inventoryList]
+  );
+  const isThemeUnlocked = (t) => !t.gacha || ownedTemplateRefs.has(t.cardImage);
+
+  // Cursors: keep the two free defaults always available; otherwise only
+  // show cursors the user has pulled.
+  const FREE_CURSOR_IDS = new Set(['pointer', 'holepuncher']);
+  const visibleCursors = useMemo(
+    () => CURSOR_LIST.filter((c) => FREE_CURSOR_IDS.has(c.id) || ownedCursorRefs.has(c.id)),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [ownedCursorRefs]
+  );
+
+  // Icons: keep the three free defaults always available, plus any custom
+  // uploads under "yours". Other bucket entries are filtered to owned-only.
+  const FREE_ICON_REFS = new Set(['pixle/19', 'pixle/20', 'pixle/17']);
+  const filterIcons = (list) =>
+    (list || []).filter((ic) => FREE_ICON_REFS.has(ic.id) || ownedIconRefs.has(ic.id));
 
   // Backwards compatible: fall back to legacy iconId for slot 1.
   const icon1Id = pass.icon1Id || pass.iconId || DEFAULT_ICON_ID;
@@ -139,10 +183,18 @@ export default function CreatePunchCard({
     }
   };
 
+  const unlockedThemes = useMemo(
+    () => COLOR_THEMES.filter(isThemeUnlocked),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [ownedTemplateRefs]
+  );
+
   const cycleCard = (dir) => {
-    const idx = COLOR_THEMES.findIndex((t) => t.cardImage === cardImage);
-    const nextIdx = (idx + dir + COLOR_THEMES.length) % COLOR_THEMES.length;
-    set('cardImage', COLOR_THEMES[nextIdx].cardImage);
+    if (unlockedThemes.length === 0) return;
+    const idx = unlockedThemes.findIndex((t) => t.cardImage === cardImage);
+    const base = idx === -1 ? 0 : idx;
+    const nextIdx = (base + dir + unlockedThemes.length) % unlockedThemes.length;
+    set('cardImage', unlockedThemes[nextIdx].cardImage);
   };
 
   const trimmedTitle = (pass.title || '').trim();
@@ -150,9 +202,19 @@ export default function CreatePunchCard({
 
   const layout = useMemo(() => getCardLayout(cardImage), [cardImage]);
 
+  const cursorId = pass.cursorId || DEFAULT_PUNCH_CURSOR_ID;
+
   const yoursIcons = customIcons.map((c) => ({ id: c.id, url: c.url, num: '' }));
-  const iconsForBucket = activeBucket === 'yours' ? yoursIcons : (ICONS_BY_BUCKET[activeBucket] || []);
-  const allBuckets = [...ICON_BUCKETS, 'yours'];
+  const iconsForBucket = activeBucket === 'yours'
+    ? yoursIcons
+    : filterIcons(ICONS_BY_BUCKET[activeBucket] || []);
+  // Hide buckets that have no visible icons (other than "default" + "yours"
+  // which always have content). Keeps the tab row from showing dead tabs.
+  const visibleBuckets = ICON_BUCKETS.filter((b) => {
+    if (b === 'default') return true;
+    return filterIcons(ICONS_BY_BUCKET[b] || []).length > 0;
+  });
+  const allBuckets = [...visibleBuckets, 'yours'];
 
   return (
     <div className="cpc-page">
@@ -192,17 +254,14 @@ export default function CreatePunchCard({
             ‹
           </button>
           <div className="cpc-preview-card">
-            <PunchCardPreview
+            <PunchCard
+              habit={pass}
               name={pass.title || 'Your Card'}
               description={pass.description || 'your description appears here'}
-              cardImage={CARD_MAP[cardImage]}
-              icon1={icon1Url}
-              icon2={icon2Url}
-              titlePlacement={layout.title}
-              descriptionPlacement={layout.description}
-              punchGridPlacement={layout.punchGrid}
               currentPunches={0}
               targetPunches={10}
+              cursorId={cursorId}
+              editMode
             />
           </div>
           <button
@@ -247,6 +306,7 @@ export default function CreatePunchCard({
                 onChange={(e) => set('title', e.target.value.slice(0, 28))}
                 placeholder="e.g. Drink water"
                 className="cpc-input"
+                style={{ fontFamily: layout.title?.fontFamily }}
                 maxLength={28}
               />
             </Field>
@@ -260,6 +320,7 @@ export default function CreatePunchCard({
                 onChange={(e) => set('description', e.target.value.slice(0, 50))}
                 placeholder="What does one punch mean?"
                 className="cpc-textarea"
+                style={{ fontFamily: layout.description?.fontFamily }}
                 maxLength={50}
                 rows={2}
               />
@@ -302,17 +363,20 @@ export default function CreatePunchCard({
           <div className="cpc-controls-col">
             <Field label="Card color">
               <div className="cpc-swatch-row">
-                {COLOR_THEMES.map((t) => (
-                  <button
-                    key={t.id}
-                    type="button"
-                    className={`cpc-swatch ${cardImage === t.cardImage ? 'is-active' : ''}`}
-                    style={{ background: t.swatch }}
-                    onClick={() => set('cardImage', t.cardImage)}
-                    aria-label={t.label}
-                    title={t.label}
-                  />
-                ))}
+                {COLOR_THEMES.filter(isThemeUnlocked).map((t) => {
+                  const active = cardImage === t.cardImage;
+                  return (
+                    <button
+                      key={t.id}
+                      type="button"
+                      className={`cpc-swatch ${active ? 'is-active' : ''}`}
+                      style={{ background: t.swatch }}
+                      onClick={() => set('cardImage', t.cardImage)}
+                      aria-label={t.label}
+                      title={t.label}
+                    />
+                  );
+                })}
               </div>
             </Field>
 
@@ -395,6 +459,24 @@ export default function CreatePunchCard({
                 style={{ display: 'none' }}
               />
             </div>
+
+            <Field label="Punch cursor" hint="Used when tapping the card to punch">
+              <div className="cpc-cursor-row">
+                {visibleCursors.map((c) => (
+                  <button
+                    key={c.id}
+                    type="button"
+                    className={`cpc-cursor-tile ${cursorId === c.id ? 'is-active' : ''}`}
+                    onClick={() => set('cursorId', c.id)}
+                    title={c.label}
+                    aria-label={c.label}
+                  >
+                    <img src={c.cursor} alt="" />
+                    <span className="cpc-cursor-label">{c.label}</span>
+                  </button>
+                ))}
+              </div>
+            </Field>
           </div>
         </section>
       </div>

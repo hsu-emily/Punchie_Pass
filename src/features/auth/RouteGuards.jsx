@@ -50,6 +50,7 @@ export function RequireProfile({ children }) {
   if (loading) return <LoadingScreen />;
   if (!user) return <Navigate to="/login" replace />;
   if (profileError) return <ProfileErrorScreen error={profileError} />;
-  if (!profile?.onboardingCompleted) return <Navigate to="/onboarding" replace />;
+  // Onboarding is opt-in via the URL (/onboarding) — we no longer auto-redirect
+  // unfinished profiles, so other pages can be tested without replaying the flow.
   return children;
 }

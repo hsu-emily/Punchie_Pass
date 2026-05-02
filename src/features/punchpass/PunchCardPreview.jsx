@@ -1,6 +1,5 @@
 import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
-import holePunchCursor from "@/assets/cursors/holePunch.png";
-import holePunchClickCursor from "@/assets/cursors/holePunchClick.png";
+import { getCursor, DEFAULT_PUNCH_CURSOR_ID } from "@/assets/cursors/cursors";
 import defaultPunchIcon from "@/assets/icons/punch.png";
 
 // Card layouts in cardLayouts.config.js (font sizes, punch circle sizes, gaps)
@@ -9,6 +8,26 @@ import defaultPunchIcon from "@/assets/icons/punch.png";
 // so a 80px circle stays at the same proportion of the card on every screen.
 const DESIGN_WIDTH = 600;
 const DESIGN_HEIGHT = 600 * 591 / 1004; // ≈ 353.19, matches card aspect ratio
+
+// CSS rejects multi-word font names that aren't quoted (esp. ones containing
+// digits like "Press Start 2P" — "2P" is an invalid unquoted CSS identifier).
+// Quote any token that isn't already quoted and isn't a generic family.
+const GENERIC_FAMILIES = new Set(['serif', 'sans-serif', 'monospace', 'cursive', 'fantasy', 'system-ui', 'ui-serif', 'ui-sans-serif', 'ui-monospace', 'ui-rounded', 'inherit', 'initial', 'unset', 'revert']);
+function normalizeFontFamily(value) {
+  if (!value || typeof value !== 'string') return value;
+  return value
+    .split(',')
+    .map((t) => t.trim())
+    .map((t) => {
+      if (!t) return t;
+      if (t.startsWith('"') || t.startsWith("'")) return t;
+      if (GENERIC_FAMILIES.has(t.toLowerCase())) return t;
+      // Single-word, all-letter names are safe to leave unquoted.
+      if (/^[A-Za-z][A-Za-z-]*$/.test(t)) return t;
+      return `"${t}"`;
+    })
+    .join(', ');
+}
 
 export default function PunchCardPreview({
   name,
@@ -23,7 +42,14 @@ export default function PunchCardPreview({
   currentPunches = 0,
   targetPunches = 10,
   size = 'medium', // 'medium' or 'large' - kept for compatibility but not used
+  cursorId,
+  showCursor = true,
+  // When true, unfilled punch slots render as faint ghosts so the layout is
+  // visible while editing. In real use (dashboard, modal, celebration) empty
+  // slots stay invisible until the user actually punches them.
+  editMode = false,
 }) {
+  const cursor = getCursor(cursorId || DEFAULT_PUNCH_CURSOR_ID);
   const [isClicking, setIsClicking] = useState(false);
   const containerRef = useRef(null);
   const [scale, setScale] = useState(1);
@@ -117,8 +143,7 @@ export default function PunchCardPreview({
     textAlign: titlePlacement.textAlign,
     color: titlePlacement.color,
     fontSize: titlePlacement.fontSize,
-    // Use fontFamily directly from cardLayouts - explicitly set to ensure it updates
-    fontFamily: titlePlacement.fontFamily || 'Arial',
+    fontFamily: normalizeFontFamily(titlePlacement.fontFamily) || 'Arial',
     fontWeight: titlePlacement.fontWeight,
     width: titlePlacement.width,
   }), [titlePlacement]);
@@ -129,19 +154,21 @@ export default function PunchCardPreview({
     textAlign: descriptionPlacement.textAlign,
     color: descriptionPlacement.color,
     fontSize: descriptionPlacement.fontSize,
-    // Use fontFamily directly from cardLayouts - explicitly set to ensure it updates
-    fontFamily: descriptionPlacement.fontFamily || 'Arial',
+    fontFamily: normalizeFontFamily(descriptionPlacement.fontFamily) || 'Arial',
     width: descriptionPlacement.width,
   }), [descriptionPlacement]);
 
   return (
     <div
       ref={containerRef}
+      data-cursor-id={cursor?.id}
       className="relative w-full h-full rounded-2xl overflow-hidden punch-card-preview-container"
       style={{
         border: 'none',
         boxShadow: '0 4px 24px rgba(248, 187, 208, 0.5)',
-        cursor: `url(${isClicking ? holePunchClickCursor : holePunchCursor}) 32 32, auto`,
+        cursor: showCursor && cursor
+          ? `url(${isClicking ? cursor.click : cursor.cursor}) 32 32, auto`
+          : 'auto',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
@@ -229,18 +256,18 @@ export default function PunchCardPreview({
               
               if (!showPunch) return null;
               
+              const slotOpacity = punch.isFilled ? 1 : (editMode ? 0.3 : 0);
               return (
                 <div
                   key={i}
-                  className={`flex items-center justify-center rounded-full transition-all ${
-                    punch.isFilled ? 'opacity-100' : 'opacity-30'
-                  }`}
+                  className="flex items-center justify-center rounded-full transition-all"
                   style={{
                     width: currentPunchGrid.punchCircleSize,
                     height: currentPunchGrid.punchCircleSize,
                     minWidth: currentPunchGrid.punchCircleSize,
                     minHeight: currentPunchGrid.punchCircleSize,
                     flexShrink: 0,
+                    opacity: slotOpacity,
                   }}
                 >
                   {typeof punch.icon === 'string' && (punch.icon.includes('.png') || punch.icon.includes('.svg') || punch.icon.startsWith('http') || punch.icon.startsWith('/')) ? (

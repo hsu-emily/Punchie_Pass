@@ -9,7 +9,7 @@ const baseLayout = {
     textAlign: 'left',
     color: '#333',
     fontSize: '1.3rem',
-    fontFamily: 'Press Start 2P, monospace',
+    fontFamily: '"Press Start 2P", monospace',
     fontWeight: 'bold',
     width: '80%'
   },
@@ -19,7 +19,7 @@ const baseLayout = {
     textAlign: 'left',
     color: '#555',
     fontSize: '.9rem',
-    fontFamily: 'Press Start 2P, monospace',
+    fontFamily: '"Press Start 2P", monospace',
     width: '80%'
   },
   punchGrid: {
@@ -39,18 +39,18 @@ const baseLayout = {
 export const cardLayouts = {
   'WindowsGreen.png': {
     ...baseLayout,
-    title: { ...baseLayout.title, color: '#0b693c', fontFamily: 'Press Start 2P, monospace' },
-    description: { ...baseLayout.description, color: '#0b693c', fontFamily: 'Press Start 2P, monospace' }
+    title: { ...baseLayout.title, color: '#0b693c', fontFamily: '"Press Start 2P", monospace' },
+    description: { ...baseLayout.description, color: '#0b693c', fontFamily: '"Press Start 2P", monospace' }
   },
   'WindowsPink.png': {
     ...baseLayout,
-    title: { ...baseLayout.title, color: '#f677a2', fontFamily: 'Press Start 2P, monospace' },
-    description: { ...baseLayout.description, color: '#f677a2', fontFamily: 'Press Start 2P, monospace' }
+    title: { ...baseLayout.title, color: '#f677a2', fontFamily: '"Press Start 2P", monospace' },
+    description: { ...baseLayout.description, color: '#f677a2', fontFamily: '"Press Start 2P", monospace' }
   },
   'WindowsPurple.png': {
     ...baseLayout,
-    title: { ...baseLayout.title, color: '#8c52ff', fontFamily: 'Press Start 2P, monospace' },
-    description: { ...baseLayout.description, color: '#8c52ff', fontFamily: 'Press Start 2P, monospace' }
+    title: { ...baseLayout.title, color: '#8c52ff', fontFamily: '"Press Start 2P", monospace' },
+    description: { ...baseLayout.description, color: '#8c52ff', fontFamily: '"Press Start 2P", monospace' }
   },
   'LacePink.png': {
     ...baseLayout,
@@ -60,7 +60,7 @@ export const cardLayouts = {
       textAlign: 'center',
       color: '#f677a2',
       fontSize: '3.2rem',
-      fontFamily: 'Great Vibes, Playfair Display, Allura, Parisienne, cursive',
+      fontFamily: '"Great Vibes", "Playfair Display", "Allura", "Parisienne", cursive',
       fontWeight: 'normal',
       width: '100%'
     },
@@ -70,7 +70,7 @@ export const cardLayouts = {
       textAlign: 'center',
       color: '#f677a2',
       fontSize: '1rem',
-      fontFamily: 'Dancing Script, Great Vibes, cursive',
+      fontFamily: '"Dancing Script", "Great Vibes", cursive',
       width: '100%'
     },
     punchGrid: {
@@ -93,7 +93,7 @@ export const cardLayouts = {
       textAlign: 'center',
       color: '#ffffff',
       fontSize: '1.8rem',
-      fontFamily: 'Great Vibes, Playfair Display, Allura, Parisienne, cursive',
+      fontFamily: '"Great Vibes", "Playfair Display", "Allura", "Parisienne", cursive',
       fontWeight: 'bold',
       width: '100%'
     },
@@ -103,7 +103,7 @@ export const cardLayouts = {
       textAlign: 'center',
       color: '#ffffff',
       fontSize: '1rem',
-      fontFamily: 'Dancing Script, Great Vibes, cursive',
+      fontFamily: '"Dancing Script", "Great Vibes", cursive',
       width: '80%'
     },
     punchGrid: {
@@ -126,7 +126,7 @@ export const cardLayouts = {
       textAlign: 'center',
       color: '#2563EB',
       fontSize: '2rem',
-      fontFamily: 'Cinzel, serif',
+      fontFamily: '"Cinzel", serif',
       fontWeight: 'bold',
       width: '100%'
     },
@@ -136,7 +136,7 @@ export const cardLayouts = {
       textAlign: 'center',
       color: '#3B82F6',
       fontSize: '1.1rem',
-      fontFamily: 'Dancing Script, Great Vibes, cursive',
+      fontFamily: '"Dancing Script", "Great Vibes", cursive',
       width: '100%'
     },
     punchGrid: {
@@ -159,7 +159,7 @@ export const cardLayouts = {
       textAlign: 'center',
       color: '#0b693c',
       fontSize: '2rem',
-      fontFamily: 'Cinzel, serif',
+      fontFamily: '"Cinzel", serif',
       fontWeight: 'bold',
       width: '100%'
     },
@@ -169,7 +169,7 @@ export const cardLayouts = {
       textAlign: 'center',
       color: '#0b693c',
       fontSize: '1.1rem',
-      fontFamily: 'Dancing Script, Great Vibes, cursive',
+      fontFamily: '"Dancing Script", "Great Vibes", cursive',
       width: '100%'
     },
     punchGrid: {
@@ -192,7 +192,7 @@ export const cardLayouts = {
       textAlign: 'center',
       color: '#ffffff',
       fontSize: '1rem',
-      fontFamily: 'Press Start 2P, monospace',
+      fontFamily: '"Press Start 2P", monospace',
       fontWeight: 'bold',
       width: '80%'
     },
@@ -202,7 +202,7 @@ export const cardLayouts = {
       textAlign: 'center',
       color: '#ffffff',
       fontSize: '.7rem',
-      fontFamily: 'Press Start 2P, monospace',
+      fontFamily: '"Press Start 2P", monospace',
       width: '60%'
     },
     punchGrid: {
@@ -225,7 +225,7 @@ export const cardLayouts = {
       textAlign: 'center',
       color: '#f3d279',
       fontSize: '1.7rem',
-      fontFamily: 'Press Start 2P, monospace',
+      fontFamily: '"Press Start 2P", monospace',
       fontWeight: 'bold',
       width: '100%'
     },
@@ -235,7 +235,7 @@ export const cardLayouts = {
       textAlign: 'center',
       color: '#ffffff',
       fontSize: '0.8rem',
-      fontFamily: 'Press Start 2P, monospace',
+      fontFamily: '"Press Start 2P", monospace',
       width: '70%'
     },
     punchGrid: {

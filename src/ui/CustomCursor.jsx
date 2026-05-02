@@ -1,28 +1,15 @@
 import { useEffect, useState } from 'react';
-import holePunchCursor from "@/assets/cursors/holePunch.png";
-import holePunchClickCursor from "@/assets/cursors/holePunchClick.png";
-import pointerCursor from "@/assets/cursors/pointer.png";
-import pointerCursorHover from "@/assets/cursors/pointerHover.png";
+import { getCursor, DEFAULT_CURSOR_ID } from "@/assets/cursors/cursors";
 
-export default function CustomCursor({ 
-  cursorType = 'pointer', // 'pointer' or 'holepunch'
-  icon, 
+export default function CustomCursor({
+  cursorType = DEFAULT_CURSOR_ID,
+  icon,
   clickIcon,
-  size = 35 
+  size = 35
 }) {
-  // Determine which cursors to use based on cursorType or provided icons
-  const getDefaultIcon = () => {
-    if (icon) return icon;
-    return cursorType === 'holepunch' ? holePunchCursor : pointerCursor;
-  };
-
-  const getClickIcon = () => {
-    if (clickIcon) return clickIcon;
-    return cursorType === 'holepunch' ? holePunchClickCursor : pointerCursorHover;
-  };
-
-  const defaultIcon = getDefaultIcon();
-  const clickIconFinal = getClickIcon();
+  const resolved = getCursor(cursorType);
+  const defaultIcon = icon || resolved?.cursor;
+  const clickIconFinal = clickIcon || resolved?.click;
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const [isClicking, setIsClicking] = useState(false);
   const [isHovering, setIsHovering] = useState(false);

@@ -1,51 +1,16 @@
 import { motion } from 'framer-motion';
 import { Download, RotateCcw, Share2, Trash2 } from 'lucide-react';
-import { useMemo, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 import { useHabitStore } from "@/features/habits/habitStore";
-import { getCardLayout } from "@/features/punchpass/cardLayouts.config";
 import { downloadCard, generateShareableCard, shareCard } from "@/services/shareCard";
-import PunchCardPreview from '@/features/punchpass/PunchCardPreview';
+import PunchCard from '@/features/punchpass/PunchCard';
 
-// Load punch card PNGs
-const punchCardModules = import.meta.glob("@/assets/punch_cards/*.png", { eager: true });
-const punchCardMap = {};
-for (const path in punchCardModules) {
-  const filename = path.split('/').pop();
-  punchCardMap[filename] = punchCardModules[path].default;
-}
-
-// Load icon PNGs
-const iconModules = import.meta.glob("@/assets/icons/*.png", { eager: true });
-const iconMap = {};
-for (const path in iconModules) {
-  const filename = path.split('/').pop();
-  iconMap[filename] = iconModules[path].default;
-}
-
-export default function HabitCard({ habit, onPunch, hideControls = false, size = 'medium' }) {
+export default function HabitCard({ habit, onPunch, hideControls = false }) {
   const { resetHabit, deleteHabit } = useHabitStore();
   const cardRef = useRef(null);
   const [sharing, setSharing] = useState(false);
   const progress = (habit.currentPunches / habit.targetPunches) * 100;
   const isComplete = habit.currentPunches >= habit.targetPunches;
-
-  // Get punch card image and layout
-  const punchCardImage = useMemo(() => {
-    if (habit.punchCardImage && punchCardMap[habit.punchCardImage]) {
-      return punchCardMap[habit.punchCardImage];
-    }
-    // Fallback to first available card
-    return Object.values(punchCardMap)[0] || null;
-  }, [habit.punchCardImage]);
-
-  // Get layout from cardLayouts based on punchCardImage
-  // Always use cardLayouts to ensure we have Medium/Large structure
-  // If habit.layout exists and has custom values, we could merge them, but for now use cardLayouts
-  const layout = getCardLayout(habit.punchCardImage);
-
-  // Get icons
-  const icon1 = habit.icon1 ? (iconMap[habit.icon1] || habit.icon1) : null;
-  const icon2 = habit.icon2 ? (iconMap[habit.icon2] || habit.icon2) : null;
 
   const handleReset = () => {
     if (confirm('Reset this habit card? This will clear all punches.')) {
@@ -93,22 +58,6 @@ export default function HabitCard({ habit, onPunch, hideControls = false, size =
     }
   };
 
-  // Create punch grid with filled/unfilled states
-  const getPunchIcon = (index) => {
-    if (index < habit.currentPunches) {
-      // Return filled icon (alternate between icon1 and icon2)
-      return (index % 2 === 0 ? icon1 : icon2) || '✓';
-    }
-    return null; // Empty punch
-  };
-
-  // Update layout to show filled punches
-  const punchGridLayout = {
-    ...layout.punchGrid,
-    filledPunches: habit.currentPunches,
-    totalPunches: habit.targetPunches
-  };
-
   return (
     <motion.div
       ref={cardRef}
@@ -116,32 +65,7 @@ export default function HabitCard({ habit, onPunch, hideControls = false, size =
       animate={{ opacity: 1, scale: 1 }}
       className="habit-card"
     >
-      {/* Punch Card Preview */}
-      <div className="relative w-full" style={{ aspectRatio: '1004/591', minHeight: '300px' }}>
-        {punchCardImage ? (
-          <PunchCardPreview
-            name={habit.title}
-            description={habit.description || ''}
-            icon1={icon1}
-            icon2={icon2}
-            cardImage={punchCardImage}
-            isDailyPunch={habit.timeWindow === 'daily'}
-            titlePlacement={layout.title}
-            descriptionPlacement={layout.description}
-            punchGridPlacement={punchGridLayout}
-            currentPunches={habit.currentPunches}
-            targetPunches={habit.targetPunches}
-            size={size}
-          />
-        ) : (
-          <div className="habit-card-fallback">
-            <div className="habit-card-fallback-content">
-              <div className="habit-card-fallback-emoji">{habit.theme?.emoji || '⭐'}</div>
-              <h3 className="habit-card-fallback-title">{habit.title}</h3>
-            </div>
-          </div>
-        )}
-      </div>
+      <PunchCard habit={habit} />
 
       {/* Card Controls and Info - Hidden in carousel view */}
       {!hideControls && (

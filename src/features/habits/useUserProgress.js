@@ -1,4 +1,6 @@
 import { useMemo } from 'react';
+import { useAuth } from '@/features/auth/useAuth';
+import { getPetBonus } from '@/features/pets/petBonus';
 import useStreak from './useStreak';
 
 /**
@@ -6,10 +8,17 @@ import useStreak from './useStreak';
  * habitStore: each habit has currentPunches, targetPunches, and a logs[]
  * of { date, punchNumber } entries.
  *
+ * Pulls the active pet's `streakShield` from the profile and forwards it
+ * to useStreak so the streak number reflects the equipped pet's grace.
+ *
  * @returns {{ totalPunches, completedPasses, currentStreak, longestStreak,
- *             punchDates: Date[] }}
+ *             shieldUsed, punchDates: Date[] }}
  */
 export default function useUserProgress(habits) {
+  const { profile } = useAuth();
+  const activeKind = profile?.bunny?.kind || 'bun';
+  const { streakShield } = getPetBonus(activeKind);
+
   const punchDates = useMemo(() => {
     if (!habits?.length) return [];
     return habits
@@ -18,7 +27,7 @@ export default function useUserProgress(habits) {
       .filter(Boolean);
   }, [habits]);
 
-  const { current, longest } = useStreak(punchDates);
+  const { current, longest, shieldUsed } = useStreak(punchDates, { shieldDays: streakShield });
 
   return useMemo(() => {
     const totalPunches = (habits || []).reduce(
@@ -33,7 +42,8 @@ export default function useUserProgress(habits) {
       completedPasses,
       currentStreak: current,
       longestStreak: longest,
+      shieldUsed,
       punchDates,
     };
-  }, [habits, current, longest, punchDates]);
+  }, [habits, current, longest, shieldUsed, punchDates]);
 }

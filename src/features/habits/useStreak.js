@@ -3,12 +3,13 @@
  * from a list of punch timestamps.
  *
  * @param {Array<Date|firebase.Timestamp|number|string>} punches
- *   Timestamps of all punches the user has made. Order doesn't matter.
- * @returns {{ current: number, longest: number }}
- *
- * For Firestore-backed apps, prefer pushing this calculation server-side
- * (Cloud Function on punch write) and reading the stored value, then use
- * this hook only for local optimistic updates.
+ * @param {object} [opts]
+ * @param {number} [opts.shieldDays=0]
+ *   Number of empty days the streak forgives before breaking. Sourced from
+ *   the active pet's `streakShield` bonus where applicable. Shielded days
+ *   keep the streak alive but do *not* count toward streak length — the
+ *   number is "consecutive days you actually punched", not "days alive".
+ * @returns {{ current: number, longest: number, shieldUsed: number }}
  */
 import { useMemo } from 'react';
 
@@ -22,13 +23,13 @@ const toDate = (v) => {
 const dayKey = (d) =>
   `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 
-export default function useStreak(punches) {
+export default function useStreak(punches, { shieldDays = 0 } = {}) {
   return useMemo(() => {
-    if (!punches?.length) return { current: 0, longest: 0 };
+    if (!punches?.length) return { current: 0, longest: 0, shieldUsed: 0 };
 
     const days = new Set(punches.map(toDate).filter(Boolean).map(dayKey));
 
-    // Longest streak: walk all unique days sorted ascending
+    // Longest streak — shields don't apply here (lifetime stat is exact).
     const sorted = [...days].sort();
     let longest = 0, run = 0, prev = null;
     for (const k of sorted) {
@@ -43,22 +44,28 @@ export default function useStreak(punches) {
       prev = d;
     }
 
-    // Current streak: count back from today
+    // Current streak — walk back from today, applying shield to gap days.
     let current = 0;
+    let shieldRemaining = Math.max(0, shieldDays | 0);
+    let shieldUsed = 0;
     const today = new Date(); today.setHours(0, 0, 0, 0);
     for (let i = 0; ; i++) {
       const d = new Date(today); d.setDate(d.getDate() - i);
       if (days.has(dayKey(d))) {
         current++;
       } else if (i === 0) {
-        // grace: if user hasn't punched today yet, still count if they
-        // punched yesterday — only break the streak after a full day off
+        // Grace: not punching today doesn't break the streak yet.
+        continue;
+      } else if (shieldRemaining > 0) {
+        shieldRemaining -= 1;
+        shieldUsed += 1;
+        // Streak survives this gap day; do not increment `current`.
         continue;
       } else {
         break;
       }
     }
 
-    return { current, longest };
-  }, [punches]);
+    return { current, longest, shieldUsed };
+  }, [punches, shieldDays]);
 }

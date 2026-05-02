@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from '@/features/auth/useAuth';
+import { BUNNY_KINDS, BUNNY_VARIANTS } from '@/features/bunny/bunnyVariants';
+import HatchedBunny from '@/features/bunny/HatchedBunny';
 import StudentIdCard from '@/features/studentId/StudentIdCard';
 import '@/features/studentId/StudentIdPage.css';
 import './AvatarCustomizer.css';
@@ -167,6 +169,15 @@ const ICONS = {
       <rect x="3" y="13" width="16" height="2.5" rx="1" fill={ICON_STROKE} />
     </svg>
   ),
+  bunny: (
+    <svg viewBox="0 0 22 22" fill="none">
+      <ellipse cx="7" cy="6" rx="1.6" ry="3.5" stroke={ICON_STROKE} strokeWidth="2" />
+      <ellipse cx="15" cy="6" rx="1.6" ry="3.5" stroke={ICON_STROKE} strokeWidth="2" />
+      <circle cx="11" cy="13" r="5.5" stroke={ICON_STROKE} strokeWidth="2" />
+      <circle cx="9" cy="13" r="0.9" fill={ICON_STROKE} />
+      <circle cx="13" cy="13" r="0.9" fill={ICON_STROKE} />
+    </svg>
+  ),
   accessory: (
     <svg viewBox="0 0 22 22" fill="none">
       <path
@@ -187,7 +198,7 @@ const ICONS = {
   ),
 };
 
-const TABS = [
+const BASE_TABS = [
   { id: 'background', label: 'Backdrop' },
   { id: 'skin', label: 'Skin' },
   { id: 'hair', label: 'Hair' },
@@ -200,15 +211,36 @@ const TABS = [
   { id: 'accessory', label: 'Accessory' },
   { id: 'blush', label: 'Blush' },
 ];
+const BUNNY_TAB = { id: 'bunny', label: 'Bunny' };
 
 function pickRandom(arr) {
   return arr[Math.floor(Math.random() * arr.length)];
 }
 
-export default function AvatarCustomizer({ initial, onChange, onConfirm, onBack } = {}) {
+export default function AvatarCustomizer({
+  initial,
+  onChange,
+  onConfirm,
+  onBack,
+  bunnyKind: bunnyKindProp,
+  onBunnyKindChange,
+  unlockedBunnies,
+  confirmLabel,
+  title: pageTitle,
+} = {}) {
   const [avatar, setAvatar] = useState({ ...DEFAULT_AVATAR, ...(initial || {}) });
   const [activeTab, setActiveTab] = useState('skin');
   const { profile } = useAuth?.() || { user: null, profile: null };
+  const [internalBunnyKind, setInternalBunnyKind] = useState(
+    bunnyKindProp ?? profile?.bunny?.kind ?? 'bun'
+  );
+  const bunnyKind = bunnyKindProp ?? internalBunnyKind;
+  const setBunnyKind = (k) => {
+    if (bunnyKindProp === undefined) setInternalBunnyKind(k);
+    onBunnyKindChange?.(k);
+  };
+  const showBunnyTab = Array.isArray(unlockedBunnies);
+  const TABS = showBunnyTab ? [...BASE_TABS, BUNNY_TAB] : BASE_TABS;
 
   const update = (patch) => setAvatar((a) => ({ ...a, ...patch }));
 
@@ -222,8 +254,6 @@ export default function AvatarCustomizer({ initial, onChange, onConfirm, onBack 
   useEffect(() => {
     onChange?.(avatar);
   }, [avatar, onChange]);
-
-  const bunnyKind = profile?.bunny?.kind || 'bun';
 
   const shuffle = () => {
     update({
@@ -258,7 +288,7 @@ export default function AvatarCustomizer({ initial, onChange, onConfirm, onBack 
           <span className="av-eyebrow">★ PUNCHIE WORLD MEMBER ★</span>
           <h1 className="av-title">
             <span className="deco">✦</span>
-            MAKE YOUR CUTIE
+            {pageTitle || 'MAKE YOUR CUTIE'}
             <span className="deco">✦</span>
           </h1>
         </div>
@@ -311,7 +341,14 @@ export default function AvatarCustomizer({ initial, onChange, onConfirm, onBack 
                 {countOptions(activeTab)} OPTIONS
               </span>
             </div>
-            <ActivePanel activeTab={activeTab} avatar={avatar} update={update} />
+            <ActivePanel
+              activeTab={activeTab}
+              avatar={avatar}
+              update={update}
+              bunnyKind={bunnyKind}
+              setBunnyKind={setBunnyKind}
+              unlockedBunnies={unlockedBunnies}
+            />
           </div>
         </div>
 
@@ -328,8 +365,8 @@ export default function AvatarCustomizer({ initial, onChange, onConfirm, onBack 
             ✦ SHUFFLE ALL ✦
           </button>
           {onConfirm ? (
-            <button className="av-btn av-btn-primary" onClick={() => onConfirm(avatar)}>
-              Looks cute → Next
+            <button className="av-btn av-btn-primary" onClick={() => onConfirm(avatar, bunnyKind)}>
+              {confirmLabel || 'Looks cute → Next'}
             </button>
           ) : (
             <span />
@@ -353,11 +390,12 @@ function countOptions(tab) {
     case 'hat': return HAT_OPTIONS.length;
     case 'accessory': return ACCESSORY_OPTIONS.length;
     case 'blush': return 2;
+    case 'bunny': return BUNNY_KINDS.length;
     default: return 0;
   }
 }
 
-function ActivePanel({ activeTab, avatar, update }) {
+function ActivePanel({ activeTab, avatar, update, bunnyKind, setBunnyKind, unlockedBunnies }) {
   switch (activeTab) {
     case 'background':
       return (
@@ -568,6 +606,31 @@ function ActivePanel({ activeTab, avatar, update }) {
           />
         </Grid>
       );
+    case 'bunny': {
+      const unlocked = new Set(unlockedBunnies || BUNNY_KINDS);
+      return (
+        <Grid>
+          {BUNNY_KINDS.map((k) => {
+            const variant = BUNNY_VARIANTS[k];
+            const isUnlocked = unlocked.has(k);
+            return (
+              <button
+                key={k}
+                className={`av-option bunny-tile ${bunnyKind === k ? 'active' : ''} ${isUnlocked ? '' : 'locked'}`}
+                onClick={() => isUnlocked && setBunnyKind?.(k)}
+                disabled={!isUnlocked}
+                title={isUnlocked ? variant.name : `${variant.name} — ${variant.hint}`}
+              >
+                <HatchedBunny kind={k} size={64} />
+                <span className="av-toggle-label">
+                  {isUnlocked ? variant.name : '🔒'}
+                </span>
+              </button>
+            );
+          })}
+        </Grid>
+      );
+    }
     default:
       return null;
   }

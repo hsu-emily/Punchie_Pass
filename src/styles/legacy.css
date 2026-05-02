@@ -633,6 +633,7 @@ textarea {
   background: var(--color-pink-100);
 }
 
+
 /* Dashboard Header - Old Style (keeping for backwards compatibility) */
 .dashboard-header {
   background: rgba(255, 255, 255, 0.9);
@@ -2042,11 +2043,6 @@ textarea {
   justify-content: center;
   z-index: 9998;
   padding: 1rem;
-  cursor: none !important;
-}
-
-.card-zoom-overlay * {
-  cursor: none !important;
 }
 
 .card-zoom-content {
@@ -2230,13 +2226,9 @@ textarea {
 }
 
 .card-zoom-card {
-  width: 100%;
-  aspect-ratio: 1004/591;
-  position: relative;
-  transition: transform 0.2s ease, max-width 0.3s ease;
-  /* Match CardLayoutEditor preview size */
-  max-height: 350px;
-  max-width: calc(350px * 1004 / 591);
+  /* Sizing is owned by the PunchCard wrapper (max-width 600, aspect 1004/591). */
+  transition: transform 0.2s ease;
+  cursor: pointer;
 }
 
 /* Ensure fonts from cardLayouts are applied in PunchCardPreview */

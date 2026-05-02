@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/features/auth/useAuth';
 import { useHabitStore } from '@/features/habits/habitStore';
 import CreatePunchCard, { FIRST_ICON_ID } from './CreatePunchCard';
+import { DEFAULT_PUNCH_CURSOR_ID } from '@/assets/cursors/cursors';
 
 const DEFAULT_PASS = {
   title: '',
@@ -14,6 +15,7 @@ const DEFAULT_PASS = {
   icon1Id: FIRST_ICON_ID,
   icon2Id: FIRST_ICON_ID,
   customIcons: [],
+  cursorId: DEFAULT_PUNCH_CURSOR_ID,
 };
 
 export default function NewPassPage() {
@@ -37,6 +39,7 @@ export default function NewPassPage() {
         icon1Id: pass.icon1Id || pass.iconId,
         icon2Id: pass.icon2Id,
         customIcons: pass.customIcons || [],
+        cursorId: pass.cursorId || DEFAULT_PUNCH_CURSOR_ID,
         targetPunches: 10,
       });
       navigate('/dashboard');

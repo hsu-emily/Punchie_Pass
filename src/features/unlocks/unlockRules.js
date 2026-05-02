@@ -20,26 +20,16 @@
 export const UNLOCK_KINDS = ['cursor', 'icon', 'pass-template'];
 
 export const UNLOCK_RULES = [
-  // === Cursors ===
-  { id: 'cursor.holePunch', kind: 'cursor', ref: 'holePunch',
-    condition: () => true,
-    hint: 'Default' },
-  { id: 'cursor.star', kind: 'cursor', ref: 'star',
-    condition: (p) => p.completedPasses >= 1,
-    hint: 'Complete your first pass' },
-  { id: 'cursor.heart', kind: 'cursor', ref: 'heart',
-    condition: (p) => p.currentStreak >= 7,
-    hint: 'Reach a 7-day streak' },
-  { id: 'cursor.crown', kind: 'cursor', ref: 'crown',
-    condition: (p) => p.totalPunches >= 100,
-    hint: '100 lifetime punches' },
+  // === Cursors — defaults only. Other cursors are gacha drops. ===
+  { id: 'cursor.pointer',    kind: 'cursor', ref: 'pointer',
+    condition: () => true, hint: 'Default app cursor' },
+  { id: 'cursor.holepuncher', kind: 'cursor', ref: 'holepuncher',
+    condition: () => true, hint: 'Default punch cursor' },
 
-  // === Punch icons (visual variety on the card) ===
-  { id: 'icon.water',   kind: 'icon', ref: '19', condition: () => true, hint: 'Default' },
-  { id: 'icon.book',    kind: 'icon', ref: '20', condition: () => true, hint: 'Default' },
-  { id: 'icon.sparkle', kind: 'icon', ref: '17', condition: () => true, hint: 'Default' },
-  { id: 'icon.crown',   kind: 'icon', ref: '26',
-    condition: (p) => p.totalPunches >= 50, hint: '50 lifetime punches' },
+  // === Punch icons — three free defaults; the rest are gacha drops. ===
+  { id: 'icon.water',   kind: 'icon', ref: 'pixle/19', condition: () => true, hint: 'Default' },
+  { id: 'icon.book',    kind: 'icon', ref: 'pixle/20', condition: () => true, hint: 'Default' },
+  { id: 'icon.sparkle', kind: 'icon', ref: 'pixle/17', condition: () => true, hint: 'Default' },
 ];
 
 /**

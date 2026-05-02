@@ -5,9 +5,6 @@
   margin-top: 8px;
 }
 
-.habits-carousel-wrapper {
-  min-height: 380px !important;
-}
 
 .carousel-nav-btn {
   background: white !important;
@@ -44,14 +41,17 @@
   margin: 8px 0 -8px;
 }
 
-/* Journal row below ProfileSquares */
-.dashboard-journal-row {
+/* Quick action row below ProfileSquares */
+.dashboard-quick-row {
   display: flex;
   justify-content: center;
+  align-items: center;
+  gap: 12px;
   margin: 28px 0 0;
+  flex-wrap: wrap;
 }
 
-.dashboard-journal-btn {
+.dashboard-quick-btn {
   display: inline-flex;
   align-items: center;
   gap: 8px;
@@ -69,9 +69,25 @@
               box-shadow var(--pp-dur-fast) var(--pp-ease),
               background var(--pp-dur-fast) var(--pp-ease);
 }
-
-.dashboard-journal-btn:hover {
+.dashboard-quick-btn:hover {
   background: var(--pp-pink-50);
   transform: translateY(-1px);
   box-shadow: var(--pp-shadow-md);
+}
+
+.dashboard-gacha-tile {
+  background: linear-gradient(135deg, #FCE7F3, #DCEAFE);
+  border-color: var(--pp-pink-400);
+}
+.dashboard-gacha-tile:hover { background: linear-gradient(135deg, #FBCFE8, #BCD2F0); }
+
+.dashboard-token-pill {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 9px;
+  letter-spacing: 0.6px;
+  background: white;
+  color: var(--pp-pink-500);
+  padding: 4px 8px;
+  border-radius: 999px;
+  margin-left: 4px;
 }

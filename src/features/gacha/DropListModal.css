@@ -1,0 +1,168 @@
+.dlm-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(97, 40, 59, 0.42);
+  backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  padding: 16px;
+  font-family: 'Fredoka', system-ui, sans-serif;
+}
+
+.dlm-panel {
+  position: relative;
+  width: min(720px, 100%);
+  max-height: 90vh;
+  overflow-y: auto;
+  background: #fff8fc;
+  border: 2px solid #FBCFE8;
+  border-radius: 22px;
+  box-shadow: 0 20px 50px rgba(220, 60, 130, 0.30);
+  padding: 26px 22px 24px;
+}
+
+.dlm-close {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: 1.5px solid #F9A8D4;
+  background: white;
+  color: #61283B;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+.dlm-close:hover { background: #FCE7F3; }
+
+.dlm-eyebrow {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 9px;
+  letter-spacing: 1.5px;
+  color: #EC4899;
+  text-align: center;
+}
+.dlm-title {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 14px;
+  color: #61283B;
+  letter-spacing: 1px;
+  margin: 6px 0 6px;
+  text-align: center;
+}
+.dlm-lede {
+  color: #8B6F77;
+  font-size: 13px;
+  text-align: center;
+  margin: 0 0 14px;
+}
+
+.dlm-filter-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  justify-content: center;
+  margin-bottom: 16px;
+}
+.dlm-filter {
+  font-family: inherit;
+  font-size: 12px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: white;
+  border: 1.5px solid #FBCFE8;
+  color: #61283B;
+  cursor: pointer;
+}
+.dlm-filter:hover { background: #FCE7F3; }
+.dlm-filter.is-active {
+  background: linear-gradient(135deg, #F472B6, #EC4899);
+  color: white;
+  border-color: #EC4899;
+}
+
+.dlm-group {
+  background: white;
+  border: 1.5px solid #FCE7F3;
+  border-radius: 16px;
+  padding: 14px 14px 16px;
+  margin-bottom: 12px;
+}
+.dlm-group-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+.dlm-group-label {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 10px;
+  letter-spacing: 1px;
+}
+.dlm-group-rate {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 8px;
+  color: #8B6F77;
+}
+
+.dlm-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+  gap: 10px;
+}
+
+.dlm-tile {
+  position: relative;
+  background: #FFF7FC;
+  border: 1.5px solid #FBCFE8;
+  border-radius: 12px;
+  padding: 12px 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  text-align: center;
+  opacity: 0.55;
+  transition: opacity 0.15s ease, transform 0.15s ease;
+}
+.dlm-tile.is-owned {
+  background: white;
+  opacity: 1;
+}
+.dlm-tile.is-owned:hover { transform: translateY(-1px); }
+
+.dlm-art {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.dlm-name {
+  font-size: 12px;
+  font-weight: 600;
+  color: #61283B;
+  line-height: 1.25;
+  margin-top: 4px;
+}
+.dlm-kind {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 6.5px;
+  letter-spacing: 0.6px;
+  color: #8B6F77;
+  text-transform: uppercase;
+}
+.dlm-owned-pill {
+  margin-top: 4px;
+  font-family: 'Press Start 2P', monospace;
+  font-size: 7px;
+  letter-spacing: 0.6px;
+  color: white;
+  background: #EC4899;
+  padding: 3px 8px;
+  border-radius: 999px;
+}

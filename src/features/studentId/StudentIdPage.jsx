@@ -1,11 +1,14 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { ArrowLeft, Download, Lock, Share2, Sparkles } from 'lucide-react';
+import { ArrowLeft, Backpack, Download, PawPrint, Pencil, Share2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { doc, serverTimestamp, setDoc } from 'firebase/firestore';
+import { db } from '@/services/firebase';
 import { useAuth } from '@/features/auth/useAuth';
 import { useHabitStore } from '@/features/habits/habitStore';
 import useUserProgress from '@/features/habits/useUserProgress';
 import useUserLevel from '@/features/progress/useUserLevel';
-import { UNLOCK_RULES, evaluateUnlocks } from '@/features/unlocks/unlockRules';
+import { evaluateUnlockedBunnies } from '@/features/bunny/bunnyVariants';
+import AvatarCustomizer from '@/features/avatar/AvatarCustomizer';
 import StudentIdCard from './StudentIdCard';
 import './StudentIdPage.css';
 
@@ -17,12 +20,6 @@ function deriveIdNumber(uid) {
   return `PP-${String(num).padStart(4, '0')}`;
 }
 
-const KIND_META = {
-  cursor:   { label: 'Cursors',  emoji: '✦' },
-  icon:     { label: 'Punches',  emoji: '🎫' },
-  'pass-template': { label: 'Templates', emoji: '📜' },
-};
-
 export default function StudentIdPage() {
   const navigate = useNavigate();
   const { user, profile } = useAuth();
@@ -30,6 +27,7 @@ export default function StudentIdPage() {
   const fetchHabits = useHabitStore((s) => s.fetchHabits);
   const cardRef = useRef(null);
   const [busy, setBusy] = useState(null);
+  const [editing, setEditing] = useState(false);
 
   useEffect(() => {
     if (user) fetchHabits(user.uid);
@@ -46,18 +44,35 @@ export default function StudentIdPage() {
   const memberSince = profile?.studentId?.memberSince?.toDate?.() ||
     user?.metadata?.creationTime;
 
-  const unlockedSet = useMemo(() => {
-    const u = evaluateUnlocks({ totalPunches, completedPasses, currentStreak, longestStreak });
-    return new Set(u.map((r) => r.id));
-  }, [totalPunches, completedPasses, currentStreak, longestStreak]);
+  const hatchedPets = useMemo(() => profile?.pets?.hatched || [], [profile?.pets?.hatched]);
 
-  const groupedRules = useMemo(() => {
-    const groups = {};
-    for (const r of UNLOCK_RULES) {
-      (groups[r.kind] ||= []).push(r);
+  const unlockedBunnies = useMemo(
+    () => evaluateUnlockedBunnies(
+      { totalPunches, completedPasses, currentStreak, longestStreak },
+      hatchedPets
+    ),
+    [totalPunches, completedPasses, currentStreak, longestStreak, hatchedPets]
+  );
+
+  const handleSaveEdits = async (nextAvatar, nextBunnyKind) => {
+    if (!user) return;
+    setBusy('save');
+    try {
+      await setDoc(
+        doc(db, 'users', user.uid),
+        {
+          bunny: { avatar: nextAvatar, kind: nextBunnyKind, name: nextAvatar?.name || bunnyName },
+          updatedAt: serverTimestamp(),
+        },
+        { merge: true }
+      );
+      setEditing(false);
+    } catch (err) {
+      console.error('Failed to save profile edits:', err);
+    } finally {
+      setBusy(null);
     }
-    return groups;
-  }, []);
+  };
 
   const captureCard = async () => {
     const html2canvas = (await import('html2canvas')).default;
@@ -109,6 +124,20 @@ export default function StudentIdPage() {
     }
   };
 
+  if (editing) {
+    return (
+      <AvatarCustomizer
+        initial={{ ...(avatar || {}), name: avatar?.name || bunnyName }}
+        bunnyKind={bunnyKind}
+        unlockedBunnies={unlockedBunnies}
+        title="EDIT YOUR ID"
+        confirmLabel={busy === 'save' ? 'Saving…' : 'Save changes ✓'}
+        onBack={() => setEditing(false)}
+        onConfirm={handleSaveEdits}
+      />
+    );
+  }
+
   return (
     <div className="sid-page">
       <header className="sid-header">
@@ -135,6 +164,15 @@ export default function StudentIdPage() {
       </div>
 
       <div className="sid-actions">
+        <button className="sid-btn sid-btn-ghost" onClick={() => setEditing(true)} disabled={!!busy}>
+          <Pencil size={16} /> Edit
+        </button>
+        <button className="sid-btn sid-btn-ghost" onClick={() => navigate('/pets')} disabled={!!busy}>
+          <PawPrint size={16} /> Your Pets
+        </button>
+        <button className="sid-btn sid-btn-ghost" onClick={() => navigate('/inventory')} disabled={!!busy}>
+          <Backpack size={16} /> Your Inventory
+        </button>
         <button className="sid-btn sid-btn-ghost" onClick={handleDownload} disabled={!!busy}>
           <Download size={16} /> {busy === 'download' ? 'Saving…' : 'Download PNG'}
         </button>
@@ -147,57 +185,6 @@ export default function StudentIdPage() {
         Lv {level} · {xpInLevel}/{xpForNext} XP to Lv {level + 1} · {completedPasses} passes ·
         longest streak {longestStreak}d
       </p>
-
-      <section className="sid-collection">
-        <div className="sid-section-head">
-          <Sparkles size={16} />
-          <h2 className="sid-section-title">Collection</h2>
-          <span className="sid-section-sub">
-            {unlockedSet.size}/{UNLOCK_RULES.length} unlocked
-          </span>
-        </div>
-        <p className="sid-section-lede">
-          Earn rewards by punching, finishing passes, and keeping streaks alive.
-          Locked items show what to do next.
-        </p>
-
-        {Object.entries(groupedRules).map(([kind, rules]) => {
-          const meta = KIND_META[kind] || { label: kind, emoji: '✦' };
-          if (!rules.length) return null;
-          return (
-            <div key={kind} className="sid-collection-group">
-              <div className="sid-group-head">
-                <span className="sid-group-emoji">{meta.emoji}</span>
-                <span className="sid-group-label">{meta.label}</span>
-              </div>
-              <div className="sid-tile-grid">
-                {rules.map((r) => {
-                  const unlocked = unlockedSet.has(r.id);
-                  return (
-                    <div
-                      key={r.id}
-                      className={`sid-tile ${unlocked ? 'unlocked' : 'locked'}`}
-                      title={r.hint}
-                    >
-                      <div className="sid-tile-art">
-                        {unlocked ? (
-                          <span className="sid-tile-emoji">{meta.emoji}</span>
-                        ) : (
-                          <Lock size={18} strokeWidth={2.5} />
-                        )}
-                      </div>
-                      <div className="sid-tile-name">
-                        {r.id.split('.').slice(-1)[0]}
-                      </div>
-                      <div className="sid-tile-hint">{r.hint}</div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          );
-        })}
-      </section>
     </div>
   );
 }

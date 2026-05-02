@@ -1,12 +1,17 @@
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import { AuthProvider } from '@/features/auth/AuthContext';
+import '@/assets/cursors/globalCursor';
 import { RequireAuth, RequireProfile } from '@/features/auth/RouteGuards';
 import Login from '@/features/auth/Login';
 import Signup from '@/features/auth/Signup';
 import OnboardingFlow from '@/features/onboarding/OnboardingFlow';
 import Dashboard from '@/features/dashboard/Dashboard';
 import NewPassPage from '@/features/punchpass/NewPassPage';
+import EditPassPage from '@/features/punchpass/EditPassPage';
 import StudentIdPage from '@/features/studentId/StudentIdPage';
+import GachaPage from '@/features/gacha/GachaPage';
+import InventoryPage from '@/features/gacha/InventoryPage';
+import PetsPage from '@/features/pets/PetsPage';
 import CardLayoutEditor from '@/features/punchpass/layout-editor/CardLayoutEditor';
 import CelebrationPage from '@/features/celebration/CelebrationPage';
 import Home from '@/pages/Home';
@@ -51,6 +56,14 @@ export default function App() {
             }
           />
           <Route
+            path="/passes/:id/edit"
+            element={
+              <RequireProfile>
+                <EditPassPage />
+              </RequireProfile>
+            }
+          />
+          <Route
             path="/celebration"
             element={
               <RequireProfile>
@@ -63,6 +76,30 @@ export default function App() {
             element={
               <RequireProfile>
                 <StudentIdPage />
+              </RequireProfile>
+            }
+          />
+          <Route
+            path="/gacha"
+            element={
+              <RequireProfile>
+                <GachaPage />
+              </RequireProfile>
+            }
+          />
+          <Route
+            path="/inventory"
+            element={
+              <RequireProfile>
+                <InventoryPage />
+              </RequireProfile>
+            }
+          />
+          <Route
+            path="/pets"
+            element={
+              <RequireProfile>
+                <PetsPage />
               </RequireProfile>
             }
           />

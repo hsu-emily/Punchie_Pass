@@ -1,30 +1,14 @@
 import confetti from 'canvas-confetti';
 import { getDownloadURL, ref, uploadBytes } from 'firebase/storage';
 import { motion } from 'framer-motion';
-import { Download, QrCode } from 'lucide-react';
+import { Download, QrCode, Share2 } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import PunchCardPreview from "@/features/punchpass/PunchCardPreview";
+import PunchCard, { getCardImageName, getCardImageUrl } from "@/features/punchpass/PunchCard";
 import QRCodeModal from "@/ui/QRCodeModal";
 import { storage } from "@/services/firebase";
 import { getCardLayout } from "@/features/punchpass/cardLayouts.config";
 import { downloadCard, generateShareableCard } from "@/services/shareCard";
-
-// Load punch card PNGs
-const punchCardModules = import.meta.glob("@/assets/punch_cards/*.png", { eager: true });
-const punchCardMap = {};
-for (const path in punchCardModules) {
-  const filename = path.split('/').pop();
-  punchCardMap[filename] = punchCardModules[path].default;
-}
-
-// Load icon PNGs
-const iconModules = import.meta.glob("@/assets/icons/*.png", { eager: true });
-const iconMap = {};
-for (const path in iconModules) {
-  const filename = path.split('/').pop();
-  iconMap[filename] = iconModules[path].default;
-}
 
 export default function CelebrationPage() {
   const navigate = useNavigate();
@@ -46,32 +30,9 @@ export default function CelebrationPage() {
     }
   }, [habit, navigate]);
 
-  // Get punch card image and layout
-  const punchCardImage = habit?.punchCardImage 
-    ? (punchCardMap[habit.punchCardImage] || Object.values(punchCardMap)[0]) 
-    : (Object.values(punchCardMap)[0] || null);
-  
-  // Get layout with fallback
-  let layout = null;
-  if (habit?.punchCardImage) {
-    layout = getCardLayout(habit.punchCardImage);
-  }
-  if (!layout && punchCardImage) {
-    const firstCardName = Object.keys(punchCardMap)[0];
-    if (firstCardName) {
-      layout = getCardLayout(firstCardName);
-    }
-  }
-
-  // Get icons
-  const icon1 = habit?.icon1 ? (iconMap[habit.icon1] || habit.icon1) : null;
-  const icon2 = habit?.icon2 ? (iconMap[habit.icon2] || habit.icon2) : null;
-
-  const punchGridLayout = habit && layout ? {
-    ...layout.punchGrid,
-    filledPunches: habit.currentPunches,
-    totalPunches: habit.targetPunches
-  } : null;
+  const cardImageName = getCardImageName(habit);
+  const punchCardImage = getCardImageUrl(cardImageName);
+  const layout = cardImageName ? getCardLayout(cardImageName) : null;
 
   // Generate PNG image of the punch pass when card is rendered
   useEffect(() => {
@@ -395,6 +356,44 @@ export default function CelebrationPage() {
     }
   };
 
+  const handleShareCard = async () => {
+    let blob = null;
+    try {
+      if (cardImageUrl) {
+        const response = await fetch(cardImageUrl);
+        blob = await response.blob();
+      } else if (cardRef.current) {
+        const cardElement = cardRef.current.querySelector('.punch-card-preview-container') || cardRef.current;
+        blob = await generateShareableCard(cardElement, habit);
+      }
+      if (!blob) throw new Error('Failed to generate card image');
+
+      const fileName = `${habit.title || 'punch-pass'}-completed.png`.replace(/\s+/g, '-');
+      if (navigator.share) {
+        const file = new File([blob], fileName, { type: 'image/png' });
+        if (navigator.canShare?.({ files: [file] })) {
+          await navigator.share({
+            files: [file],
+            title: `I completed ${habit.title}!`,
+            text: `Check out my completed Punchie Pass!`,
+          });
+          return;
+        }
+      }
+      if (navigator.clipboard?.write && window.ClipboardItem) {
+        await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
+        alert('Copied to clipboard!');
+      } else {
+        downloadCard(blob, habit.title, 'completed-punch-pass');
+      }
+    } catch (err) {
+      if (err?.name !== 'AbortError') {
+        console.error('Share failed:', err);
+        alert('Failed to share. Please try again.');
+      }
+    }
+  };
+
   const handleCreateMoreHabits = () => {
     navigate('/dashboard');
   };
@@ -411,8 +410,8 @@ export default function CelebrationPage() {
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
-        justifyContent: 'center',
-        padding: '2rem',
+        justifyContent: 'flex-start',
+        padding: 'clamp(1rem, 3vw, 2rem)',
         overflow: 'auto',
       }}
     >
@@ -422,11 +421,11 @@ export default function CelebrationPage() {
         animate={{ scale: 1, opacity: 1, y: 0 }}
         transition={{ delay: 0.2, type: 'spring', stiffness: 200 }}
         style={{
-          fontSize: '3rem',
+          fontSize: 'clamp(1.5rem, 4vw, 2.25rem)',
           fontWeight: 'bold',
           color: '#FF1493',
           textAlign: 'center',
-          marginBottom: '1rem',
+          marginBottom: '0.5rem',
           textShadow: '2px 2px 4px rgba(0,0,0,0.2)',
         }}
       >
@@ -439,11 +438,11 @@ export default function CelebrationPage() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.3 }}
         style={{
-          fontSize: '1.5rem',
+          fontSize: 'clamp(0.95rem, 2vw, 1.15rem)',
           color: '#61283B',
           fontWeight: '500',
           textAlign: 'center',
-          marginBottom: '2rem',
+          marginBottom: '1.25rem',
         }}
       >
         {habit.reward 
@@ -461,25 +460,9 @@ export default function CelebrationPage() {
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               transition={{ delay: 0.4, type: 'spring', stiffness: 200 }}
-              className="card-zoom-card"
-              style={{
-                marginBottom: '2rem',
-              }}
+              style={{ width: '100%', maxWidth: 600, marginBottom: '1.5rem' }}
             >
-              <PunchCardPreview
-                name={habit.title}
-                description={habit.description || ''}
-                icon1={icon1}
-                icon2={icon2}
-                cardImage={punchCardImage}
-                isDailyPunch={habit.timeWindow === 'daily'}
-                titlePlacement={layout.title}
-                descriptionPlacement={layout.description}
-                punchGridPlacement={punchGridLayout}
-                currentPunches={habit.currentPunches}
-                size="large"
-                targetPunches={habit.targetPunches}
-              />
+              <PunchCard habit={habit} showCursor={false} />
             </motion.div>
           )}
 
@@ -487,27 +470,14 @@ export default function CelebrationPage() {
           {cardImageUrl && (
             <div
               ref={cardRef}
-              className="card-zoom-card"
               style={{
                 position: 'absolute',
                 left: '-9999px',
                 visibility: 'hidden',
+                width: 600,
               }}
             >
-              <PunchCardPreview
-                name={habit.title}
-                description={habit.description || ''}
-                icon1={icon1}
-                icon2={icon2}
-                cardImage={punchCardImage}
-                isDailyPunch={habit.timeWindow === 'daily'}
-                titlePlacement={layout.title}
-                descriptionPlacement={layout.description}
-                punchGridPlacement={punchGridLayout}
-                currentPunches={habit.currentPunches}
-                size="large"
-                targetPunches={habit.targetPunches}
-              />
+              <PunchCard habit={habit} showCursor={false} />
             </div>
           )}
 
@@ -521,7 +491,11 @@ export default function CelebrationPage() {
               alt={`Completed ${habit.title} punch pass`}
               className="card-zoom-card"
               style={{
-                marginBottom: '2rem',
+                width: '100%',
+                maxWidth: 600,
+                aspectRatio: '1004 / 591',
+                height: 'auto',
+                marginBottom: '1.5rem',
                 display: 'block',
                 objectFit: 'contain',
               }}
@@ -533,25 +507,9 @@ export default function CelebrationPage() {
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               transition={{ delay: 0.4, type: 'spring', stiffness: 200 }}
-              className="card-zoom-card"
-              style={{
-                marginBottom: '2rem',
-              }}
+              style={{ width: '100%', maxWidth: 600, marginBottom: '1.5rem' }}
             >
-              <PunchCardPreview
-                name={habit.title}
-                description={habit.description || ''}
-                icon1={icon1}
-                icon2={icon2}
-                cardImage={punchCardImage}
-                isDailyPunch={habit.timeWindow === 'daily'}
-                titlePlacement={layout.title}
-                descriptionPlacement={layout.description}
-                punchGridPlacement={punchGridLayout}
-                currentPunches={habit.currentPunches}
-                size="large"
-                targetPunches={habit.targetPunches}
-              />
+              <PunchCard habit={habit} showCursor={false} />
             </motion.div>
           ) : null}
         </>
@@ -598,6 +556,37 @@ export default function CelebrationPage() {
         >
           <Download size={20} />
           Download PNG
+        </motion.button>
+
+        {/* Share Button */}
+        <motion.button
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.65 }}
+          onClick={handleShareCard}
+          style={{
+            width: '200px',
+            height: '48px',
+            padding: '0.75rem 1rem',
+            background: 'linear-gradient(to right, #9333EA, #C026D3)',
+            color: 'white',
+            border: 'none',
+            borderRadius: '0.5rem',
+            fontSize: '1rem',
+            fontWeight: '600',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '0.5rem',
+            boxShadow: '0 4px 12px rgba(147, 51, 234, 0.3)',
+            transition: 'transform 0.2s ease',
+          }}
+          onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.05)'}
+          onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
+        >
+          <Share2 size={20} />
+          Share
         </motion.button>
 
         {/* Generate QR Code Button */}

@@ -1,11 +1,16 @@
 /**
- * useUserLevel — derives a level + title from raw progress.
+ * useUserLevel — derives a level + title from raw progress, with the
+ * active pet's xpMultiplier applied to the punches contribution.
  *
- * XP model: punches count 1 each, completed passes bonus 5, streak bonus 1/day.
- * Levels follow a triangular curve: level n needs 10·n·(n+1)/2 XP cumulatively.
- * That gives a gentle early ramp (Lv 2 at 10 xp, Lv 3 at 30, Lv 5 at 75, Lv 10 at 275).
+ * XP model:
+ *   xp = floor(totalPunches × pet.xpMultiplier) + completedPasses × 5 + currentStreak
+ *
+ * Triangular curve: level n needs 5·n·(n−1) XP to reach.
+ *   Lv 2 at 10, Lv 3 at 30, Lv 5 at 80, Lv 10 at 450.
  */
 import { useMemo } from 'react';
+import { useAuth } from '@/features/auth/useAuth';
+import { getPetBonus } from '@/features/pets/petBonus';
 
 const TITLES = [
   'Sprout',       // 1
@@ -21,7 +26,6 @@ const TITLES = [
 ];
 
 function xpForLevel(level) {
-  // total XP required to *reach* (level)
   const n = level - 1;
   return 5 * n * (n + 1);
 }
@@ -31,9 +35,13 @@ export default function useUserLevel({
   completedPasses = 0,
   currentStreak = 0,
 } = {}) {
+  const { profile } = useAuth();
+  const activeKind = profile?.bunny?.kind || 'bun';
+  const { xpMultiplier } = getPetBonus(activeKind);
+
   return useMemo(() => {
     const xp =
-      (totalPunches | 0) * 1 +
+      Math.floor((totalPunches | 0) * (xpMultiplier || 1)) +
       (completedPasses | 0) * 5 +
       (currentStreak | 0) * 1;
 
@@ -47,6 +55,6 @@ export default function useUserLevel({
     const progressPct = Math.min(1, xpInLevel / Math.max(1, xpForNext));
     const title = TITLES[Math.min(level, TITLES.length) - 1];
 
-    return { level, xp, xpInLevel, xpForNext, progressPct, title };
-  }, [totalPunches, completedPasses, currentStreak]);
+    return { level, xp, xpInLevel, xpForNext, progressPct, title, xpMultiplier };
+  }, [totalPunches, completedPasses, currentStreak, xpMultiplier]);
 }

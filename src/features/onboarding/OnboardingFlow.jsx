@@ -3,6 +3,7 @@ import { doc, serverTimestamp, setDoc } from 'firebase/firestore';
 import { useNavigate } from 'react-router-dom';
 import { db } from '@/services/firebase';
 import { useAuth } from '@/features/auth/useAuth';
+import { useHabitStore } from '@/features/habits/habitStore';
 import AvatarCustomizer from '@/features/avatar/AvatarCustomizer';
 import CreatePunchCard, { FIRST_ICON_ID } from '@/features/punchpass/CreatePunchCard';
 import '@/features/auth/guards.css';
@@ -12,16 +13,21 @@ import NameBunny from './steps/NameBunny';
 export default function OnboardingFlow() {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const addHabit = useHabitStore((s) => s.addHabit);
   const [step, setStep] = useState(0);
   const [bunnyName, setBunnyName] = useState('');
   const [bunnyKind, setBunnyKind] = useState('bun');
   const [avatar, setAvatar] = useState(null);
   const [pass, setPass] = useState({
     title: '',
-    subtitle: '',
+    description: '',
     frequency: 'daily',
-    iconId: FIRST_ICON_ID,
     reward: '',
+    cardImage: 'WindowsPink.png',
+    iconId: FIRST_ICON_ID,
+    icon1Id: FIRST_ICON_ID,
+    icon2Id: FIRST_ICON_ID,
+    customIcons: [],
   });
   const [saving, setSaving] = useState(false);
 
@@ -31,17 +37,33 @@ export default function OnboardingFlow() {
     if (!user) return;
     setSaving(true);
     try {
-      await setDoc(
-        doc(db, 'users', user.uid),
-        {
-          bunny: { name: bunnyName, kind: bunnyKind, avatar },
-          studentId: { memberSince: serverTimestamp() },
-          firstPass: pass,
-          onboardingCompleted: true,
-          updatedAt: serverTimestamp(),
-        },
-        { merge: true }
-      );
+      await Promise.all([
+        setDoc(
+          doc(db, 'users', user.uid),
+          {
+            bunny: { name: bunnyName, kind: bunnyKind, avatar },
+            studentId: { memberSince: serverTimestamp() },
+            // Starter bunny is permanently theirs — even if its progression
+            // condition isn't independently met (HatchScene picks at random).
+            pets: { hatched: [bunnyKind] },
+            onboardingCompleted: true,
+            updatedAt: serverTimestamp(),
+          },
+          { merge: true }
+        ),
+        addHabit(user.uid, {
+          title: (pass.title || '').trim() || 'My first habit',
+          description: pass.description || '',
+          frequency: pass.frequency,
+          reward: pass.reward,
+          cardImage: pass.cardImage,
+          iconId: pass.icon1Id || pass.iconId,
+          icon1Id: pass.icon1Id || pass.iconId,
+          icon2Id: pass.icon2Id || pass.icon1Id || pass.iconId,
+          customIcons: pass.customIcons || [],
+          targetPunches: 10,
+        }),
+      ]);
       navigate('/dashboard');
     } catch (err) {
       console.error('Failed to save onboarding:', err);

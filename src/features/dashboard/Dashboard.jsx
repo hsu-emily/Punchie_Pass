@@ -1,7 +1,7 @@
 // src/pages/Dashboard.jsx
 import { signOut } from 'firebase/auth';
 import { motion } from 'framer-motion';
-import { BookOpen, ChevronLeft, ChevronRight, LogOut, Plus, Sparkles } from 'lucide-react';
+import { BookOpen, ChevronLeft, ChevronRight, Egg, LogOut, Plus, Sparkles } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import CardZoomModal from "@/features/punchpass/CardZoomModal";
@@ -13,6 +13,7 @@ import { auth } from "@/services/firebase";
 import { useAuth } from "@/features/auth/useAuth";
 import { useHabitStore } from "@/features/habits/habitStore";
 import HatchedBunny from "@/features/bunny/HatchedBunny";
+import useGacha from "@/features/gacha/useGacha";
 import ProfileSquares from "./ProfileSquares";
 import "./EmptyState.css";
 import "./Carousel.css";
@@ -25,6 +26,7 @@ export default function Dashboard() {
   const punchHabit = useHabitStore(state => state.punchHabit);
   const undoPunch = useHabitStore(state => state.undoPunch);
   const fetchHabits = useHabitStore(state => state.fetchHabits);
+  const { tokensAvailable } = useGacha();
   const [showReflection, setShowReflection] = useState(false);
   const [showJournals, setShowJournals] = useState(false);
   const [activeIndex, setActiveIndex] = useState(0);
@@ -125,8 +127,8 @@ export default function Dashboard() {
         ) : (
           <div className="habits-carousel-container">
             <div className="habits-carousel-wrapper">
-              {/* Left Navigation - only show if 3+ cards */}
-              {uncompletedHabits.length >= 3 && (
+              {/* Left Navigation */}
+              {uncompletedHabits.length >= 1 && (
                 <button
                   onClick={() => {
                     const newIndex = (activeIndex - 1 + uncompletedHabits.length) % uncompletedHabits.length;
@@ -216,8 +218,8 @@ export default function Dashboard() {
                 })}
               </div>
 
-              {/* Right Navigation - only show if 3+ cards */}
-              {uncompletedHabits.length >= 3 && (
+              {/* Right Navigation */}
+              {uncompletedHabits.length >= 1 && (
                 <button
                   onClick={() => {
                     const newIndex = (activeIndex + 1) % uncompletedHabits.length;
@@ -259,10 +261,18 @@ export default function Dashboard() {
 
         <ProfileSquares habits={habits} />
 
-        <div className="dashboard-journal-row">
+        <div className="dashboard-quick-row">
+          <button
+            onClick={() => navigate('/gacha')}
+            className="dashboard-quick-btn dashboard-gacha-tile"
+          >
+            <Egg size={18} />
+            <span>Punchie Machine</span>
+            <span className="dashboard-token-pill">✦ {tokensAvailable}</span>
+          </button>
           <button
             onClick={() => setShowJournals(true)}
-            className="dashboard-journal-btn"
+            className="dashboard-quick-btn dashboard-journal-btn"
           >
             <BookOpen size={18} />
             <span>View my journals</span>

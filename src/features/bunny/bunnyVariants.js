@@ -13,11 +13,29 @@ const BASE = {
   dark:  '#61283B', // eyes / outline
 };
 
+/**
+ * Pet bonuses are declarative — the actual mechanics are wired by the
+ * features that read them (xp, tokens, etc). Keeping the *what* here
+ * means new pets are a single entry, not a code change everywhere.
+ *
+ *   xpMultiplier:    multiplier on XP earned per punch        (default 1)
+ *   tokenChance:     extra chance (0..1) to earn a token per completed pass
+ *   streakShield:    consecutive missed days the streak forgives (default 0)
+ *
+ * `source: 'progress'` pets unlock from progression conditions (legacy).
+ * `source: 'egg'`      pets only unlock by hatching a gacha egg.
+ */
 export const BUNNY_VARIANTS = {
   bun: {
     id: 'bun',
     name: 'Bun',
     tagline: 'Loves pretty pink things.',
+    rarity: 'common',
+    source: 'progress',
+    condition: () => true,
+    hint: 'Default starter',
+    bonus: { xpMultiplier: 1, tokenChance: 0, streakShield: 0 },
+    bonusLabel: 'Steady & sweet',
     palette: {
       cream: '#FFF8EB',
       body:  '#FF74A4',
@@ -30,6 +48,12 @@ export const BUNNY_VARIANTS = {
     id: 'seabun',
     name: 'Sea Bun',
     tagline: "Don't forget to stay hydrated.",
+    rarity: 'cute',
+    source: 'progress',
+    condition: (p) => p.totalPunches >= 25,
+    hint: '25 lifetime punches',
+    bonus: { xpMultiplier: 1.1, tokenChance: 0, streakShield: 0 },
+    bonusLabel: '+10% XP per punch',
     palette: {
       cream: '#E0EEFF',
       body:  '#5B8FD9',
@@ -42,20 +66,85 @@ export const BUNNY_VARIANTS = {
     id: 'chocobun',
     name: 'Choco Bun',
     tagline: "Don't forget to reward yourself.",
+    rarity: 'cute',
+    source: 'progress',
+    condition: (p) => p.completedPasses >= 1,
+    hint: 'Complete your first pass',
+    bonus: { xpMultiplier: 1, tokenChance: 0.25, streakShield: 0 },
+    bonusLabel: '+25% chance of bonus token on pass complete',
     palette: {
-      cream: '#F5E1CA',
-      body:  '#5A3220',
-      bodyAlt: '#6B3D28',
+      cream: '#AE8275',
+      body:  '#9A6F62',
+      bodyAlt: '#A57A6D',
       cheek: '#FFB7CE',
-      dark:  '#241108',
+      dark:  '#5E3F38',
+    },
+  },
+  stardustbun: {
+    id: 'stardustbun',
+    name: 'Stardust Bun',
+    tagline: 'Stitched from the seams of the sky.',
+    rarity: 'holo',
+    source: 'egg',
+    hint: 'Hatch a Stardust Egg from the Punchie Machine',
+    bonus: { xpMultiplier: 1.25, tokenChance: 0, streakShield: 1 },
+    bonusLabel: '+25% XP · 1-day streak shield',
+    palette: {
+      cream: '#EDE7FF',
+      body:  '#9B7CFF',
+      bodyAlt: '#A88BFF',
+      cheek: '#C5B7FF',
+      dark:  '#2B1A56',
+    },
+  },
+  goldbun: {
+    id: 'goldbun',
+    name: 'Golden Bun',
+    tagline: 'Rumored to bring tokens like rain.',
+    rarity: 'secret',
+    source: 'egg',
+    hint: 'Hatch a Golden Egg (Secret pull from the Punchie Machine)',
+    bonus: { xpMultiplier: 1.15, tokenChance: 0.5, streakShield: 0 },
+    bonusLabel: '+15% XP · +50% bonus token chance',
+    palette: {
+      cream: '#FFF6D6',
+      body:  '#E5B845',
+      bodyAlt: '#F0C75A',
+      cheek: '#FFD27A',
+      dark:  '#5A3F08',
     },
   },
 };
 
 export const BUNNY_KINDS = Object.keys(BUNNY_VARIANTS);
 
+/** Starter bunnies are progression-source only — egg-source pets can never
+ *  appear from HatchScene's roll, since those are gacha rewards. */
+const STARTER_KINDS = BUNNY_KINDS.filter((k) => BUNNY_VARIANTS[k].source !== 'egg');
+
 export function pickRandomBunny() {
-  return BUNNY_KINDS[Math.floor(Math.random() * BUNNY_KINDS.length)];
+  return STARTER_KINDS[Math.floor(Math.random() * STARTER_KINDS.length)];
+}
+
+/**
+ * Bunnies a user has access to.
+ *
+ * Two unlock paths:
+ *   1. Progression — variants with `source: 'progress'` whose condition matches.
+ *   2. Hatched     — variants whose id is present in `hatched` (egg-source).
+ */
+export function evaluateUnlockedBunnies(progress = {}, hatched = []) {
+  const hatchedSet = new Set(hatched);
+  return BUNNY_KINDS.filter((k) => {
+    const v = BUNNY_VARIANTS[k];
+    if (!v) return false;
+    // Hatched is the universal "permanent unlock" override — once a user
+    // owns a variant (HatchScene starter pick or hatched egg), they keep it
+    // even if the progression condition isn't independently met.
+    if (hatchedSet.has(k)) return true;
+    if (v.source === 'egg') return false;
+    try { return v.condition?.(progress) ?? true; } catch { return false; }
+  });
 }
 
 let cachedSource = null;

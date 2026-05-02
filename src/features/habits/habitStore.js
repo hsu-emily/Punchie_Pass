@@ -1,19 +1,22 @@
 // src/store/habitStore.js
 import { create } from 'zustand';
-import { collection, addDoc, updateDoc, deleteDoc, doc, getDocs, query, where } from 'firebase/firestore';
+import { collection, addDoc, updateDoc, deleteDoc, doc, getDocs } from 'firebase/firestore';
 import { db } from "@/services/firebase";
+
+const habitsCol = (userId) => collection(db, 'users', userId, 'habits');
+const habitDoc = (userId, habitId) => doc(db, 'users', userId, 'habits', habitId);
 
 export const useHabitStore = create((set, get) => ({
   habits: [],
+  userId: null,
   loading: false,
   error: null,
 
   // Fetch habits from Firestore
   fetchHabits: async (userId) => {
-    set({ loading: true, error: null });
+    set({ loading: true, error: null, userId });
     try {
-      const q = query(collection(db, 'habits'), where('userId', '==', userId));
-      const querySnapshot = await getDocs(q);
+      const querySnapshot = await getDocs(habitsCol(userId));
       const habits = querySnapshot.docs.map(doc => ({
         id: doc.id,
         ...doc.data()
@@ -27,7 +30,7 @@ export const useHabitStore = create((set, get) => ({
 
   // Add new habit
   addHabit: async (userId, habitData) => {
-    set({ loading: true });
+    set({ loading: true, userId });
     try {
       const newHabit = {
         ...habitData,
@@ -36,7 +39,7 @@ export const useHabitStore = create((set, get) => ({
         createdAt: new Date().toISOString(),
         logs: []
       };
-      const docRef = await addDoc(collection(db, 'habits'), newHabit);
+      const docRef = await addDoc(habitsCol(userId), newHabit);
       set(state => ({
         habits: [...state.habits, { id: docRef.id, ...newHabit }],
         loading: false
@@ -51,13 +54,14 @@ export const useHabitStore = create((set, get) => ({
 
   // Punch habit (increment)
   punchHabit: async (habitId) => {
+    const { userId } = get();
     const habit = get().habits.find(h => h.id === habitId);
-    if (!habit || habit.currentPunches >= habit.targetPunches) return false;
+    if (!habit || !userId || habit.currentPunches >= habit.targetPunches) return false;
 
     try {
       const newPunches = habit.currentPunches + 1;
-      const habitRef = doc(db, 'habits', habitId);
-      
+      const habitRef = habitDoc(userId, habitId);
+
       const log = {
         date: new Date().toISOString(),
         punchNumber: newPunches
@@ -77,7 +81,6 @@ export const useHabitStore = create((set, get) => ({
         )
       }));
 
-      // Return true if habit is complete
       return newPunches === habit.targetPunches;
     } catch (error) {
       console.error('Error punching habit:', error);
@@ -88,36 +91,35 @@ export const useHabitStore = create((set, get) => ({
 
   // Undo last punch (decrement)
   undoPunch: async (habitId) => {
+    const { userId } = get();
     const habit = get().habits.find(h => h.id === habitId);
-    if (!habit || habit.currentPunches <= 0) return false;
+    if (!habit || !userId || habit.currentPunches <= 0) return false;
 
     try {
       const newPunches = Math.max(0, habit.currentPunches - 1);
-      const habitRef = doc(db, 'habits', habitId);
-      
-      // Remove the last log entry
-      const updatedLogs = habit.logs && habit.logs.length > 0 
-        ? habit.logs.slice(0, -1) 
+      const habitRef = habitDoc(userId, habitId);
+
+      const updatedLogs = habit.logs && habit.logs.length > 0
+        ? habit.logs.slice(0, -1)
         : [];
 
       await updateDoc(habitRef, {
         currentPunches: newPunches,
         logs: updatedLogs,
-        // Update lastPunchedAt to the previous punch date, or null if no punches left
-        lastPunchedAt: updatedLogs.length > 0 
-          ? updatedLogs[updatedLogs.length - 1].date 
+        lastPunchedAt: updatedLogs.length > 0
+          ? updatedLogs[updatedLogs.length - 1].date
           : null
       });
 
       set(state => ({
         habits: state.habits.map(h =>
           h.id === habitId
-            ? { 
-                ...h, 
-                currentPunches: newPunches, 
+            ? {
+                ...h,
+                currentPunches: newPunches,
                 logs: updatedLogs,
-                lastPunchedAt: updatedLogs.length > 0 
-                  ? updatedLogs[updatedLogs.length - 1].date 
+                lastPunchedAt: updatedLogs.length > 0
+                  ? updatedLogs[updatedLogs.length - 1].date
                   : null
               }
             : h
@@ -134,8 +136,10 @@ export const useHabitStore = create((set, get) => ({
 
   // Reset habit (for new cycle)
   resetHabit: async (habitId) => {
+    const { userId } = get();
+    if (!userId) return;
     try {
-      const habitRef = doc(db, 'habits', habitId);
+      const habitRef = habitDoc(userId, habitId);
       await updateDoc(habitRef, {
         currentPunches: 0,
         logs: [],
@@ -157,8 +161,10 @@ export const useHabitStore = create((set, get) => ({
 
   // Delete habit
   deleteHabit: async (habitId) => {
+    const { userId } = get();
+    if (!userId) return;
     try {
-      await deleteDoc(doc(db, 'habits', habitId));
+      await deleteDoc(habitDoc(userId, habitId));
       set(state => ({
         habits: state.habits.filter(h => h.id !== habitId)
       }));
@@ -170,8 +176,15 @@ export const useHabitStore = create((set, get) => ({
 
   // Update habit
   updateHabit: async (habitId, updates) => {
+    const { userId } = get();
+    if (!userId) {
+      const err = new Error('Cannot update habit: no userId in store. Did fetchHabits run?');
+      console.error(err);
+      set({ error: err.message });
+      throw err;
+    }
     try {
-      const habitRef = doc(db, 'habits', habitId);
+      const habitRef = habitDoc(userId, habitId);
       await updateDoc(habitRef, {
         ...updates,
         updatedAt: new Date().toISOString()
@@ -184,6 +197,7 @@ export const useHabitStore = create((set, get) => ({
     } catch (error) {
       console.error('Error updating habit:', error);
       set({ error: error.message });
+      throw error;
     }
   },
 
@@ -193,14 +207,14 @@ export const useHabitStore = create((set, get) => ({
   // Check if habit can be punched today (based on time_window)
   canPunchToday: (habit) => {
     if (!habit.lastPunchedAt) return true;
-    
+
     const lastPunch = new Date(habit.lastPunchedAt);
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     lastPunch.setHours(0, 0, 0, 0);
-    
+
     const timeWindow = habit.timeWindow || 'daily';
-    
+
     if (timeWindow === 'daily') {
       return lastPunch.getTime() < today.getTime();
     } else if (timeWindow === 'weekly') {
@@ -213,7 +227,7 @@ export const useHabitStore = create((set, get) => ({
   // Get habits that can be punched today
   getHabitsToPunchToday: () => {
     const habits = get().habits;
-    return habits.filter(h => 
+    return habits.filter(h =>
       h.currentPunches < h.targetPunches && get().canPunchToday(h)
     );
   }

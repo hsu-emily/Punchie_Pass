@@ -1,0 +1,196 @@
+.inv-page {
+  --i-pink: #EC4899;
+  --i-pink-100: #FCE7F3;
+  --i-pink-200: #FBCFE8;
+  --i-pink-300: #F9A8D4;
+  --i-pink-ink: #61283B;
+  --i-mute: #8B6F77;
+
+  min-height: 100svh;
+  background:
+    radial-gradient(circle at 80% 0%, #ffe4f0 0%, transparent 45%),
+    radial-gradient(circle at 0% 100%, #dcebff 0%, transparent 45%),
+    #fff8fc;
+  padding: 32px 16px 96px;
+  font-family: 'Fredoka', system-ui, sans-serif;
+  color: #2A1E22;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.inv-header {
+  width: 100%;
+  max-width: 720px;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.inv-back {
+  justify-self: start;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  background: white;
+  border: 1px solid var(--i-pink-300);
+  border-radius: 999px;
+  font-family: inherit;
+  font-size: 14px;
+  cursor: pointer;
+}
+.inv-back:hover { background: var(--i-pink-100); }
+
+.inv-title {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 14px;
+  margin: 0;
+  color: var(--i-pink);
+  letter-spacing: 0.04em;
+}
+
+.inv-lede {
+  max-width: 560px;
+  text-align: center;
+  font-size: 14px;
+  color: var(--i-mute);
+  line-height: 1.5;
+  margin: 0 0 18px;
+}
+
+.inv-filter-row {
+  width: min(720px, 100%);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+  margin-bottom: 18px;
+}
+.inv-filter {
+  font-family: inherit;
+  font-size: 13px;
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: white;
+  border: 1.5px solid var(--i-pink-200);
+  color: var(--i-pink-ink);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.inv-filter:hover { background: var(--i-pink-100); }
+.inv-filter.is-active {
+  background: linear-gradient(135deg, #F472B6, #EC4899);
+  color: white;
+  border-color: var(--i-pink);
+}
+.inv-filter-count {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 8px;
+  background: rgba(0,0,0,0.08);
+  padding: 3px 7px;
+  border-radius: 999px;
+}
+.inv-filter.is-active .inv-filter-count { background: rgba(255,255,255,0.25); }
+
+.inv-empty {
+  text-align: center;
+  margin-top: 24px;
+  color: var(--i-mute);
+}
+.inv-empty p { margin: 0 0 14px; }
+.inv-empty-line {
+  color: var(--i-mute);
+  font-size: 14px;
+  margin-top: 12px;
+}
+
+.inv-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 11px 22px;
+  border-radius: 999px;
+  border: none;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  background: linear-gradient(135deg, #F472B6, #EC4899);
+  color: white;
+  cursor: pointer;
+  box-shadow: 0 6px 14px rgba(236, 72, 153, 0.30);
+}
+
+.inv-group {
+  width: min(720px, 100%);
+  background: white;
+  border: 2px solid var(--i-pink-100);
+  border-radius: 22px;
+  padding: 18px 18px 22px;
+  margin-bottom: 16px;
+  box-shadow: 0 4px 16px rgba(220, 60, 130, 0.06);
+}
+.inv-group-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+.inv-group-label {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 11px;
+  color: var(--i-pink-ink);
+  margin: 0;
+  letter-spacing: 1px;
+}
+.inv-group-sub {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 8px;
+  color: var(--i-mute);
+}
+
+.inv-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 10px;
+}
+
+.inv-tile {
+  background: #FFF7FC;
+  border: 1.5px solid var(--i-pink-200);
+  border-radius: 12px;
+  padding: 12px 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  text-align: center;
+  transition: transform 0.15s ease;
+}
+.inv-tile:hover { transform: translateY(-2px); }
+
+.inv-art {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 4px;
+}
+.inv-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--i-pink-ink);
+  line-height: 1.3;
+}
+.inv-meta {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  font-family: 'Press Start 2P', monospace;
+  font-size: 7px;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+}
+.inv-dupe { color: var(--i-mute); }

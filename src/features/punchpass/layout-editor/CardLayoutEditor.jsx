@@ -1,565 +1,173 @@
 import { Check, ChevronDown, ChevronUp, Copy, Download, Upload } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import PunchCardPreview from "@/features/punchpass/PunchCardPreview";
+import { getCardImageUrl } from '@/features/punchpass/PunchCard';
+import PunchCardPreview from '@/features/punchpass/PunchCardPreview';
+import { cardLayouts, getCardLayout } from '@/features/punchpass/cardLayouts.config';
 
-// Load punch card PNGs
-const punchCardModules = import.meta.glob("@/assets/punch_cards/*.png", { eager: true });
-const punchCardMap = {};
-for (const path in punchCardModules) {
-  const filename = path.split('/').pop();
-  punchCardMap[filename] = punchCardModules[path].default;
-}
+const punchCardModules = import.meta.glob('@/assets/punch_cards/*.png', { eager: true });
+const cardNames = Object.keys(punchCardModules)
+  .map((p) => p.split('/').pop())
+  .sort();
 
-// Load icon PNGs
-const iconModules = import.meta.glob("@/assets/icons/*.png", { eager: true });
-const iconMap = {};
-for (const path in iconModules) {
-  const filename = path.split('/').pop();
-  iconMap[filename] = iconModules[path].default;
-}
+const flatIconModules = import.meta.glob('@/assets/icons/*.png', { eager: true });
+const bucketIconModules = import.meta.glob('@/assets/icons/*/*.png', { eager: true });
+const iconChoices = [
+  ...Object.keys(flatIconModules).map((p) => p.split('/').pop()),
+  ...Object.keys(bucketIconModules).map((p) => {
+    const parts = p.split('/');
+    const file = parts.pop();
+    const bucket = parts.pop();
+    return `${bucket}/${file.replace('.png', '')}`;
+  }),
+].sort();
 
-const cardNames = Object.keys(punchCardMap);
-const iconNames = Object.keys(iconMap);
+// Only fonts loaded by index.html. Adding new ones here without also adding
+// them to the <link> in index.html will silently fall back at render time.
+const fontOptions = [
+  'Press Start 2P',
+  'Great Vibes',
+  'Dancing Script',
+  'Cinzel',
+  'Playfair Display',
+  'Allura',
+  'Parisienne',
+  'Instrument Sans',
+  'Fredoka',
+  'Arial',
+  'Helvetica',
+  'Times New Roman',
+  'Georgia',
+  'Courier New',
+  'monospace',
+  'serif',
+  'sans-serif',
+  'cursive',
+];
 
-// Default layout template
-const defaultLayout = {
-  title: { top: '4%', left: '7%', textAlign: 'left', color: '#333', fontSize: '1.4rem', fontWeight: 'bold', width: '80%' },
-  description: { top: '20%', left: '7%', textAlign: 'left', color: '#555', fontSize: '1rem', width: '80%' },
-  punchGrid: { top: '33%', left: '50%', transform: 'translateX(-50%)', punchCircleSize: '85px', punchIconSize: '85px', punchHorizontalGap: '8px', punchVerticalGap: '10px', numRows: 2, punchesPerRow: 5 }
+const adjustPercentage = (value, delta) => {
+  const m = String(value || '').match(/^(-?[\d.]+)(%)?$/);
+  if (!m) return value;
+  const next = parseFloat(m[1]) + delta;
+  return `${next}${m[2] || '%'}`;
+};
+
+const adjustPixels = (value, delta) => {
+  const m = String(value || '').match(/^([\d.]+)(px|rem|em)?$/);
+  if (!m) return value;
+  const next = Math.max(0, parseFloat(m[1]) + delta);
+  return `${next}${m[2] || ''}`;
 };
 
 export default function CardLayoutEditor() {
   const [selectedCard, setSelectedCard] = useState(cardNames[0] || '');
-  const [selectedIcon1, setSelectedIcon1] = useState(iconNames[0] || '');
-  const [selectedIcon2, setSelectedIcon2] = useState(iconNames[1] || iconNames[0] || '');
+  const [selectedIcon1, setSelectedIcon1] = useState(iconChoices.find((n) => n.includes('punch')) || iconChoices[0] || '');
+  const [selectedIcon2, setSelectedIcon2] = useState(iconChoices[1] || iconChoices[0] || '');
   const [currentPunches, setCurrentPunches] = useState(3);
   const [targetPunches, setTargetPunches] = useState(10);
-  const [editingSize, setEditingSize] = useState('medium'); // 'medium' or 'large'
-  
-  // Refs for measuring dimensions
-  const mediumPreviewRef = useRef(null);
-  const largePreviewRef = useRef(null);
-  const [mediumDimensions, setMediumDimensions] = useState({ width: 0, height: 0 });
-  const [largeDimensions, setLargeDimensions] = useState({ width: 0, height: 0 });
 
-  // Medium size settings
-  const [titleTopMedium, setTitleTopMedium] = useState(defaultLayout.title.top);
-  const [titleLeftMedium, setTitleLeftMedium] = useState(defaultLayout.title.left);
-  const [titleTextAlignMedium, setTitleTextAlignMedium] = useState(defaultLayout.title.textAlign);
-  const [titleColorMedium, setTitleColorMedium] = useState(defaultLayout.title.color);
-  const [titleFontSizeMedium, setTitleFontSizeMedium] = useState(defaultLayout.title.fontSize);
-  const [titleFontFamilyMedium, setTitleFontFamilyMedium] = useState(defaultLayout.title.fontFamily || 'Arial');
-  const [titleWidthMedium, setTitleWidthMedium] = useState(defaultLayout.title.width);
+  const previewRef = useRef(null);
+  const [previewDimensions, setPreviewDimensions] = useState({ width: 0, height: 0 });
 
-  const [descTopMedium, setDescTopMedium] = useState(defaultLayout.description.top);
-  const [descLeftMedium, setDescLeftMedium] = useState(defaultLayout.description.left);
-  const [descTextAlignMedium, setDescTextAlignMedium] = useState(defaultLayout.description.textAlign);
-  const [descColorMedium, setDescColorMedium] = useState(defaultLayout.description.color);
-  const [descFontSizeMedium, setDescFontSizeMedium] = useState(defaultLayout.description.fontSize);
-  const [descFontFamilyMedium, setDescFontFamilyMedium] = useState(defaultLayout.description.fontFamily || 'Arial');
-  const [descWidthMedium, setDescWidthMedium] = useState(defaultLayout.description.width);
+  // Initialize state from the actual canonical layout for the selected card.
+  const [layoutState, setLayoutState] = useState(() => getCardLayout(cardNames[0] || ''));
 
-  const [gridTopMedium, setGridTopMedium] = useState(defaultLayout.punchGrid.top);
-  const [gridLeftMedium, setGridLeftMedium] = useState(defaultLayout.punchGrid.left);
-  const [gridTransformMedium, setGridTransformMedium] = useState(defaultLayout.punchGrid.transform);
-  const [punchCircleSizeMedium, setPunchCircleSizeMedium] = useState(defaultLayout.punchGrid.punchCircleSize);
-  const [punchIconSizeMedium, setPunchIconSizeMedium] = useState(defaultLayout.punchGrid.punchIconSize);
-  const [punchHorizontalGapMedium, setPunchHorizontalGapMedium] = useState(defaultLayout.punchGrid.punchHorizontalGap);
-  const [punchVerticalGapMedium, setPunchVerticalGapMedium] = useState(defaultLayout.punchGrid.punchVerticalGap);
-  const [numRows, setNumRows] = useState(defaultLayout.punchGrid.numRows);
-  const [punchesPerRow, setPunchesPerRow] = useState(defaultLayout.punchGrid.punchesPerRow);
-
-  // Large size settings (initialize with medium values)
-  const [titleTopLarge, setTitleTopLarge] = useState(defaultLayout.title.top);
-  const [titleLeftLarge, setTitleLeftLarge] = useState(defaultLayout.title.left);
-  const [titleTextAlignLarge, setTitleTextAlignLarge] = useState(defaultLayout.title.textAlign);
-  const [titleColorLarge, setTitleColorLarge] = useState(defaultLayout.title.color);
-  const [titleFontSizeLarge, setTitleFontSizeLarge] = useState('2rem');
-  const [titleFontFamilyLarge, setTitleFontFamilyLarge] = useState(defaultLayout.title.fontFamily || 'Arial');
-  const [titleWidthLarge, setTitleWidthLarge] = useState(defaultLayout.title.width);
-
-  const [descTopLarge, setDescTopLarge] = useState(defaultLayout.description.top);
-  const [descLeftLarge, setDescLeftLarge] = useState(defaultLayout.description.left);
-  const [descTextAlignLarge, setDescTextAlignLarge] = useState(defaultLayout.description.textAlign);
-  const [descColorLarge, setDescColorLarge] = useState(defaultLayout.description.color);
-  const [descFontSizeLarge, setDescFontSizeLarge] = useState('1.5rem');
-  const [descFontFamilyLarge, setDescFontFamilyLarge] = useState(defaultLayout.description.fontFamily || 'Arial');
-  const [descWidthLarge, setDescWidthLarge] = useState(defaultLayout.description.width);
-
-  const [gridTopLarge, setGridTopLarge] = useState(defaultLayout.punchGrid.top);
-  const [gridLeftLarge, setGridLeftLarge] = useState(defaultLayout.punchGrid.left);
-  const [gridTransformLarge, setGridTransformLarge] = useState(defaultLayout.punchGrid.transform);
-  const [punchCircleSizeLarge, setPunchCircleSizeLarge] = useState('120px');
-  const [punchIconSizeLarge, setPunchIconSizeLarge] = useState('120px');
-  const [punchHorizontalGapLarge, setPunchHorizontalGapLarge] = useState('12px');
-  const [punchVerticalGapLarge, setPunchVerticalGapLarge] = useState('15px');
-
-  // Get current values based on editing size
-  const getCurrentValue = (medium, large) => editingSize === 'large' ? large : medium;
-  const setCurrentValue = (mediumSetter, largeSetter, value) => {
-    if (editingSize === 'large') {
-      largeSetter(value);
-    } else {
-      mediumSetter(value);
+  // When the user picks a different card, load its real config into the form
+  // so the editor shows the values that are actually in production.
+  useEffect(() => {
+    if (selectedCard) {
+      setLayoutState(getCardLayout(selectedCard));
     }
-  };
+  }, [selectedCard]);
 
-  // Helper function to parse and adjust percentage values
-  const adjustPercentage = (value, delta) => {
-    const match = value.match(/^([\d.]+)(%)?$/);
-    if (match) {
-      const num = parseFloat(match[1]);
-      const unit = match[2] || '';
-      const newValue = Math.max(0, Math.min(100, num + delta));
-      return `${newValue}${unit}`;
-    }
-    return value;
-  };
+  const setTitle = (k, v) => setLayoutState((s) => ({ ...s, title: { ...s.title, [k]: v } }));
+  const setDesc = (k, v) => setLayoutState((s) => ({ ...s, description: { ...s.description, [k]: v } }));
+  const setGrid = (k, v) => setLayoutState((s) => ({ ...s, punchGrid: { ...s.punchGrid, [k]: v } }));
 
-  // Helper function to parse and adjust pixel values
-  const adjustPixels = (value, delta) => {
-    const match = value.match(/^([\d.]+)(px|rem|em)?$/);
-    if (match) {
-      const num = parseFloat(match[1]);
-      const unit = match[2] || '';
-      const newValue = Math.max(0, num + delta);
-      return `${newValue}${unit}`;
-    }
-    return value;
-  };
+  const previewHabit = useMemo(() => ({
+    cardImage: selectedCard,
+    title: 'Sample Title',
+    description: 'This is a sample description text',
+    icon1Id: selectedIcon1,
+    icon2Id: selectedIcon2,
+    currentPunches,
+    targetPunches,
+  }), [selectedCard, selectedIcon1, selectedIcon2, currentPunches, targetPunches]);
 
-  // Font options
-  const fontOptions = [
-    'Arial',
-    'Helvetica',
-    'Times New Roman',
-    'Georgia',
-    'Verdana',
-    'Courier New',
-    'Comic Sans MS',
-    'Impact',
-    'Trebuchet MS',
-    'Press Start 2P',
-    'Press to Play',
-    'Arcade Gamer',
-    'Dancing Script',
-    'Great Vibes',
-    'Cinzel',
-    'Moontime',
-    'Roboto',
-    'Open Sans',
-    'Lato',
-    'Montserrat',
-    'Poppins',
-    'Playfair Display',
-    'Merriweather',
-    'Oswald',
-    'Raleway',
-    'Ubuntu',
-  ];
+  // Override the resolved layout for live editing — PunchCard reads from
+  // cardLayouts.config which is static, so we render PunchCard but pass our
+  // edited layout values via a synthetic resolver. Simplest: render against
+  // the in-state layout by feeding a one-off habit to PunchCard with the
+  // selected card name (which it'll use to look up the static config) — but
+  // we need the live values to win. Instead we render a "virtual card name"
+  // by stashing our state into the cardLayouts map at render time.
+  // Simpler still: pass the layout through a small inline preview.
+  const livePreviewLayout = layoutState;
 
-  // Computed layout objects
-  const layoutMedium = useMemo(() => ({
-    title: {
-      top: titleTopMedium,
-      left: titleLeftMedium,
-      textAlign: titleTextAlignMedium,
-      color: titleColorMedium,
-      fontSize: titleFontSizeMedium,
-      fontFamily: titleFontFamilyMedium,
-      fontWeight: defaultLayout.title.fontWeight,
-      width: titleWidthMedium,
-    },
-    description: {
-      top: descTopMedium,
-      left: descLeftMedium,
-      textAlign: descTextAlignMedium,
-      color: descColorMedium,
-      fontSize: descFontSizeMedium,
-      fontFamily: descFontFamilyMedium,
-      width: descWidthMedium,
-    },
-    punchGrid: {
-      top: gridTopMedium,
-      left: gridLeftMedium,
-      transform: gridTransformMedium,
-      punchCircleSize: punchCircleSizeMedium,
-      punchIconSize: punchIconSizeMedium,
-      punchHorizontalGap: punchHorizontalGapMedium,
-      punchVerticalGap: punchVerticalGapMedium,
-      numRows,
-      punchesPerRow,
-    },
-  }), [
-    titleTopMedium, titleLeftMedium, titleTextAlignMedium, titleColorMedium, titleFontSizeMedium, titleFontFamilyMedium, titleWidthMedium,
-    descTopMedium, descLeftMedium, descTextAlignMedium, descColorMedium, descFontSizeMedium, descFontFamilyMedium, descWidthMedium,
-    gridTopMedium, gridLeftMedium, gridTransformMedium, punchCircleSizeMedium, punchIconSizeMedium,
-    punchHorizontalGapMedium, punchVerticalGapMedium, numRows, punchesPerRow,
-  ]);
-
-  const layoutLarge = useMemo(() => ({
-    title: {
-      top: titleTopLarge,
-      left: titleLeftLarge,
-      textAlign: titleTextAlignLarge,
-      color: titleColorLarge,
-      fontSize: titleFontSizeLarge,
-      fontFamily: titleFontFamilyLarge,
-      fontWeight: defaultLayout.title.fontWeight,
-      width: titleWidthLarge,
-    },
-    description: {
-      top: descTopLarge,
-      left: descLeftLarge,
-      textAlign: descTextAlignLarge,
-      color: descColorLarge,
-      fontSize: descFontSizeLarge,
-      fontFamily: descFontFamilyLarge,
-      width: descWidthLarge,
-    },
-    punchGrid: {
-      top: gridTopLarge,
-      left: gridLeftLarge,
-      transform: gridTransformLarge,
-      punchCircleSize: punchCircleSizeLarge,
-      punchIconSize: punchIconSizeLarge,
-      punchHorizontalGap: punchHorizontalGapLarge,
-      punchVerticalGap: punchVerticalGapLarge,
-      numRows,
-      punchesPerRow,
-    },
-  }), [
-    titleTopLarge, titleLeftLarge, titleTextAlignLarge, titleColorLarge, titleFontSizeLarge, titleFontFamilyLarge, titleWidthLarge,
-    descTopLarge, descLeftLarge, descTextAlignLarge, descColorLarge, descFontSizeLarge, descFontFamilyLarge, descWidthLarge,
-    gridTopLarge, gridLeftLarge, gridTransformLarge, punchCircleSizeLarge, punchIconSizeLarge,
-    punchHorizontalGapLarge, punchVerticalGapLarge, numRows, punchesPerRow,
-  ]);
-
-  // Generate JSON output with both sizes
-  const jsonOutput = useMemo(() => {
-    return JSON.stringify({
-      title: {
-        topMedium: titleTopMedium,
-        topLarge: titleTopLarge,
-        leftMedium: titleLeftMedium,
-        leftLarge: titleLeftLarge,
-        textAlign: titleTextAlignMedium, // Same for both
-        colorMedium: titleColorMedium,
-        colorLarge: titleColorLarge,
-        fontSizeMedium: titleFontSizeMedium,
-        fontSizeLarge: titleFontSizeLarge,
-        fontFamilyMedium: titleFontFamilyMedium,
-        fontFamilyLarge: titleFontFamilyLarge,
-        fontWeight: defaultLayout.title.fontWeight,
-        widthMedium: titleWidthMedium,
-        widthLarge: titleWidthLarge,
-      },
-      description: {
-        topMedium: descTopMedium,
-        topLarge: descTopLarge,
-        leftMedium: descLeftMedium,
-        leftLarge: descLeftLarge,
-        textAlign: descTextAlignMedium,
-        colorMedium: descColorMedium,
-        colorLarge: descColorLarge,
-        fontSizeMedium: descFontSizeMedium,
-        fontSizeLarge: descFontSizeLarge,
-        fontFamilyMedium: descFontFamilyMedium,
-        fontFamilyLarge: descFontFamilyLarge,
-        widthMedium: descWidthMedium,
-        widthLarge: descWidthLarge,
-      },
-      punchGrid: {
-        topMedium: gridTopMedium,
-        topLarge: gridTopLarge,
-        leftMedium: gridLeftMedium,
-        leftLarge: gridLeftLarge,
-        transform: gridTransformMedium,
-        punchCircleSizeMedium: punchCircleSizeMedium,
-        punchCircleSizeLarge: punchCircleSizeLarge,
-        punchIconSizeMedium: punchIconSizeMedium,
-        punchIconSizeLarge: punchIconSizeLarge,
-        punchHorizontalGapMedium: punchHorizontalGapMedium,
-        punchHorizontalGapLarge: punchHorizontalGapLarge,
-        punchVerticalGapMedium: punchVerticalGapMedium,
-        punchVerticalGapLarge: punchVerticalGapLarge,
-        numRows,
-        punchesPerRow,
-      },
-    }, null, 2);
-  }, [layoutMedium, layoutLarge, numRows, punchesPerRow]);
+  const jsonOutput = useMemo(() => JSON.stringify(layoutState, null, 2), [layoutState]);
 
   const [copiedType, setCopiedType] = useState(null);
   const [importError, setImportError] = useState('');
   const [importText, setImportText] = useState('');
 
-  const copyToClipboard = () => {
-    navigator.clipboard.writeText(jsonOutput);
-    setCopiedType('json');
+  const copy = async (text, type) => {
+    await navigator.clipboard.writeText(text);
+    setCopiedType(type);
     setTimeout(() => setCopiedType(null), 2000);
   };
 
-  const copyAsCode = () => {
-    const code = `  '${selectedCard}': {
-    title: { 
-      topMedium: '${titleTopMedium}', 
-      topLarge: '${titleTopLarge}',
-      leftMedium: '${titleLeftMedium}', 
-      leftLarge: '${titleLeftLarge}',
-      textAlign: '${titleTextAlignMedium}', 
-      colorMedium: '${titleColorMedium}', 
-      colorLarge: '${titleColorLarge}',
-      fontSizeMedium: '${titleFontSizeMedium}', 
-      fontSizeLarge: '${titleFontSizeLarge}',
-      fontFamilyMedium: '${titleFontFamilyMedium}', 
-      fontFamilyLarge: '${titleFontFamilyLarge}',
-      fontWeight: 'bold',
-      widthMedium: '${titleWidthMedium}', 
-      widthLarge: '${titleWidthLarge}'
-    },
-    description: { 
-      topMedium: '${descTopMedium}', 
-      topLarge: '${descTopLarge}',
-      leftMedium: '${descLeftMedium}', 
-      leftLarge: '${descLeftLarge}',
-      textAlign: '${descTextAlignMedium}',
-      colorMedium: '${descColorMedium}', 
-      colorLarge: '${descColorLarge}',
-      fontSizeMedium: '${descFontSizeMedium}', 
-      fontSizeLarge: '${descFontSizeLarge}',
-      fontFamilyMedium: '${descFontFamilyMedium}', 
-      fontFamilyLarge: '${descFontFamilyLarge}',
-      widthMedium: '${descWidthMedium}', 
-      widthLarge: '${descWidthLarge}'
-    },
-    punchGrid: { 
-      topMedium: '${gridTopMedium}', 
-      topLarge: '${gridTopLarge}',
-      leftMedium: '${gridLeftMedium}', 
-      leftLarge: '${gridLeftLarge}',
-      transform: '${gridTransformMedium}',
-      punchCircleSizeMedium: '${punchCircleSizeMedium}', 
-      punchCircleSizeLarge: '${punchCircleSizeLarge}',
-      punchIconSizeMedium: '${punchIconSizeMedium}', 
-      punchIconSizeLarge: '${punchIconSizeLarge}',
-      punchHorizontalGapMedium: '${punchHorizontalGapMedium}', 
-      punchHorizontalGapLarge: '${punchHorizontalGapLarge}',
-      punchVerticalGapMedium: '${punchVerticalGapMedium}', 
-      punchVerticalGapLarge: '${punchVerticalGapLarge}',
-      numRows: ${numRows}, 
-      punchesPerRow: ${punchesPerRow}
-    }
-  }`;
-    navigator.clipboard.writeText(code);
-    setCopiedType('code');
-    setTimeout(() => setCopiedType(null), 2000);
+  const copyAsEntry = () => {
+    const code = `  '${selectedCard}': {\n` +
+      `    title: ${JSON.stringify(layoutState.title, null, 6).replace(/\n/g, '\n    ')},\n` +
+      `    description: ${JSON.stringify(layoutState.description, null, 6).replace(/\n/g, '\n    ')},\n` +
+      `    punchGrid: ${JSON.stringify(layoutState.punchGrid, null, 6).replace(/\n/g, '\n    ')},\n` +
+      `  },`;
+    copy(code, 'entry');
   };
 
-  const copyAsFullEntry = () => {
-    const code = `'${selectedCard}': {
-    ...baseLayout,
-    title: { 
-      ...baseLayout.title, 
-      topMedium: '${titleTopMedium}', 
-      topLarge: '${titleTopLarge}',
-      leftMedium: '${titleLeftMedium}', 
-      leftLarge: '${titleLeftLarge}',
-      textAlign: '${titleTextAlignMedium}', 
-      colorMedium: '${titleColorMedium}', 
-      colorLarge: '${titleColorLarge}',
-      fontSizeMedium: '${titleFontSizeMedium}', 
-      fontSizeLarge: '${titleFontSizeLarge}',
-      fontFamilyMedium: '${titleFontFamilyMedium}', 
-      fontFamilyLarge: '${titleFontFamilyLarge}',
-      fontWeight: 'bold',
-      widthMedium: '${titleWidthMedium}', 
-      widthLarge: '${titleWidthLarge}'
-    },
-    description: { 
-      ...baseLayout.description,
-      topMedium: '${descTopMedium}', 
-      topLarge: '${descTopLarge}',
-      leftMedium: '${descLeftMedium}', 
-      leftLarge: '${descLeftLarge}',
-      textAlign: '${descTextAlignMedium}',
-      colorMedium: '${descColorMedium}', 
-      colorLarge: '${descColorLarge}',
-      fontSizeMedium: '${descFontSizeMedium}', 
-      fontSizeLarge: '${descFontSizeLarge}',
-      fontFamilyMedium: '${descFontFamilyMedium}', 
-      fontFamilyLarge: '${descFontFamilyLarge}',
-      widthMedium: '${descWidthMedium}', 
-      widthLarge: '${descWidthLarge}'
-    },
-    punchGrid: { 
-      ...baseLayout.punchGrid,
-      topMedium: '${gridTopMedium}', 
-      topLarge: '${gridTopLarge}',
-      leftMedium: '${gridLeftMedium}', 
-      leftLarge: '${gridLeftLarge}',
-      transform: '${gridTransformMedium}',
-      punchCircleSizeMedium: '${punchCircleSizeMedium}', 
-      punchCircleSizeLarge: '${punchCircleSizeLarge}',
-      punchIconSizeMedium: '${punchIconSizeMedium}', 
-      punchIconSizeLarge: '${punchIconSizeLarge}',
-      punchHorizontalGapMedium: '${punchHorizontalGapMedium}', 
-      punchHorizontalGapLarge: '${punchHorizontalGapLarge}',
-      punchVerticalGapMedium: '${punchVerticalGapMedium}', 
-      punchVerticalGapLarge: '${punchVerticalGapLarge}',
-      numRows: ${numRows}, 
-      punchesPerRow: ${punchesPerRow}
-    }
-  }`;
-    navigator.clipboard.writeText(code);
-    setCopiedType('full');
-    setTimeout(() => setCopiedType(null), 2000);
-  };
-
-  const handleImport = (text) => {
+  const handleImport = () => {
     try {
-      const parsed = JSON.parse(text);
-      
-      // Try to extract values from the parsed JSON
-      if (parsed.title) {
-        if (parsed.title.topMedium) setTitleTopMedium(parsed.title.topMedium);
-        if (parsed.title.topLarge) setTitleTopLarge(parsed.title.topLarge);
-        if (parsed.title.leftMedium) setTitleLeftMedium(parsed.title.leftMedium);
-        if (parsed.title.leftLarge) setTitleLeftLarge(parsed.title.leftLarge);
-        if (parsed.title.textAlign) {
-          setTitleTextAlignMedium(parsed.title.textAlign);
-          setTitleTextAlignLarge(parsed.title.textAlign);
-        }
-        if (parsed.title.colorMedium) setTitleColorMedium(parsed.title.colorMedium);
-        if (parsed.title.colorLarge) setTitleColorLarge(parsed.title.colorLarge);
-        if (parsed.title.fontSizeMedium) setTitleFontSizeMedium(parsed.title.fontSizeMedium);
-        if (parsed.title.fontSizeLarge) setTitleFontSizeLarge(parsed.title.fontSizeLarge);
-        if (parsed.title.fontFamilyMedium) setTitleFontFamilyMedium(parsed.title.fontFamilyMedium);
-        if (parsed.title.fontFamilyLarge) setTitleFontFamilyLarge(parsed.title.fontFamilyLarge);
-        if (parsed.title.widthMedium) setTitleWidthMedium(parsed.title.widthMedium);
-        if (parsed.title.widthLarge) setTitleWidthLarge(parsed.title.widthLarge);
+      const parsed = JSON.parse(importText);
+      if (!parsed.title || !parsed.description || !parsed.punchGrid) {
+        throw new Error('Missing title / description / punchGrid');
       }
-      
-      if (parsed.description) {
-        if (parsed.description.topMedium) setDescTopMedium(parsed.description.topMedium);
-        if (parsed.description.topLarge) setDescTopLarge(parsed.description.topLarge);
-        if (parsed.description.leftMedium) setDescLeftMedium(parsed.description.leftMedium);
-        if (parsed.description.leftLarge) setDescLeftLarge(parsed.description.leftLarge);
-        if (parsed.description.textAlign) {
-          setDescTextAlignMedium(parsed.description.textAlign);
-          setDescTextAlignLarge(parsed.description.textAlign);
-        }
-        if (parsed.description.colorMedium) setDescColorMedium(parsed.description.colorMedium);
-        if (parsed.description.colorLarge) setDescColorLarge(parsed.description.colorLarge);
-        if (parsed.description.fontSizeMedium) setDescFontSizeMedium(parsed.description.fontSizeMedium);
-        if (parsed.description.fontSizeLarge) setDescFontSizeLarge(parsed.description.fontSizeLarge);
-        if (parsed.description.fontFamilyMedium) setDescFontFamilyMedium(parsed.description.fontFamilyMedium);
-        if (parsed.description.fontFamilyLarge) setDescFontFamilyLarge(parsed.description.fontFamilyLarge);
-        if (parsed.description.widthMedium) setDescWidthMedium(parsed.description.widthMedium);
-        if (parsed.description.widthLarge) setDescWidthLarge(parsed.description.widthLarge);
-      }
-      
-      if (parsed.punchGrid) {
-        if (parsed.punchGrid.topMedium) setGridTopMedium(parsed.punchGrid.topMedium);
-        if (parsed.punchGrid.topLarge) setGridTopLarge(parsed.punchGrid.topLarge);
-        if (parsed.punchGrid.leftMedium) setGridLeftMedium(parsed.punchGrid.leftMedium);
-        if (parsed.punchGrid.leftLarge) setGridLeftLarge(parsed.punchGrid.leftLarge);
-        if (parsed.punchGrid.transform) {
-          setGridTransformMedium(parsed.punchGrid.transform);
-          setGridTransformLarge(parsed.punchGrid.transform);
-        }
-        if (parsed.punchGrid.punchCircleSizeMedium) setPunchCircleSizeMedium(parsed.punchGrid.punchCircleSizeMedium);
-        if (parsed.punchGrid.punchCircleSizeLarge) setPunchCircleSizeLarge(parsed.punchGrid.punchCircleSizeLarge);
-        if (parsed.punchGrid.punchIconSizeMedium) setPunchIconSizeMedium(parsed.punchGrid.punchIconSizeMedium);
-        if (parsed.punchGrid.punchIconSizeLarge) setPunchIconSizeLarge(parsed.punchGrid.punchIconSizeLarge);
-        if (parsed.punchGrid.punchHorizontalGapMedium) setPunchHorizontalGapMedium(parsed.punchGrid.punchHorizontalGapMedium);
-        if (parsed.punchGrid.punchHorizontalGapLarge) setPunchHorizontalGapLarge(parsed.punchGrid.punchHorizontalGapLarge);
-        if (parsed.punchGrid.punchVerticalGapMedium) setPunchVerticalGapMedium(parsed.punchGrid.punchVerticalGapMedium);
-        if (parsed.punchGrid.punchVerticalGapLarge) setPunchVerticalGapLarge(parsed.punchGrid.punchVerticalGapLarge);
-        if (parsed.punchGrid.numRows) setNumRows(parsed.punchGrid.numRows);
-        if (parsed.punchGrid.punchesPerRow) setPunchesPerRow(parsed.punchGrid.punchesPerRow);
-      }
-      
+      setLayoutState({
+        title: { ...layoutState.title, ...parsed.title },
+        description: { ...layoutState.description, ...parsed.description },
+        punchGrid: { ...layoutState.punchGrid, ...parsed.punchGrid },
+      });
       setImportError('');
-      alert('Layout imported successfully!');
-    } catch (error) {
-      setImportError('Invalid JSON format. Please check your input.');
-      console.error('Import error:', error);
+    } catch (err) {
+      setImportError(`Invalid JSON: ${err.message}`);
     }
   };
 
-  const icon1 = selectedIcon1 ? iconMap[selectedIcon1] : null;
-  const icon2 = selectedIcon2 ? iconMap[selectedIcon2] : null;
-  const cardImage = selectedCard ? punchCardMap[selectedCard] : null;
-
-  // Track dimensions of preview cards
   useEffect(() => {
-    const updateDimensions = () => {
-      if (mediumPreviewRef.current) {
-        const rect = mediumPreviewRef.current.getBoundingClientRect();
-        setMediumDimensions({
-          width: Math.round(rect.width),
-          height: Math.round(rect.height),
-        });
-      }
-      if (largePreviewRef.current) {
-        const rect = largePreviewRef.current.getBoundingClientRect();
-        setLargeDimensions({
-          width: Math.round(rect.width),
-          height: Math.round(rect.height),
-        });
-      }
+    const update = () => {
+      if (!previewRef.current) return;
+      const r = previewRef.current.getBoundingClientRect();
+      setPreviewDimensions({ width: Math.round(r.width), height: Math.round(r.height) });
     };
-    
-    updateDimensions();
-    window.addEventListener('resize', updateDimensions);
-    
-    // Use ResizeObserver for more accurate tracking
-    const observers = [];
-    if (mediumPreviewRef.current) {
-      const observer = new ResizeObserver(updateDimensions);
-      observer.observe(mediumPreviewRef.current);
-      observers.push(observer);
-    }
-    if (largePreviewRef.current) {
-      const observer = new ResizeObserver(updateDimensions);
-      observer.observe(largePreviewRef.current);
-      observers.push(observer);
-    }
-    
+    update();
+    window.addEventListener('resize', update);
+    const ro = previewRef.current ? new ResizeObserver(update) : null;
+    if (ro && previewRef.current) ro.observe(previewRef.current);
     return () => {
-      window.removeEventListener('resize', updateDimensions);
-      observers.forEach(obs => obs.disconnect());
+      window.removeEventListener('resize', update);
+      if (ro) ro.disconnect();
     };
-  }, [cardImage, layoutMedium, layoutLarge]);
+  }, [selectedCard]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50 p-4">
       <div className="max-w-[1800px] mx-auto">
-        <h1 className="text-3xl font-bold text-center mb-4 text-pink-600">Card Layout Editor</h1>
-        
+        <h1 className="text-3xl font-bold text-center mb-1 text-pink-600">Card Layout Editor</h1>
+        <p className="text-center text-sm text-gray-600 mb-4">
+          One layout per card. Renders identically on dashboard, modal, create form, and celebration.
+        </p>
+
         {/* Top Controls Bar */}
         <div className="bg-white rounded-lg shadow-lg p-4 mb-4">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            {/* Size Toggle */}
-            <div>
-              <label className="block text-sm font-medium mb-2">Editing Size:</label>
-              <div className="flex gap-2">
-                <button
-                  onClick={() => setEditingSize('medium')}
-                  className={`flex-1 px-4 py-2 rounded text-sm font-medium ${editingSize === 'medium' ? 'bg-purple-600 text-white' : 'bg-gray-200 hover:bg-gray-300'}`}
-                >
-                  Medium
-                </button>
-                <button
-                  onClick={() => setEditingSize('large')}
-                  className={`flex-1 px-4 py-2 rounded text-sm font-medium ${editingSize === 'large' ? 'bg-purple-600 text-white' : 'bg-gray-200 hover:bg-gray-300'}`}
-                >
-                  Large
-                </button>
-              </div>
-            </div>
-            
-            {/* Card Selection */}
             <div>
               <label className="block text-sm font-medium mb-2">Card Image:</label>
               <select
@@ -567,797 +175,141 @@ export default function CardLayoutEditor() {
                 onChange={(e) => setSelectedCard(e.target.value)}
                 className="w-full p-2 border rounded text-sm"
               >
-                {cardNames.map(name => (
-                  <option key={name} value={name}>{name}</option>
-                ))}
+                {cardNames.map((n) => <option key={n} value={n}>{n}</option>)}
               </select>
+              {!cardLayouts[selectedCard] && (
+                <p className="text-xs text-amber-600 mt-1">No saved layout — using base defaults.</p>
+              )}
             </div>
-
-            {/* Icon Selection */}
             <div>
               <label className="block text-sm font-medium mb-2">Icon 1:</label>
-              <select
-                value={selectedIcon1}
-                onChange={(e) => setSelectedIcon1(e.target.value)}
-                className="w-full p-2 border rounded text-sm"
-              >
-                {iconNames.map(name => (
-                  <option key={name} value={name}>{name}</option>
-                ))}
+              <select value={selectedIcon1} onChange={(e) => setSelectedIcon1(e.target.value)} className="w-full p-2 border rounded text-sm">
+                {iconChoices.map((n) => <option key={n} value={n}>{n}</option>)}
               </select>
             </div>
             <div>
               <label className="block text-sm font-medium mb-2">Icon 2:</label>
-              <select
-                value={selectedIcon2}
-                onChange={(e) => setSelectedIcon2(e.target.value)}
-                className="w-full p-2 border rounded text-sm"
-              >
-                {iconNames.map(name => (
-                  <option key={name} value={name}>{name}</option>
-                ))}
+              <select value={selectedIcon2} onChange={(e) => setSelectedIcon2(e.target.value)} className="w-full p-2 border rounded text-sm">
+                {iconChoices.map((n) => <option key={n} value={n}>{n}</option>)}
               </select>
             </div>
-          </div>
-          
-          {/* Punches */}
-          <div className="grid grid-cols-2 gap-4 mt-4 max-w-xs">
-            <div>
-              <label className="block text-sm font-medium mb-2">Current Punches:</label>
-              <input
-                type="number"
-                value={currentPunches}
-                onChange={(e) => setCurrentPunches(parseInt(e.target.value) || 0)}
-                className="w-full p-2 border rounded text-sm"
-                min="0"
-                max={targetPunches}
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium mb-2">Target Punches:</label>
-              <input
-                type="number"
-                value={targetPunches}
-                onChange={(e) => setTargetPunches(parseInt(e.target.value) || 0)}
-                className="w-full p-2 border rounded text-sm"
-                min="1"
-              />
+            <div className="grid grid-cols-2 gap-2">
+              <div>
+                <label className="block text-sm font-medium mb-2">Current:</label>
+                <input type="number" value={currentPunches} onChange={(e) => setCurrentPunches(parseInt(e.target.value) || 0)} className="w-full p-2 border rounded text-sm" min="0" max={targetPunches} />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-2">Target:</label>
+                <input type="number" value={targetPunches} onChange={(e) => setTargetPunches(parseInt(e.target.value) || 1)} className="w-full p-2 border rounded text-sm" min="1" />
+              </div>
             </div>
           </div>
         </div>
 
         <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-          {/* Preview Section - Column View */}
+          {/* Preview */}
           <div className="xl:col-span-2 bg-white rounded-lg shadow-lg p-6">
-            <h2 className="text-xl font-bold mb-6">Live Preview</h2>
-            
-            {/* Preview Cards - Column View */}
-            <div className="grid grid-cols-1 gap-8">
-              <div className="flex flex-col items-center">
-                <div className="flex items-center justify-between mb-3 w-full max-w-[600px]">
-                  <h3 className="text-base font-semibold text-pink-600">Medium Size (Carousel)</h3>
-                  <span className="text-sm text-gray-500">600px max-width</span>
-                </div>
-                <div className="relative w-full flex justify-center">
-                  <div 
-                    ref={mediumPreviewRef}
-                    className="border-4 border-pink-200 rounded-lg overflow-hidden" 
-                    style={{ aspectRatio: '1004/591', width: '600px', maxWidth: '100%' }}
-                  >
-                    {cardImage && (
-                      <PunchCardPreview
-                        name="Sample Title"
-                        description="This is a sample description text"
-                        icon1={icon1}
-                        icon2={icon2}
-                        cardImage={cardImage}
-                        isDailyPunch={false}
-                        titlePlacement={layoutMedium.title}
-                        descriptionPlacement={layoutMedium.description}
-                        punchGridPlacement={layoutMedium.punchGrid}
-                        currentPunches={currentPunches}
-                        targetPunches={targetPunches}
-                        size="medium"
-                      />
-                    )}
-                  </div>
-                  {mediumDimensions.width > 0 && mediumDimensions.height > 0 && (
-                    <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 bg-white/90 backdrop-blur-sm border-2 border-pink-300 rounded-md px-2 py-1 text-xs font-semibold text-pink-600 shadow-md">
-                      {mediumDimensions.width} × {mediumDimensions.height} px
-                    </div>
-                  )}
-                </div>
+            <h2 className="text-xl font-bold mb-2">Live Preview</h2>
+            <p className="text-xs text-gray-500 mb-4">
+              Canonical 1004:591 box, max 600px wide — same as every other render site.
+            </p>
+            <div className="relative flex justify-center">
+              <div ref={previewRef} className="border-4 border-pink-200 rounded-lg overflow-hidden" style={{ width: '100%', maxWidth: 600 }}>
+                <LivePreview habit={previewHabit} layout={livePreviewLayout} />
               </div>
-              <div className="flex flex-col items-center">
-                <div className="flex items-center justify-between mb-3 w-full" style={{ maxWidth: 'calc(350px * 1004 / 591)' }}>
-                  <h3 className="text-base font-semibold text-purple-600">Large Size (Zoom Modal)</h3>
-                  <span className="text-sm text-gray-500">350px max-height</span>
+              {previewDimensions.width > 0 && (
+                <div className="absolute bottom-2 left-1/2 -translate-x-1/2 bg-white/90 backdrop-blur-sm border-2 border-pink-300 rounded-md px-2 py-1 text-xs font-semibold text-pink-600 shadow-md">
+                  {previewDimensions.width} × {previewDimensions.height} px
                 </div>
-                <div className="relative w-full flex justify-center">
-                  <div 
-                    ref={largePreviewRef}
-                    className="border-4 border-purple-200 rounded-lg overflow-hidden" 
-                    style={{ aspectRatio: '1004/591', height: '350px', maxWidth: '100%' }}
-                  >
-                    {cardImage && (
-                      <PunchCardPreview
-                        name="Sample Title"
-                        description="This is a sample description text"
-                        icon1={icon1}
-                        icon2={icon2}
-                        cardImage={cardImage}
-                        isDailyPunch={false}
-                        titlePlacement={layoutLarge.title}
-                        descriptionPlacement={layoutLarge.description}
-                        punchGridPlacement={layoutLarge.punchGrid}
-                        currentPunches={currentPunches}
-                        targetPunches={targetPunches}
-                        size="large"
-                      />
-                    )}
-                  </div>
-                  {largeDimensions.width > 0 && largeDimensions.height > 0 && (
-                    <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 bg-white/90 backdrop-blur-sm border-2 border-purple-300 rounded-md px-2 py-1 text-xs font-semibold text-purple-600 shadow-md">
-                      {largeDimensions.width} × {largeDimensions.height} px
-                    </div>
-                  )}
-                </div>
-              </div>
+              )}
             </div>
           </div>
 
-          {/* Controls Section */}
+          {/* Controls */}
           <div className="bg-white rounded-lg shadow-lg p-6 overflow-y-auto" style={{ maxHeight: 'calc(100vh - 200px)' }}>
-            <div className="sticky top-0 bg-white pb-3 mb-6 border-b-2 border-gray-200 z-10">
-              <h2 className="text-2xl font-bold text-gray-800">
-                {editingSize === 'large' ? 'Large' : 'Medium'} Size Controls
-              </h2>
-              <p className="text-sm text-gray-600 mt-1">
-                Adjust values for {editingSize === 'large' ? 'zoom modal' : 'carousel'} view
-              </p>
-            </div>
+            <Section title="Title" tone="purple">
+              <PercentField label="Top" value={layoutState.title.top} onChange={(v) => setTitle('top', v)} />
+              <PercentField label="Left" value={layoutState.title.left} onChange={(v) => setTitle('left', v)} />
+              <SelectField label="Text Align" value={layoutState.title.textAlign} onChange={(v) => setTitle('textAlign', v)} options={['left', 'center', 'right']} />
+              <ColorField label="Color" value={layoutState.title.color} onChange={(v) => setTitle('color', v)} />
+              <SizeField label="Font Size" value={layoutState.title.fontSize} onChange={(v) => setTitle('fontSize', v)} />
+              <SelectField label="Font Family" value={layoutState.title.fontFamily} onChange={(v) => setTitle('fontFamily', v)} options={fontOptions} />
+              <PercentField label="Width" value={layoutState.title.width} onChange={(v) => setTitle('width', v)} step={1} />
+              <SelectField label="Font Weight" value={layoutState.title.fontWeight || 'bold'} onChange={(v) => setTitle('fontWeight', v)} options={['normal', 'bold', '300', '400', '500', '600', '700', '800', '900']} />
+            </Section>
 
-            {/* Title Controls */}
-            <div className="mb-6 p-5 bg-purple-50 rounded-lg border-2 border-purple-200">
-              <h3 className="font-bold mb-4 text-lg text-purple-800">Title Settings ({editingSize})</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-semibold mb-2 text-gray-700">Top Position:</label>
-                  <div className="flex items-center gap-1">
-                    <button
-                      type="button"
-                      onClick={() => setCurrentValue(setTitleTopMedium, setTitleTopLarge, adjustPercentage(getCurrentValue(titleTopMedium, titleTopLarge), -0.5))}
-                      className="px-2 py-2 bg-gray-200 hover:bg-gray-300 rounded-l border border-gray-300 transition-colors"
-                    >
-                      <ChevronDown size={14} />
-                    </button>
-                    <input 
-                      type="text" 
-                      value={getCurrentValue(titleTopMedium, titleTopLarge)} 
-                      onChange={(e) => setCurrentValue(setTitleTopMedium, setTitleTopLarge, e.target.value)} 
-                      className="flex-1 px-3 py-2 border border-gray-300 rounded-none text-base focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent" 
-                      placeholder="4%"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setCurrentValue(setTitleTopMedium, setTitleTopLarge, adjustPercentage(getCurrentValue(titleTopMedium, titleTopLarge), 0.5))}
-                      className="px-2 py-2 bg-gray-200 hover:bg-gray-300 rounded-r border border-gray-300 transition-colors"
-                    >
-                      <ChevronUp size={14} />
-                    </button>
-                  </div>
-                </div>
-                <div>
-                  <label className="block text-sm font-semibold mb-2 text-gray-700">Left Position:</label>
-                  <div className="flex items-center gap-1">
-                    <button
-                      type="button"
-                      onClick={() => setCurrentValue(setTitleLeftMedium, setTitleLeftLarge, adjustPercentage(getCurrentValue(titleLeftMedium, titleLeftLarge), -0.5))}
-                      className="px-2 py-2 bg-gray-200 hover:bg-gray-300 rounded-l border border-gray-300 transition-colors"
-                    >
-                      <ChevronDown size={14} />
-                    </button>
-                    <input 
-                      type="text" 
-                      value={getCurrentValue(titleLeftMedium, titleLeftLarge)} 
-                      onChange={(e) => setCurrentValue(setTitleLeftMedium, setTitleLeftLarge, e.target.value)} 
-                      className="flex-1 px-3 py-2 border border-gray-300 rounded-none text-base focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent" 
-                      placeholder="7%"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setCurrentValue(setTitleLeftMedium, setTitleLeftLarge, adjustPercentage(getCurrentValue(titleLeftMedium, titleLeftLarge), 0.5))}
-                      className="px-2 py-2 bg-gray-200 hover:bg-gray-300 rounded-r border border-gray-300 transition-colors"
-                    >
-                      <ChevronUp size={14} />
-                    </button>
-                  </div>
-                </div>
-                <div>
-                  <label className="block text-sm font-semibold mb-2 text-gray-700">Text Align:</label>
-                  <select 
-                    value={getCurrentValue(titleTextAlignMedium, titleTextAlignLarge)} 
-                    onChange={(e) => {
-                      setTitleTextAlignMedium(e.target.value);
-                      setTitleTextAlignLarge(e.target.value);
-                    }}
-                    className="w-full px-3 py-2 border border-gray-300 rounded text-base focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                  >
-                    <option value="left">left</option>
-                    <option value="center">center</option>
-                    <option value="right">right</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm font-semibold mb-2 text-gray-700">Color:</label>
-                  <div className="flex items-center gap-2">
-                    <input 
-                      type="color" 
-                      value={getCurrentValue(titleColorMedium, titleColorLarge)} 
-                      onChange={(e) => setCurrentValue(setTitleColorMedium, setTitleColorLarge, e.target.value)} 
-                      className="w-16 h-10 border-2 border-gray-300 rounded cursor-pointer" 
-                    />
-                    <input
-                      type="text"
-                      value={getCurrentValue(titleColorMedium, titleColorLarge)}
-                      onChange={(e) => setCurrentValue(setTitleColorMedium, setTitleColorLarge, e.target.value)}
-                      className="flex-1 px-3 py-2 border border-gray-300 rounded text-base font-mono focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                      placeholder="#333333"
-                    />
-                  </div>
-                </div>
-                <div>
-                  <label className="block text-sm font-semibold mb-2 text-gray-700">Font Size:</label>
-                  <div className="flex items-center gap-1">
-                    <button
-                      type="button"
-                      onClick={() => setCurrentValue(setTitleFontSizeMedium, setTitleFontSizeLarge, adjustPixels(getCurrentValue(titleFontSizeMedium, titleFontSizeLarge), -0.1))}
-                      className="px-2 py-2 bg-gray-200 hover:bg-gray-300 rounded-l border border-gray-300 transition-colors"
-                    >
-                      <ChevronDown size={14} />
-                    </button>
-                    <input 
-                      type="text" 
-                      value={getCurrentValue(titleFontSizeMedium, titleFontSizeLarge)} 
-                      onChange={(e) => setCurrentValue(setTitleFontSizeMedium, setTitleFontSizeLarge, e.target.value)} 
-                      className="flex-1 px-3 py-2 border border-gray-300 rounded-none text-base focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent" 
-                      placeholder="1.4rem"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setCurrentValue(setTitleFontSizeMedium, setTitleFontSizeLarge, adjustPixels(getCurrentValue(titleFontSizeMedium, titleFontSizeLarge), 0.1))}
-                      className="px-2 py-2 bg-gray-200 hover:bg-gray-300 rounded-r border border-gray-300 transition-colors"
-                    >
-                      <ChevronUp size={14} />
-                    </button>
-                  </div>
-                </div>
-                <div>
-                  <label className="block text-sm font-semibold mb-2 text-gray-700">Font Family:</label>
-                  <select
-                    value={getCurrentValue(titleFontFamilyMedium, titleFontFamilyLarge)}
-                    onChange={(e) => setCurrentValue(setTitleFontFamilyMedium, setTitleFontFamilyLarge, e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded text-base focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                  >
-                    {fontOptions.map(font => (
-                      <option key={font} value={font} style={{ fontFamily: font }}>{font}</option>
-                    ))}
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm font-semibold mb-2 text-gray-700">Width:</label>
-                  <div className="flex items-center gap-1">
-                    <button
-                      type="button"
-                      onClick={() => setCurrentValue(setTitleWidthMedium, setTitleWidthLarge, adjustPercentage(getCurrentValue(titleWidthMedium, titleWidthLarge), -1))}
-                      className="px-2 py-2 bg-gray-200 hover:bg-gray-300 rounded-l border border-gray-300 transition-colors"
-                    >
-                      <ChevronDown size={14} />
-                    </button>
-                    <input 
-                      type="text" 
-                      value={getCurrentValue(titleWidthMedium, titleWidthLarge)} 
-                      onChange={(e) => setCurrentValue(setTitleWidthMedium, setTitleWidthLarge, e.target.value)} 
-                      className="flex-1 px-3 py-2 border border-gray-300 rounded-none text-base focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent" 
-                      placeholder="80%"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setCurrentValue(setTitleWidthMedium, setTitleWidthLarge, adjustPercentage(getCurrentValue(titleWidthMedium, titleWidthLarge), 1))}
-                      className="px-2 py-2 bg-gray-200 hover:bg-gray-300 rounded-r border border-gray-300 transition-colors"
-                    >
-                      <ChevronUp size={14} />
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
+            <Section title="Description" tone="pink">
+              <PercentField label="Top" value={layoutState.description.top} onChange={(v) => setDesc('top', v)} />
+              <PercentField label="Left" value={layoutState.description.left} onChange={(v) => setDesc('left', v)} />
+              <SelectField label="Text Align" value={layoutState.description.textAlign} onChange={(v) => setDesc('textAlign', v)} options={['left', 'center', 'right']} />
+              <ColorField label="Color" value={layoutState.description.color} onChange={(v) => setDesc('color', v)} />
+              <SizeField label="Font Size" value={layoutState.description.fontSize} onChange={(v) => setDesc('fontSize', v)} />
+              <SelectField label="Font Family" value={layoutState.description.fontFamily} onChange={(v) => setDesc('fontFamily', v)} options={fontOptions} />
+              <PercentField label="Width" value={layoutState.description.width} onChange={(v) => setDesc('width', v)} step={1} />
+            </Section>
 
-            {/* Description Controls */}
-            <div className="mb-6 p-5 bg-pink-50 rounded-lg border-2 border-pink-200">
-              <h3 className="font-bold mb-4 text-lg text-pink-800">Description Settings ({editingSize})</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-semibold mb-2 text-gray-700">Top Position:</label>
-                  <div className="flex items-center gap-1">
-                    <button
-                      type="button"
-                      onClick={() => setCurrentValue(setDescTopMedium, setDescTopLarge, adjustPercentage(getCurrentValue(descTopMedium, descTopLarge), -0.5))}
-                      className="px-2 py-2 bg-gray-200 hover:bg-gray-300 rounded-l border border-gray-300 transition-colors"
-                    >
-                      <ChevronDown size={14} />
-                    </button>
-                    <input 
-                      type="text" 
-                      value={getCurrentValue(descTopMedium, descTopLarge)} 
-                      onChange={(e) => setCurrentValue(setDescTopMedium, setDescTopLarge, e.target.value)} 
-                      className="flex-1 px-3 py-2 border border-gray-300 rounded-none text-base focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent" 
-                      placeholder="20%"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setCurrentValue(setDescTopMedium, setDescTopLarge, adjustPercentage(getCurrentValue(descTopMedium, descTopLarge), 0.5))}
-                      className="px-2 py-2 bg-gray-200 hover:bg-gray-300 rounded-r border border-gray-300 transition-colors"
-                    >
-                      <ChevronUp size={14} />
-                    </button>
-                  </div>
-                </div>
-                <div>
-                  <label className="block text-sm font-semibold mb-2 text-gray-700">Left Position:</label>
-                  <div className="flex items-center gap-1">
-                    <button
-                      type="button"
-                      onClick={() => setCurrentValue(setDescLeftMedium, setDescLeftLarge, adjustPercentage(getCurrentValue(descLeftMedium, descLeftLarge), -0.5))}
-                      className="px-2 py-2 bg-gray-200 hover:bg-gray-300 rounded-l border border-gray-300 transition-colors"
-                    >
-                      <ChevronDown size={14} />
-                    </button>
-                    <input 
-                      type="text" 
-                      value={getCurrentValue(descLeftMedium, descLeftLarge)} 
-                      onChange={(e) => setCurrentValue(setDescLeftMedium, setDescLeftLarge, e.target.value)} 
-                      className="flex-1 px-3 py-2 border border-gray-300 rounded-none text-base focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent" 
-                      placeholder="7%"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setCurrentValue(setDescLeftMedium, setDescLeftLarge, adjustPercentage(getCurrentValue(descLeftMedium, descLeftLarge), 0.5))}
-                      className="px-2 py-2 bg-gray-200 hover:bg-gray-300 rounded-r border border-gray-300 transition-colors"
-                    >
-                      <ChevronUp size={14} />
-                    </button>
-                  </div>
-                </div>
-                <div>
-                  <label className="block text-sm font-semibold mb-2 text-gray-700">Text Align:</label>
-                  <select 
-                    value={getCurrentValue(descTextAlignMedium, descTextAlignLarge)} 
-                    onChange={(e) => {
-                      setDescTextAlignMedium(e.target.value);
-                      setDescTextAlignLarge(e.target.value);
-                    }}
-                    className="w-full px-3 py-2 border border-gray-300 rounded text-base focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent"
-                  >
-                    <option value="left">left</option>
-                    <option value="center">center</option>
-                    <option value="right">right</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm font-semibold mb-2 text-gray-700">Color:</label>
-                  <div className="flex items-center gap-2">
-                    <input 
-                      type="color" 
-                      value={getCurrentValue(descColorMedium, descColorLarge)} 
-                      onChange={(e) => setCurrentValue(setDescColorMedium, setDescColorLarge, e.target.value)} 
-                      className="w-16 h-10 border-2 border-gray-300 rounded cursor-pointer" 
-                    />
-                    <input
-                      type="text"
-                      value={getCurrentValue(descColorMedium, descColorLarge)}
-                      onChange={(e) => setCurrentValue(setDescColorMedium, setDescColorLarge, e.target.value)}
-                      className="flex-1 px-3 py-2 border border-gray-300 rounded text-base font-mono focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent"
-                      placeholder="#555555"
-                    />
-                  </div>
-                </div>
-                <div>
-                  <label className="block text-sm font-semibold mb-2 text-gray-700">Font Size:</label>
-                  <div className="flex items-center gap-1">
-                    <button
-                      type="button"
-                      onClick={() => setCurrentValue(setDescFontSizeMedium, setDescFontSizeLarge, adjustPixels(getCurrentValue(descFontSizeMedium, descFontSizeLarge), -0.1))}
-                      className="px-2 py-2 bg-gray-200 hover:bg-gray-300 rounded-l border border-gray-300 transition-colors"
-                    >
-                      <ChevronDown size={14} />
-                    </button>
-                    <input 
-                      type="text" 
-                      value={getCurrentValue(descFontSizeMedium, descFontSizeLarge)} 
-                      onChange={(e) => setCurrentValue(setDescFontSizeMedium, setDescFontSizeLarge, e.target.value)} 
-                      className="flex-1 px-3 py-2 border border-gray-300 rounded-none text-base focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent" 
-                      placeholder="1rem"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setCurrentValue(setDescFontSizeMedium, setDescFontSizeLarge, adjustPixels(getCurrentValue(descFontSizeMedium, descFontSizeLarge), 0.1))}
-                      className="px-2 py-2 bg-gray-200 hover:bg-gray-300 rounded-r border border-gray-300 transition-colors"
-                    >
-                      <ChevronUp size={14} />
-                    </button>
-                  </div>
-                </div>
-                <div>
-                  <label className="block text-sm font-semibold mb-2 text-gray-700">Font Family:</label>
-                  <select
-                    value={getCurrentValue(descFontFamilyMedium, descFontFamilyLarge)}
-                    onChange={(e) => setCurrentValue(setDescFontFamilyMedium, setDescFontFamilyLarge, e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded text-base focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent"
-                  >
-                    {fontOptions.map(font => (
-                      <option key={font} value={font} style={{ fontFamily: font }}>{font}</option>
-                    ))}
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm font-semibold mb-2 text-gray-700">Width:</label>
-                  <div className="flex items-center gap-1">
-                    <button
-                      type="button"
-                      onClick={() => setCurrentValue(setDescWidthMedium, setDescWidthLarge, adjustPercentage(getCurrentValue(descWidthMedium, descWidthLarge), -1))}
-                      className="px-2 py-2 bg-gray-200 hover:bg-gray-300 rounded-l border border-gray-300 transition-colors"
-                    >
-                      <ChevronDown size={14} />
-                    </button>
-                    <input 
-                      type="text" 
-                      value={getCurrentValue(descWidthMedium, descWidthLarge)} 
-                      onChange={(e) => setCurrentValue(setDescWidthMedium, setDescWidthLarge, e.target.value)} 
-                      className="flex-1 px-3 py-2 border border-gray-300 rounded-none text-base focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent" 
-                      placeholder="80%"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setCurrentValue(setDescWidthMedium, setDescWidthLarge, adjustPercentage(getCurrentValue(descWidthMedium, descWidthLarge), 1))}
-                      className="px-2 py-2 bg-gray-200 hover:bg-gray-300 rounded-r border border-gray-300 transition-colors"
-                    >
-                      <ChevronUp size={14} />
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
+            <Section title="Punch Grid" tone="blue">
+              <PercentField label="Top" value={layoutState.punchGrid.top} onChange={(v) => setGrid('top', v)} />
+              <PercentField label="Left" value={layoutState.punchGrid.left} onChange={(v) => setGrid('left', v)} />
+              <TextField label="Transform" value={layoutState.punchGrid.transform} onChange={(v) => setGrid('transform', v)} placeholder="translateX(-50%)" />
+              <SizeField label="Circle Size" value={layoutState.punchGrid.punchCircleSize} onChange={(v) => setGrid('punchCircleSize', v)} step={1} />
+              <SizeField label="Icon Size" value={layoutState.punchGrid.punchIconSize} onChange={(v) => setGrid('punchIconSize', v)} step={1} />
+              <SizeField label="Horizontal Gap" value={layoutState.punchGrid.punchHorizontalGap} onChange={(v) => setGrid('punchHorizontalGap', v)} step={1} />
+              <SizeField label="Vertical Gap" value={layoutState.punchGrid.punchVerticalGap} onChange={(v) => setGrid('punchVerticalGap', v)} step={1} />
+              <NumberField label="Rows" value={layoutState.punchGrid.numRows} onChange={(v) => setGrid('numRows', v)} />
+              <NumberField label="Per Row" value={layoutState.punchGrid.punchesPerRow} onChange={(v) => setGrid('punchesPerRow', v)} />
+            </Section>
 
-            {/* Punch Grid Controls */}
-            <div className="mb-6 p-5 bg-blue-50 rounded-lg border-2 border-blue-200">
-              <h3 className="font-bold mb-4 text-lg text-blue-800">Punch Grid Settings ({editingSize})</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-semibold mb-2 text-gray-700">Top Position:</label>
-                  <div className="flex items-center gap-1">
-                    <button
-                      type="button"
-                      onClick={() => setCurrentValue(setGridTopMedium, setGridTopLarge, adjustPercentage(getCurrentValue(gridTopMedium, gridTopLarge), -0.5))}
-                      className="px-2 py-2 bg-gray-200 hover:bg-gray-300 rounded-l border border-gray-300 transition-colors"
-                    >
-                      <ChevronDown size={14} />
-                    </button>
-                    <input 
-                      type="text" 
-                      value={getCurrentValue(gridTopMedium, gridTopLarge)} 
-                      onChange={(e) => setCurrentValue(setGridTopMedium, setGridTopLarge, e.target.value)} 
-                      className="flex-1 px-3 py-2 border border-gray-300 rounded-none text-base focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
-                      placeholder="33%"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setCurrentValue(setGridTopMedium, setGridTopLarge, adjustPercentage(getCurrentValue(gridTopMedium, gridTopLarge), 0.5))}
-                      className="px-2 py-2 bg-gray-200 hover:bg-gray-300 rounded-r border border-gray-300 transition-colors"
-                    >
-                      <ChevronUp size={14} />
-                    </button>
-                  </div>
-                </div>
-                <div>
-                  <label className="block text-sm font-semibold mb-2 text-gray-700">Left Position:</label>
-                  <div className="flex items-center gap-1">
-                    <button
-                      type="button"
-                      onClick={() => setCurrentValue(setGridLeftMedium, setGridLeftLarge, adjustPercentage(getCurrentValue(gridLeftMedium, gridLeftLarge), -0.5))}
-                      className="px-2 py-2 bg-gray-200 hover:bg-gray-300 rounded-l border border-gray-300 transition-colors"
-                    >
-                      <ChevronDown size={14} />
-                    </button>
-                    <input 
-                      type="text" 
-                      value={getCurrentValue(gridLeftMedium, gridLeftLarge)} 
-                      onChange={(e) => setCurrentValue(setGridLeftMedium, setGridLeftLarge, e.target.value)} 
-                      className="flex-1 px-3 py-2 border border-gray-300 rounded-none text-base focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
-                      placeholder="50%"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setCurrentValue(setGridLeftMedium, setGridLeftLarge, adjustPercentage(getCurrentValue(gridLeftMedium, gridLeftLarge), 0.5))}
-                      className="px-2 py-2 bg-gray-200 hover:bg-gray-300 rounded-r border border-gray-300 transition-colors"
-                    >
-                      <ChevronUp size={14} />
-                    </button>
-                  </div>
-                </div>
-                <div>
-                  <label className="block text-sm font-semibold mb-2 text-gray-700">Transform:</label>
-                  <input 
-                    type="text" 
-                    value={getCurrentValue(gridTransformMedium, gridTransformLarge)} 
-                    onChange={(e) => {
-                      setGridTransformMedium(e.target.value);
-                      setGridTransformLarge(e.target.value);
-                    }}
-                    className="w-full px-3 py-2 border border-gray-300 rounded text-base font-mono focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
-                    placeholder="translateX(-50%)"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-semibold mb-2 text-gray-700">Circle Size:</label>
-                  <div className="flex items-center gap-1">
-                    <button
-                      type="button"
-                      onClick={() => setCurrentValue(setPunchCircleSizeMedium, setPunchCircleSizeLarge, adjustPixels(getCurrentValue(punchCircleSizeMedium, punchCircleSizeLarge), -1))}
-                      className="px-2 py-2 bg-gray-200 hover:bg-gray-300 rounded-l border border-gray-300 transition-colors"
-                    >
-                      <ChevronDown size={14} />
-                    </button>
-                    <input 
-                      type="text" 
-                      value={getCurrentValue(punchCircleSizeMedium, punchCircleSizeLarge)} 
-                      onChange={(e) => setCurrentValue(setPunchCircleSizeMedium, setPunchCircleSizeLarge, e.target.value)} 
-                      className="flex-1 px-3 py-2 border border-gray-300 rounded-none text-base focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
-                      placeholder="85px"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setCurrentValue(setPunchCircleSizeMedium, setPunchCircleSizeLarge, adjustPixels(getCurrentValue(punchCircleSizeMedium, punchCircleSizeLarge), 1))}
-                      className="px-2 py-2 bg-gray-200 hover:bg-gray-300 rounded-r border border-gray-300 transition-colors"
-                    >
-                      <ChevronUp size={14} />
-                    </button>
-                  </div>
-                </div>
-                <div>
-                  <label className="block text-sm font-semibold mb-2 text-gray-700">Icon Size:</label>
-                  <div className="flex items-center gap-1">
-                    <button
-                      type="button"
-                      onClick={() => setCurrentValue(setPunchIconSizeMedium, setPunchIconSizeLarge, adjustPixels(getCurrentValue(punchIconSizeMedium, punchIconSizeLarge), -1))}
-                      className="px-2 py-2 bg-gray-200 hover:bg-gray-300 rounded-l border border-gray-300 transition-colors"
-                    >
-                      <ChevronDown size={14} />
-                    </button>
-                    <input 
-                      type="text" 
-                      value={getCurrentValue(punchIconSizeMedium, punchIconSizeLarge)} 
-                      onChange={(e) => setCurrentValue(setPunchIconSizeMedium, setPunchIconSizeLarge, e.target.value)} 
-                      className="flex-1 px-3 py-2 border border-gray-300 rounded-none text-base focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
-                      placeholder="85px"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setCurrentValue(setPunchIconSizeMedium, setPunchIconSizeLarge, adjustPixels(getCurrentValue(punchIconSizeMedium, punchIconSizeLarge), 1))}
-                      className="px-2 py-2 bg-gray-200 hover:bg-gray-300 rounded-r border border-gray-300 transition-colors"
-                    >
-                      <ChevronUp size={14} />
-                    </button>
-                  </div>
-                </div>
-                <div>
-                  <label className="block text-sm font-semibold mb-2 text-gray-700">Horizontal Gap:</label>
-                  <div className="flex items-center gap-1">
-                    <button
-                      type="button"
-                      onClick={() => setCurrentValue(setPunchHorizontalGapMedium, setPunchHorizontalGapLarge, adjustPixels(getCurrentValue(punchHorizontalGapMedium, punchHorizontalGapLarge), -1))}
-                      className="px-2 py-2 bg-gray-200 hover:bg-gray-300 rounded-l border border-gray-300 transition-colors"
-                    >
-                      <ChevronDown size={14} />
-                    </button>
-                    <input 
-                      type="text" 
-                      value={getCurrentValue(punchHorizontalGapMedium, punchHorizontalGapLarge)} 
-                      onChange={(e) => setCurrentValue(setPunchHorizontalGapMedium, setPunchHorizontalGapLarge, e.target.value)} 
-                      className="flex-1 px-3 py-2 border border-gray-300 rounded-none text-base focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
-                      placeholder="8px"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setCurrentValue(setPunchHorizontalGapMedium, setPunchHorizontalGapLarge, adjustPixels(getCurrentValue(punchHorizontalGapMedium, punchHorizontalGapLarge), 1))}
-                      className="px-2 py-2 bg-gray-200 hover:bg-gray-300 rounded-r border border-gray-300 transition-colors"
-                    >
-                      <ChevronUp size={14} />
-                    </button>
-                  </div>
-                </div>
-                <div>
-                  <label className="block text-sm font-semibold mb-2 text-gray-700">Vertical Gap:</label>
-                  <div className="flex items-center gap-1">
-                    <button
-                      type="button"
-                      onClick={() => setCurrentValue(setPunchVerticalGapMedium, setPunchVerticalGapLarge, adjustPixels(getCurrentValue(punchVerticalGapMedium, punchVerticalGapLarge), -1))}
-                      className="px-2 py-2 bg-gray-200 hover:bg-gray-300 rounded-l border border-gray-300 transition-colors"
-                    >
-                      <ChevronDown size={14} />
-                    </button>
-                    <input 
-                      type="text" 
-                      value={getCurrentValue(punchVerticalGapMedium, punchVerticalGapLarge)} 
-                      onChange={(e) => setCurrentValue(setPunchVerticalGapMedium, setPunchVerticalGapLarge, e.target.value)} 
-                      className="flex-1 px-3 py-2 border border-gray-300 rounded-none text-base focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
-                      placeholder="10px"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setCurrentValue(setPunchVerticalGapMedium, setPunchVerticalGapLarge, adjustPixels(getCurrentValue(punchVerticalGapMedium, punchVerticalGapLarge), 1))}
-                      className="px-2 py-2 bg-gray-200 hover:bg-gray-300 rounded-r border border-gray-300 transition-colors"
-                    >
-                      <ChevronUp size={14} />
-                    </button>
-                  </div>
-                </div>
-                <div>
-                  <label className="block text-sm font-semibold mb-2 text-gray-700">Number of Rows:</label>
-                  <div className="flex items-center gap-1">
-                    <button
-                      type="button"
-                      onClick={() => setNumRows(Math.max(1, numRows - 1))}
-                      className="px-2 py-2 bg-gray-200 hover:bg-gray-300 rounded-l border border-gray-300 transition-colors"
-                    >
-                      <ChevronDown size={14} />
-                    </button>
-                    <input 
-                      type="number" 
-                      value={numRows} 
-                      onChange={(e) => setNumRows(parseInt(e.target.value) || 1)} 
-                      className="flex-1 px-3 py-2 border border-gray-300 rounded-none text-base text-center focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
-                      min="1" 
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setNumRows(numRows + 1)}
-                      className="px-2 py-2 bg-gray-200 hover:bg-gray-300 rounded-r border border-gray-300 transition-colors"
-                    >
-                      <ChevronUp size={14} />
-                    </button>
-                  </div>
-                </div>
-                <div>
-                  <label className="block text-sm font-semibold mb-2 text-gray-700">Punches Per Row:</label>
-                  <div className="flex items-center gap-1">
-                    <button
-                      type="button"
-                      onClick={() => setPunchesPerRow(Math.max(1, punchesPerRow - 1))}
-                      className="px-2 py-2 bg-gray-200 hover:bg-gray-300 rounded-l border border-gray-300 transition-colors"
-                    >
-                      <ChevronDown size={14} />
-                    </button>
-                    <input 
-                      type="number" 
-                      value={punchesPerRow} 
-                      onChange={(e) => setPunchesPerRow(parseInt(e.target.value) || 1)} 
-                      className="flex-1 px-3 py-2 border border-gray-300 rounded-none text-base text-center focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
-                      min="1" 
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setPunchesPerRow(punchesPerRow + 1)}
-                      className="px-2 py-2 bg-gray-200 hover:bg-gray-300 rounded-r border border-gray-300 transition-colors"
-                    >
-                      <ChevronUp size={14} />
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Output Section */}
+            {/* Export & Import */}
             <div className="mb-4 border-t pt-4">
               <h3 className="text-lg font-bold mb-3 text-gray-800">Export & Import</h3>
-              
-              {/* Copy Buttons */}
               <div className="flex flex-wrap gap-2 mb-4">
-                <button
-                  onClick={copyToClipboard}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all shadow-sm ${
-                    copiedType === 'json' 
-                      ? 'bg-green-600 text-white shadow-md' 
-                      : 'bg-purple-600 text-white hover:bg-purple-700 hover:shadow-md'
-                  }`}
-                >
-                  {copiedType === 'json' ? <Check size={16} /> : <Copy size={16} />}
-                  {copiedType === 'json' ? 'Copied!' : 'Copy JSON'}
-                </button>
-                <button
-                  onClick={copyAsCode}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all shadow-sm ${
-                    copiedType === 'code' 
-                      ? 'bg-green-600 text-white shadow-md' 
-                      : 'bg-pink-600 text-white hover:bg-pink-700 hover:shadow-md'
-                  }`}
-                >
-                  {copiedType === 'code' ? <Check size={16} /> : <Copy size={16} />}
-                  {copiedType === 'code' ? 'Copied!' : 'Copy Code'}
-                </button>
-                <button
-                  onClick={copyAsFullEntry}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all shadow-sm ${
-                    copiedType === 'full' 
-                      ? 'bg-green-600 text-white shadow-md' 
-                      : 'bg-blue-600 text-white hover:bg-blue-700 hover:shadow-md'
-                  }`}
-                >
-                  {copiedType === 'full' ? <Check size={16} /> : <Copy size={16} />}
-                  {copiedType === 'full' ? 'Copied!' : 'Copy Full Entry'}
-                </button>
+                <CopyButton onClick={() => copy(jsonOutput, 'json')} label="Copy JSON" copied={copiedType === 'json'} tone="purple" />
+                <CopyButton onClick={copyAsEntry} label="Copy as Config Entry" copied={copiedType === 'entry'} tone="blue" />
               </div>
-              
-              {/* Import Section */}
+
               <div className="mb-4 p-3 bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg border-2 border-dashed border-gray-300">
                 <label className="block text-sm font-semibold mb-2 text-gray-700">
                   <Upload size={16} className="inline mr-1" />
-                  Import Layout (Paste JSON here)
+                  Import Layout (Paste JSON)
                 </label>
                 <textarea
                   value={importText}
-                  onChange={(e) => {
-                    setImportText(e.target.value);
-                    setImportError('');
-                  }}
-                  placeholder='Paste JSON layout here, e.g.: {"title": {"topMedium": "4%", ...}}'
+                  onChange={(e) => { setImportText(e.target.value); setImportError(''); }}
+                  placeholder='Paste JSON layout (must include title, description, punchGrid)'
                   className="w-full p-2 border-2 border-gray-300 rounded text-xs font-mono h-24 mb-2 focus:border-blue-500 focus:outline-none bg-white"
                 />
                 <button
-                  onClick={() => {
-                    if (importText.trim()) {
-                      handleImport(importText);
-                    } else {
-                      setImportError('Please paste JSON data first');
-                    }
-                  }}
-                  className="w-full px-4 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-800 text-sm font-medium shadow-sm transition-all"
+                  onClick={() => importText.trim() ? handleImport() : setImportError('Paste JSON first')}
+                  className="w-full px-4 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-800 text-sm font-medium shadow-sm"
                 >
                   Import Layout
                 </button>
                 {importError && (
-                  <div className="mt-2 text-xs text-red-700 bg-red-50 p-2 rounded border border-red-200">
-                    ⚠️ {importError}
-                  </div>
+                  <div className="mt-2 text-xs text-red-700 bg-red-50 p-2 rounded border border-red-200">⚠️ {importError}</div>
                 )}
               </div>
-              
-              {/* Output Textarea */}
+
               <div className="relative">
                 <label className="block text-sm font-semibold mb-2 text-gray-700">
                   <Download size={16} className="inline mr-1" />
-                  Layout Output (Click to select all, then copy)
+                  Layout Output
                 </label>
                 <textarea
                   value={jsonOutput}
                   readOnly
                   onClick={(e) => e.target.select()}
-                  className="w-full p-4 border-2 border-gray-300 rounded-lg text-sm font-mono h-80 bg-white focus:border-purple-500 focus:outline-none shadow-inner"
-                  style={{ resize: 'vertical', minHeight: '320px' }}
+                  className="w-full p-4 border-2 border-gray-300 rounded-lg text-sm font-mono h-80 bg-white shadow-inner"
+                  style={{ resize: 'vertical', minHeight: 320 }}
                 />
-                <div className="absolute top-12 right-4 text-xs text-gray-400 bg-white/80 px-2 py-1 rounded">
-                  {jsonOutput.length} chars
-                </div>
               </div>
-              
-              {/* Instructions */}
+
               <div className="mt-3 p-3 bg-blue-50 rounded-lg border border-blue-200">
                 <p className="text-xs text-blue-800 font-medium mb-1">💡 How to use:</p>
                 <ol className="text-xs text-blue-700 list-decimal list-inside space-y-1">
-                  <li>Adjust the layout controls above</li>
-                  <li>Click "Copy Code" or "Copy Full Entry" to get the format for cardLayouts.js</li>
-                  <li>Paste the output into your cardLayouts.js file</li>
-                  <li>Or use "Import Layout" to load existing JSON layouts</li>
+                  <li>Pick a card — the editor loads its current layout from cardLayouts.config.js</li>
+                  <li>Adjust values; the preview reflects what the dashboard / modal / celebration will render</li>
+                  <li>Click "Copy as Config Entry" and paste into cardLayouts.config.js to persist</li>
                 </ol>
               </div>
             </div>
@@ -1365,5 +317,180 @@ export default function CardLayoutEditor() {
         </div>
       </div>
     </div>
+  );
+}
+
+// Renders a card with an arbitrary layout override (instead of the static
+// config one). Builds the same inner stage as PunchCard so the live preview
+// reflects edits before they are persisted to cardLayouts.config.js.
+function LivePreview({ habit, layout }) {
+  // The shipped PunchCard wrapper resolves its layout from cardLayouts.config,
+  // which would ignore unsaved edits. So the editor renders PunchCardPreview
+  // directly with the in-flight layout values.
+  const cardImage = getCardImageUrl(habit.cardImage);
+  return (
+    <div style={{ width: '100%', aspectRatio: '1004 / 591', position: 'relative' }}>
+      {cardImage && (
+        <PunchCardPreview
+          name={habit.title}
+          description={habit.description}
+          icon1={resolveIconForEditor(habit.icon1Id)}
+          icon2={resolveIconForEditor(habit.icon2Id)}
+          cardImage={cardImage}
+          titlePlacement={layout.title}
+          descriptionPlacement={layout.description}
+          punchGridPlacement={{ ...layout.punchGrid, filledPunches: habit.currentPunches, totalPunches: habit.targetPunches }}
+          currentPunches={habit.currentPunches}
+          targetPunches={habit.targetPunches}
+          editMode
+          showCursor={false}
+        />
+      )}
+    </div>
+  );
+}
+
+const flatIcons = import.meta.glob('@/assets/icons/*.png', { eager: true });
+const bucketIcons = import.meta.glob('@/assets/icons/*/*.png', { eager: true });
+const ICON_LOOKUP = {};
+for (const path in flatIcons) {
+  const filename = path.split('/').pop();
+  ICON_LOOKUP[filename] = flatIcons[path].default;
+}
+for (const path in bucketIcons) {
+  const parts = path.split('/');
+  const filename = parts.pop();
+  const bucket = parts.pop();
+  const num = filename.replace('.png', '');
+  ICON_LOOKUP[`${bucket}/${num}`] = bucketIcons[path].default;
+}
+function resolveIconForEditor(idOrName) {
+  if (!idOrName) return null;
+  return ICON_LOOKUP[idOrName] || null;
+}
+
+// ---------- Form primitives ----------
+
+const toneClasses = {
+  purple: { bg: 'bg-purple-50', border: 'border-purple-200', text: 'text-purple-800' },
+  pink: { bg: 'bg-pink-50', border: 'border-pink-200', text: 'text-pink-800' },
+  blue: { bg: 'bg-blue-50', border: 'border-blue-200', text: 'text-blue-800' },
+};
+
+function Section({ title, tone, children }) {
+  const t = toneClasses[tone] || toneClasses.purple;
+  return (
+    <div className={`mb-6 p-5 rounded-lg border-2 ${t.bg} ${t.border}`}>
+      <h3 className={`font-bold mb-4 text-lg ${t.text}`}>{title}</h3>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {children}
+      </div>
+    </div>
+  );
+}
+
+function Stepper({ value, onChange, parse, placeholder, type = 'text' }) {
+  return (
+    <div className="flex items-center gap-1">
+      <button type="button" onClick={() => onChange(parse(value, -1))} className="px-2 py-2 bg-gray-200 hover:bg-gray-300 rounded-l border border-gray-300">
+        <ChevronDown size={14} />
+      </button>
+      <input
+        type={type}
+        value={value ?? ''}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={placeholder}
+        className="flex-1 px-3 py-2 border border-gray-300 rounded-none text-base focus:outline-none focus:ring-2 focus:ring-purple-500"
+      />
+      <button type="button" onClick={() => onChange(parse(value, +1))} className="px-2 py-2 bg-gray-200 hover:bg-gray-300 rounded-r border border-gray-300">
+        <ChevronUp size={14} />
+      </button>
+    </div>
+  );
+}
+
+function PercentField({ label, value, onChange, step = 0.5 }) {
+  return (
+    <FieldShell label={label}>
+      <Stepper value={value} onChange={onChange} parse={(v, d) => adjustPercentage(v, d * step)} placeholder="0%" />
+    </FieldShell>
+  );
+}
+
+function SizeField({ label, value, onChange, step = 0.1 }) {
+  return (
+    <FieldShell label={label}>
+      <Stepper value={value} onChange={onChange} parse={(v, d) => adjustPixels(v, d * step)} placeholder="1rem" />
+    </FieldShell>
+  );
+}
+
+function NumberField({ label, value, onChange }) {
+  return (
+    <FieldShell label={label}>
+      <Stepper value={value} onChange={(v) => onChange(parseInt(v, 10) || 1)} parse={(v, d) => Math.max(1, (parseInt(v, 10) || 1) + d)} type="number" />
+    </FieldShell>
+  );
+}
+
+function TextField({ label, value, onChange, placeholder }) {
+  return (
+    <FieldShell label={label}>
+      <input
+        type="text"
+        value={value ?? ''}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={placeholder}
+        className="w-full px-3 py-2 border border-gray-300 rounded text-base font-mono focus:outline-none focus:ring-2 focus:ring-blue-500"
+      />
+    </FieldShell>
+  );
+}
+
+function SelectField({ label, value, onChange, options }) {
+  return (
+    <FieldShell label={label}>
+      <select
+        value={value ?? ''}
+        onChange={(e) => onChange(e.target.value)}
+        className="w-full px-3 py-2 border border-gray-300 rounded text-base focus:outline-none focus:ring-2 focus:ring-purple-500"
+      >
+        {options.map((o) => <option key={o} value={o} style={{ fontFamily: `"${o}"` }}>{o}</option>)}
+      </select>
+    </FieldShell>
+  );
+}
+
+function ColorField({ label, value, onChange }) {
+  return (
+    <FieldShell label={label}>
+      <div className="flex items-center gap-2">
+        <input type="color" value={value || '#000000'} onChange={(e) => onChange(e.target.value)} className="w-16 h-10 border-2 border-gray-300 rounded cursor-pointer" />
+        <input type="text" value={value ?? ''} onChange={(e) => onChange(e.target.value)} placeholder="#333333" className="flex-1 px-3 py-2 border border-gray-300 rounded text-base font-mono focus:outline-none focus:ring-2 focus:ring-purple-500" />
+      </div>
+    </FieldShell>
+  );
+}
+
+function FieldShell({ label, children }) {
+  return (
+    <div>
+      <label className="block text-sm font-semibold mb-2 text-gray-700">{label}:</label>
+      {children}
+    </div>
+  );
+}
+
+function CopyButton({ onClick, label, copied, tone }) {
+  const colors = {
+    purple: 'bg-purple-600 hover:bg-purple-700',
+    pink: 'bg-pink-600 hover:bg-pink-700',
+    blue: 'bg-blue-600 hover:bg-blue-700',
+  };
+  return (
+    <button onClick={onClick} className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all shadow-sm text-white ${copied ? 'bg-green-600' : colors[tone] || colors.purple}`}>
+      {copied ? <Check size={16} /> : <Copy size={16} />}
+      {copied ? 'Copied!' : label}
+    </button>
   );
 }
