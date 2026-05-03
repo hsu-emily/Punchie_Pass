@@ -11,7 +11,7 @@
     radial-gradient(circle at 80% 0%, #ffe4f0 0%, transparent 45%),
     radial-gradient(circle at 0% 100%, #dcebff 0%, transparent 45%),
     #fff8fc;
-  padding: 32px 16px 96px;
+  padding: 96px 16px 96px;
   font-family: 'Fredoka', system-ui, sans-serif;
   color: #2A1E22;
   display: flex;
@@ -20,20 +20,23 @@
 }
 
 .inv-header {
+  position: relative;
   width: 100%;
-  max-width: 720px;
-  display: grid;
-  grid-template-columns: 1fr auto 1fr;
-  align-items: center;
-  margin-bottom: 16px;
+  max-width: 1080px;
+  display: flex;
+  justify-content: center;
+  margin-bottom: 24px;
 }
 
 .inv-back {
-  justify-self: start;
+  position: fixed;
+  top: 48px;
+  left: 32px;
+  z-index: 20;
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 8px 14px;
+  gap: 8px;
+  padding: 10px 22px;
   background: white;
   border: 1px solid var(--i-pink-300);
   border-radius: 999px;
@@ -44,11 +47,15 @@
 .inv-back:hover { background: var(--i-pink-100); }
 
 .inv-title {
-  font-family: 'Press Start 2P', monospace;
-  font-size: 14px;
-  margin: 0;
-  color: var(--i-pink);
-  letter-spacing: 0.04em;
+  font-family: 'Instrument Sans', sans-serif;
+  font-size: 72px;
+  font-weight: 700;
+  margin: 32px 0 0;
+  color: #61283B;
+  letter-spacing: normal;
+  line-height: 1.2;
+  text-align: center;
+  white-space: nowrap;
 }
 
 .inv-lede {

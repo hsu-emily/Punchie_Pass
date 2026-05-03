@@ -1,15 +1,16 @@
 // src/pages/Dashboard.jsx
-import { signOut } from 'firebase/auth';
+import { deleteUser, signOut } from 'firebase/auth';
+import { deleteDoc, doc } from 'firebase/firestore';
 import { motion } from 'framer-motion';
-import { BookOpen, ChevronLeft, ChevronRight, LogOut, Plus, Sparkles } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { ChevronLeft, ChevronRight, LogOut, MessageSquare, MoreVertical, Plus, Trash2, XCircle } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import CardZoomModal from "@/features/punchpass/CardZoomModal";
 import HabitCard from "@/features/habits/HabitCard";
 import JournalModal from "@/features/habits/JournalModal";
 import Layout from "@/ui/Layout";
 import ReflectionModal from "@/features/habits/ReflectionModal";
-import { auth } from "@/services/firebase";
+import { auth, db } from "@/services/firebase";
 import { useAuth } from "@/features/auth/useAuth";
 import { useHabitStore } from "@/features/habits/habitStore";
 import HatchedBunny from "@/features/bunny/HatchedBunny";
@@ -18,6 +19,10 @@ import useUserLevel from "@/features/progress/useUserLevel";
 import useLevelRewards from "@/features/progress/useLevelRewards";
 import LevelUpToast from "@/features/progress/LevelUpToast";
 import DashboardCards from "./DashboardCards";
+import usePremium, { FREE_HABIT_LIMIT } from "@/features/premium/usePremium";
+import PremiumPaywall from "@/features/premium/PremiumPaywall";
+import PremiumBanner from "@/features/premium/PremiumBanner";
+import FeedbackModal from "@/features/feedback/FeedbackModal";
 import "./EmptyState.css";
 import "./Carousel.css";
 
@@ -26,6 +31,9 @@ export default function Dashboard() {
   const bunnyKind = profile?.bunny?.kind || 'bun';
   const navigate = useNavigate();
   const habits = useHabitStore(state => state.habits);
+  const { premium, expiresAt, canceled, unsubscribe } = usePremium();
+  const [paywallOpen, setPaywallOpen] = useState(false);
+  const [feedbackOpen, setFeedbackOpen] = useState(false);
   const punchHabit = useHabitStore(state => state.punchHabit);
   const undoPunch = useHabitStore(state => state.undoPunch);
   const fetchHabits = useHabitStore(state => state.fetchHabits);
@@ -36,6 +44,17 @@ export default function Dashboard() {
   const [showJournals, setShowJournals] = useState(false);
   const [activeIndex, setActiveIndex] = useState(0);
   const [zoomedHabit, setZoomedHabit] = useState(null);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const menuRef = useRef(null);
+
+  useEffect(() => {
+    if (!menuOpen) return;
+    const onClick = (e) => {
+      if (menuRef.current && !menuRef.current.contains(e.target)) setMenuOpen(false);
+    };
+    document.addEventListener('mousedown', onClick);
+    return () => document.removeEventListener('mousedown', onClick);
+  }, [menuOpen]);
 
   useEffect(() => {
     if (user) {
@@ -62,8 +81,70 @@ export default function Dashboard() {
     }
   };
 
+  const handleUnsubscribe = async () => {
+    setMenuOpen(false);
+    if (!premium) return;
+    if (canceled) {
+      const endLabel = expiresAt
+        ? new Date(expiresAt).toLocaleDateString()
+        : 'the end of your billing period';
+      window.alert(`You've already canceled. Premium ends on ${endLabel}.`);
+      return;
+    }
+    const endLabel = expiresAt
+      ? new Date(expiresAt).toLocaleDateString()
+      : 'the end of your billing period';
+    const confirmed = window.confirm(
+      `Cancel your Punchie Pass+ subscription? You'll keep premium access until ${endLabel}, then it won't renew.`
+    );
+    if (!confirmed) return;
+    try {
+      await unsubscribe();
+      window.alert(`Canceled. Premium will end on ${endLabel}.`);
+    } catch (error) {
+      console.error('Unsubscribe error:', error);
+      window.alert('Could not cancel. Please try again.');
+    }
+  };
+
+  const handleDeleteAccount = async () => {
+    setMenuOpen(false);
+    if (premium && !canceled) {
+      window.alert(
+        'You have an active Punchie Pass+ subscription. Please cancel it first using "Unsubscribe", then try deleting your account again.'
+      );
+      return;
+    }
+    const confirmed = window.confirm(
+      'Delete your account? This permanently removes your bunny, habits, and progress. This cannot be undone.'
+    );
+    if (!confirmed) return;
+    try {
+      const current = auth.currentUser;
+      if (!current) return;
+      await deleteDoc(doc(db, 'users', current.uid));
+      await deleteUser(current);
+      navigate('/');
+    } catch (error) {
+      if (error?.code === 'auth/requires-recent-login') {
+        window.alert('For security, please log out and log back in, then try again.');
+      } else {
+        console.error('Delete account error:', error);
+        window.alert('Could not delete account. Please try again.');
+      }
+    }
+  };
+
   const handlePunch = async (habitId) => {
     await punchHabit(habitId);
+  };
+
+  const handleNewHabit = () => {
+    if (!premium && habits.length >= FREE_HABIT_LIMIT) {
+      setPaywallOpen(true);
+      return;
+    }
+    navigate('/passes/new');
   };
 
   // Filter out completed habits for carousel
@@ -84,13 +165,14 @@ export default function Dashboard() {
       <div className="dashboard-container">
         {/* Header */}
         <div className="dashboard-header-right-new">
-          <button
+          {/* AI features disabled for debugging — Reflection button hidden */}
+          {/* <button
             onClick={() => setShowReflection(true)}
             className="btn-reflection-new"
           >
             <Sparkles size={18} />
             <span className="btn-reflection-text">Reflection</span>
-          </button>
+          </button> */}
           <button
             onClick={() => navigate('/student-id')}
             className="btn-bunny"
@@ -99,13 +181,56 @@ export default function Dashboard() {
           >
             <HatchedBunny kind={bunnyKind} size={48} />
           </button>
-          <button
-            onClick={handleLogout}
-            className="btn-logout-new"
-            title="Logout"
-          >
-            <LogOut size={20} />
-          </button>
+          <div className="account-menu" ref={menuRef}>
+            <button
+              onClick={() => setMenuOpen((v) => !v)}
+              className="btn-logout-new"
+              title="Account"
+              aria-label="Account menu"
+              aria-haspopup="menu"
+              aria-expanded={menuOpen}
+            >
+              <MoreVertical size={20} />
+            </button>
+            {menuOpen && (
+              <div className="account-menu-popover" role="menu">
+                <button
+                  className="account-menu-item"
+                  role="menuitem"
+                  onClick={() => { setMenuOpen(false); setFeedbackOpen(true); }}
+                >
+                  <MessageSquare size={16} />
+                  <span>Send feedback</span>
+                </button>
+                {premium && (
+                  <button
+                    className="account-menu-item"
+                    role="menuitem"
+                    onClick={handleUnsubscribe}
+                  >
+                    <XCircle size={16} />
+                    <span>{canceled ? 'Subscription canceled' : 'Unsubscribe'}</span>
+                  </button>
+                )}
+                <button
+                  className="account-menu-item"
+                  role="menuitem"
+                  onClick={() => { setMenuOpen(false); handleLogout(); }}
+                >
+                  <LogOut size={16} />
+                  <span>Log out</span>
+                </button>
+                <button
+                  className="account-menu-item account-menu-item-danger"
+                  role="menuitem"
+                  onClick={handleDeleteAccount}
+                >
+                  <Trash2 size={16} />
+                  <span>Delete account</span>
+                </button>
+              </div>
+            )}
+          </div>
         </div>
         
         <header className="dashboard-header-new">
@@ -123,7 +248,7 @@ export default function Dashboard() {
               Make your first punch card and your bunny will start growing.
             </p>
             <button
-              onClick={() => navigate('/passes/new')}
+              onClick={handleNewHabit}
               className="dashboard-empty-btn"
             >
               Create your first card ▸
@@ -256,7 +381,7 @@ export default function Dashboard() {
 
         {!(showReflection || showJournals || zoomedHabit) && (
           <button
-            onClick={() => navigate('/passes/new')}
+            onClick={handleNewHabit}
             className="btn-new-habit"
           >
             <Plus size={20} />
@@ -264,9 +389,12 @@ export default function Dashboard() {
           </button>
         )}
 
+        <PremiumBanner />
+
         <DashboardCards habits={habits} />
 
-        <div className="dashboard-quick-row">
+        {/* AI features disabled for debugging — journals button hidden */}
+        {/* <div className="dashboard-quick-row">
           <button
             onClick={() => setShowJournals(true)}
             className="dashboard-quick-btn dashboard-journal-btn"
@@ -274,10 +402,19 @@ export default function Dashboard() {
             <BookOpen size={18} />
             <span>View my journals</span>
           </button>
-        </div>
+        </div> */}
       </div>
 
       <LevelUpToast event={levelUpEvent} onClose={dismissLevelUp} />
+
+      {paywallOpen && (
+        <PremiumPaywall
+          headline={`You've hit the ${FREE_HABIT_LIMIT}-habit free limit`}
+          onClose={() => setPaywallOpen(false)}
+        />
+      )}
+
+      {feedbackOpen && <FeedbackModal onClose={() => setFeedbackOpen(false)} />}
 
       {/* Modals */}
       {showReflection && (

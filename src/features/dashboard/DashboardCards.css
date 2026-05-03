@@ -172,7 +172,7 @@ button.dc-card { font: inherit; color: inherit; }
   color: #DB2777;
 }
 .dc-gacha-art { display: flex; justify-content: center; }
-.dc-mini-machine { width: 110px; height: auto; }
+.dc-mini-machine { width: auto; height: 160px; }
 .dc-gacha-stats { display: flex; flex-direction: column; align-items: center; gap: 2px; }
 .dc-gacha-tokens {
   display: inline-flex;
@@ -273,7 +273,72 @@ button.dc-card { font: inherit; color: inherit; }
 }
 .dc-week-strip b { color: #DB2777; font-weight: 700; }
 
-.dc-heatmap-wrap {
+.dc-heatmap-row {
   width: 100%;
   max-width: 880px;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+  align-items: stretch;
 }
+.dc-heatmap-wrap { min-width: 0; display: flex; }
+
+@media (max-width: 880px) {
+  .dc-heatmap-row { grid-template-columns: 1fr 1fr; }
+  .dc-heatmap-wrap { grid-column: 1 / -1; }
+}
+
+@media (max-width: 560px) {
+  .dc-heatmap-row { grid-template-columns: 1fr; }
+  .dc-heatmap-wrap { grid-column: auto; }
+}
+
+/* ── Side cards: Pet + Inventory ─────────────────────────── */
+.dc-card-pet {
+  background-image: linear-gradient(180deg, #fff8fc 0%, #ffeaf3 100%);
+  align-items: center;
+  text-align: center;
+  gap: 8px;
+}
+.dc-card-inventory {
+  background-image: linear-gradient(180deg, #fff8fc 0%, #f3e9ff 100%);
+  align-items: center;
+  text-align: center;
+  gap: 8px;
+}
+.dc-side-eyebrow {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 8px;
+  letter-spacing: 0.06em;
+  color: #DB2777;
+}
+.dc-pet-art,
+.dc-inv-art {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 120px;
+}
+.dc-inv-icon { color: #C5B8FF; }
+.dc-side-meta {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+.dc-side-meta b { font-size: 16px; color: #DB2777; }
+.dc-side-meta span { font-size: 11px; color: #8B6F77; }
+.dc-side-cta {
+  margin-top: auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: #EC4899;
+  color: white;
+  font-weight: 600;
+  font-size: 12px;
+}
+.dc-card-inventory .dc-side-cta { background: #A78BFA; }

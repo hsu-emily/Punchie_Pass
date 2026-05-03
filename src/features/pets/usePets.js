@@ -20,7 +20,7 @@ import {
   BUNNY_VARIANTS,
   evaluateUnlockedBunnies,
 } from '@/features/bunny/bunnyVariants';
-import { MAX_PET_UPGRADE, upgradeCost } from './petBonus';
+import { MAX_PET_UPGRADE, formatBonus, getPetBonus, upgradeCost } from './petBonus';
 
 export default function usePets() {
   const { user, profile } = useAuth();
@@ -62,6 +62,8 @@ export default function usePets() {
       const upgradeLevel = upgrades[id] || 0;
       const nextCost = upgradeCost(upgradeLevel);
       const enhanceable = v.source === 'egg';
+      const effectiveBonus = getPetBonus(id, upgradeLevel);
+      const effectiveBonusLabel = formatBonus(effectiveBonus) || v.bonusLabel;
       return {
         ...v,
         unlocked,
@@ -73,6 +75,8 @@ export default function usePets() {
         atMaxUpgrade: upgradeLevel >= MAX_PET_UPGRADE,
         canHatch: !unlocked && v.source === 'egg' && eggsHeld > 0,
         canEnhance: enhanceable && unlocked && upgradeLevel < MAX_PET_UPGRADE && eggsHeld >= nextCost,
+        effectiveBonus,
+        effectiveBonusLabel,
       };
     }),
     [unlockedIds, eggsByVariant, activePet, upgrades]
@@ -156,5 +160,15 @@ export default function usePets() {
     [user, hatched, upgrades, inventory]
   );
 
-  return { activePet, variants, hatched, eggsByVariant, setActivePet, hatchEgg, enhancePet };
+  const hatchAllDev = useCallback(async () => {
+    if (!user) throw new Error('Not signed in');
+    const eggKinds = BUNNY_KINDS.filter((id) => BUNNY_VARIANTS[id].source === 'egg');
+    const merged = Array.from(new Set([...hatched, ...eggKinds]));
+    await updateDoc(doc(db, 'users', user.uid), {
+      'pets.hatched': merged,
+      updatedAt: serverTimestamp(),
+    });
+  }, [user, hatched]);
+
+  return { activePet, variants, hatched, eggsByVariant, setActivePet, hatchEgg, enhancePet, hatchAllDev };
 }

@@ -1,7 +1,8 @@
 import { useState, useRef, useEffect } from 'react';
 import { X, Send, Sparkles, Loader2, Heart, MessageCircle } from 'lucide-react';
 import { useHabitStore } from "@/features/habits/habitStore";
-import { analyzeReflection } from "@/services/geminiService";
+// AI features disabled for debugging
+// import { analyzeReflection } from "@/services/geminiService";
 import { collection, addDoc, updateDoc, doc } from 'firebase/firestore';
 import { db } from "@/services/firebase";
 import { useAuth } from "@/features/auth/useAuth";
@@ -50,14 +51,17 @@ export default function ReflectionModal({ onClose }) {
         });
       }
 
-      const feedback = await analyzeReflection(reflection, habits, {});
-      if (feedback) {
-        setCoachFeedback(feedback);
-        setStep('feedback');
-      } else {
-        alert('Reflection saved! AI analysis unavailable at the moment.');
-        onClose();
-      }
+      // AI features disabled for debugging
+      // const feedback = await analyzeReflection(reflection, habits, {});
+      // if (feedback) {
+      //   setCoachFeedback(feedback);
+      //   setStep('feedback');
+      // } else {
+      //   alert('Reflection saved! AI analysis unavailable at the moment.');
+      //   onClose();
+      // }
+      alert('Reflection saved! AI features are disabled for debugging.');
+      onClose();
     } catch (error) {
       console.error('Error saving reflection:', error);
       alert('Error saving reflection. Please try again.');
@@ -153,17 +157,25 @@ export default function ReflectionModal({ onClose }) {
     setLoading(true);
 
     try {
-      const response = await analyzeReflection(
-        input.trim(),
-        habits,
-        { conversationHistory: messages }
-      );
-
+      // AI features disabled for debugging
+      // const response = await analyzeReflection(
+      //   input.trim(),
+      //   habits,
+      //   { conversationHistory: messages }
+      // );
+      //
+      // const aiMessage = {
+      //   id: messages.length + 2,
+      //   type: 'ai',
+      //   content: response.message || "I understand. Tell me more about that.",
+      //   suggestions: response.suggestions || [],
+      //   timestamp: new Date()
+      // };
       const aiMessage = {
         id: messages.length + 2,
         type: 'ai',
-        content: response.message || "I understand. Tell me more about that.",
-        suggestions: response.suggestions || [],
+        content: "[AI disabled for debugging]",
+        suggestions: [],
         timestamp: new Date()
       };
 
@@ -172,14 +184,14 @@ export default function ReflectionModal({ onClose }) {
       await saveToJournal(finalMessages);
     } catch (error) {
       console.error('Error getting AI response:', error);
-      
+
       const errorMessage = {
         id: messages.length + 2,
         type: 'ai',
         content: "I'm having trouble responding right now. But I'm listening - please continue sharing.",
         timestamp: new Date()
       };
-      
+
       const finalMessages = [...updatedMessages, errorMessage];
       setMessages(finalMessages);
       await saveToJournal(finalMessages);
@@ -204,17 +216,25 @@ export default function ReflectionModal({ onClose }) {
     setLoading(true);
 
     try {
-      const response = await analyzeReflection(
-        `The user wants to explore this suggestion: ${suggestion}`,
-        habits,
-        { conversationHistory: messages }
-      );
-
+      // AI features disabled for debugging
+      // const response = await analyzeReflection(
+      //   `The user wants to explore this suggestion: ${suggestion}`,
+      //   habits,
+      //   { conversationHistory: messages }
+      // );
+      //
+      // const aiMessage = {
+      //   id: messages.length + 2,
+      //   type: 'ai',
+      //   content: response.message || `Let's dive deeper into: ${suggestion}`,
+      //   suggestions: response.suggestions || [],
+      //   timestamp: new Date()
+      // };
       const aiMessage = {
         id: messages.length + 2,
         type: 'ai',
-        content: response.message || `Let's dive deeper into: ${suggestion}`,
-        suggestions: response.suggestions || [],
+        content: `[AI disabled for debugging] (suggestion: ${suggestion})`,
+        suggestions: [],
         timestamp: new Date()
       };
 

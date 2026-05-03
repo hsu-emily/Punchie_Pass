@@ -1,9 +1,10 @@
-import { useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { getDownloadURL, ref as storageRef, uploadBytes } from 'firebase/storage';
 import PunchCard from '@/features/punchpass/PunchCard';
 import { getCardLayout } from '@/features/punchpass/cardLayouts.config';
 import { storage } from '@/services/firebase';
-import { AiTitleSuggest, AiRewardSuggest } from './AiSuggest';
+// AI features disabled for debugging — AiSuggest components return null.
+// import { AiTitleSuggest, AiRewardSuggest } from './AiSuggest';
 import defaultPunchIcon from '@/assets/icons/punch.png';
 import { CURSOR_LIST, DEFAULT_PUNCH_CURSOR_ID } from '@/assets/cursors/cursors';
 import useGacha from '@/features/gacha/useGacha';
@@ -12,6 +13,12 @@ import ShardIcon from '@/features/gacha/ShardIcon';
 import './CreatePunchCard.css';
 
 const iconModules = import.meta.glob('@/assets/icons/*/*.png', { eager: true });
+const cardImageModules = import.meta.glob('@/assets/punch_cards/*.png', { eager: true });
+const CARD_IMAGE_URLS = {};
+for (const path in cardImageModules) {
+  const filename = path.split('/').pop();
+  CARD_IMAGE_URLS[filename] = cardImageModules[path].default;
+}
 
 // Bucketed icons: id = "bucket/number" (e.g. "pink/4")
 const ICONS_BY_BUCKET = {};
@@ -114,7 +121,7 @@ export default function CreatePunchCard({
 
   // Icons: keep the three free defaults always available, plus any custom
   // uploads under "yours". Other bucket entries are filtered to owned-only.
-  const FREE_ICON_REFS = new Set(['pixle/19', 'pixle/20', 'pixle/17']);
+  const FREE_ICON_REFS = new Set([DEFAULT_ICON_ID, 'pixle/19', 'pixle/20', 'pixle/17']);
   const filterIcons = (list) =>
     (list || []).filter((ic) => FREE_ICON_REFS.has(ic.id) || ownedIconRefs.has(ic.id));
 
@@ -143,6 +150,12 @@ export default function CreatePunchCard({
   const fileInputRef = useRef(null);
   const [uploadError, setUploadError] = useState('');
   const [uploading, setUploading] = useState(false);
+
+  useEffect(() => {
+    if (!uploadError) return;
+    const t = setTimeout(() => setUploadError(''), 4000);
+    return () => clearTimeout(t);
+  }, [uploadError]);
   const { slotsUnlocked, nextSlotCost, canUnlockNext } = useUploadSlots();
 
   const setSlotIcon = (id) => {
@@ -239,26 +252,24 @@ export default function CreatePunchCard({
           <div className="cpc-eyebrow">★ {headerEyebrow}</div>
           <h1 className="cpc-title">{headerTitle}</h1>
         </div>
-        <div className="cpc-header-right">
-          {bunnyName && (
-            <div className="cpc-user-pill">
-              <span>{bunnyName.toUpperCase()}</span>
-              <span className="cpc-user-icon">🐰</span>
-            </div>
-          )}
+        <div className="cpc-header-actions">
           {onCancel && (
-            <button className="cpc-x" onClick={onCancel} aria-label="Close">
-              ×
+            <button className="cpc-btn cpc-btn-ghost" onClick={onCancel}>
+              Cancel
             </button>
           )}
+          <button
+            className="cpc-btn cpc-btn-primary"
+            disabled={!canSubmit}
+            onClick={onSubmit}
+          >
+            {submitLabel}
+          </button>
         </div>
       </div>
 
       {/* Preview — sits on the page background, no white panel */}
       <section className="cpc-preview">
-        <div className="cpc-preview-header">
-          ★ LIVE PREVIEW · <span className="cpc-preview-theme">{theme.label}</span>
-        </div>
         <div className="cpc-preview-stage-wrap">
           <button
             type="button"
@@ -299,21 +310,22 @@ export default function CreatePunchCard({
               required
               counter={`${(pass.title || '').length}/28`}
               hint="Give your habit a name"
-              action={
-                <AiTitleSuggest
-                  currentDescription={pass.description}
-                  onApply={({ title, description, frequency }) =>
-                    onChange((p) => ({
-                      ...p,
-                      title: (title || '').slice(0, 28),
-                      description: description
-                        ? description.slice(0, 50)
-                        : p.description,
-                      frequency: frequency || p.frequency,
-                    }))
-                  }
-                />
-              }
+              // AI features disabled for debugging
+              // action={
+              //   <AiTitleSuggest
+              //     currentDescription={pass.description}
+              //     onApply={({ title, description, frequency }) =>
+              //       onChange((p) => ({
+              //         ...p,
+              //         title: (title || '').slice(0, 28),
+              //         description: description
+              //           ? description.slice(0, 50)
+              //           : p.description,
+              //         frequency: frequency || p.frequency,
+              //       }))
+              //     }
+              //   />
+              // }
             >
               <input
                 type="text"
@@ -358,12 +370,13 @@ export default function CreatePunchCard({
 
             <Field
               label="Reward when complete"
-              action={
-                <AiRewardSuggest
-                  habitTitle={pass.title}
-                  onApply={(reward) => set('reward', reward)}
-                />
-              }
+              // AI features disabled for debugging
+              // action={
+              //   <AiRewardSuggest
+              //     habitTitle={pass.title}
+              //     onApply={(reward) => set('reward', reward)}
+              //   />
+              // }
             >
               <input
                 type="text"
@@ -376,20 +389,22 @@ export default function CreatePunchCard({
           </div>
 
           <div className="cpc-controls-col">
-            <Field label="Card color">
-              <div className="cpc-swatch-row">
+            <Field label="Card style">
+              <div className="cpc-card-thumb-row">
                 {COLOR_THEMES.filter(isThemeUnlocked).map((t) => {
                   const active = cardImage === t.cardImage;
+                  const url = CARD_IMAGE_URLS[t.cardImage];
                   return (
                     <button
                       key={t.id}
                       type="button"
-                      className={`cpc-swatch ${active ? 'is-active' : ''}`}
-                      style={{ background: t.swatch }}
+                      className={`cpc-card-thumb ${active ? 'is-active' : ''}`}
                       onClick={() => set('cardImage', t.cardImage)}
                       aria-label={t.label}
                       title={t.label}
-                    />
+                    >
+                      <img src={url} alt="" />
+                    </button>
                   );
                 })}
               </div>
@@ -510,25 +525,6 @@ export default function CreatePunchCard({
         </section>
       </div>
 
-      <div className="cpc-footer">
-        <div className="cpc-footer-hint">
-          {canSubmit ? '' : 'Pick a title to get started'}
-        </div>
-        <div className="cpc-footer-actions">
-          {onCancel && (
-            <button className="cpc-btn cpc-btn-ghost" onClick={onCancel}>
-              Cancel
-            </button>
-          )}
-          <button
-            className="cpc-btn cpc-btn-primary"
-            disabled={!canSubmit}
-            onClick={onSubmit}
-          >
-            {submitLabel}
-          </button>
-        </div>
-      </div>
     </div>
   );
 }

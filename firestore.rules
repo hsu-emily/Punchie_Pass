@@ -2,6 +2,9 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
+    // User document + everything nested under it. Owner-only.
+    // Allowing recursive write/delete on subcollections lets the client
+    // tear down habits, punches, journals, etc. when an account is deleted.
     match /users/{userId} {
       allow read, write: if request.auth != null && request.auth.uid == userId;
 
@@ -11,14 +14,37 @@ service cloud.firestore {
         match /punches/{punchId} {
           allow read, write: if request.auth != null && request.auth.uid == userId;
         }
+
+        match /reflections/{reflectionId} {
+          allow read, write: if request.auth != null && request.auth.uid == userId;
+        }
+      }
+
+      match /{document=**} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
       }
     }
 
+    // Top-level journals — owner can do anything with their own entries.
     match /journals/{journalId} {
       allow read, update, delete: if request.auth != null
         && request.auth.uid == resource.data.userId;
       allow create: if request.auth != null
         && request.auth.uid == request.resource.data.userId;
+    }
+
+    // Feedback — submitter can create, read back, and delete their own
+    // entries (e.g. when wiping account). No edits — feedback is immutable
+    // once sent. Admins read from the Firebase console.
+    match /feedback/{feedbackId} {
+      allow create: if request.auth != null
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.message is string
+        && request.resource.data.message.size() > 0
+        && request.resource.data.message.size() <= 2000;
+      allow read, delete: if request.auth != null
+        && resource.data.uid == request.auth.uid;
+      allow update: if false;
     }
   }
 }

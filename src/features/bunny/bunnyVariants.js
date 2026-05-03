@@ -1,8 +1,13 @@
-// Single-source bunny: bun.svg is the master illustration. Each variant is
-// just a palette swap over the same artwork. Adding a new variant = adding a
-// palette here.
+// Most bunnies are palette swaps over the master `bun.svg` artwork — adding a
+// new variant in that mode is a single entry below. A bunny can also opt out
+// by setting `customSvg` to a different illustration (e.g. cinnabun has its
+// own bespoke drawing); palette is still kept around so the egg shell tile
+// can pull tint colors from the variant.
 
 import bunUrl from '@/assets/bunnies/bun.svg';
+import cinnabunUrl from '@/assets/bunnies/cinna bun.svg';
+import midnightbunUrl from '@/assets/bunnies/midnight bun.svg';
+import dustbunUrl from '@/assets/bunnies/bunny_composed 4.svg';
 
 // Hex tokens that appear in bun.svg, by visual role.
 const BASE = {
@@ -51,8 +56,8 @@ export const BUNNY_VARIANTS = {
     rarity: 'cute',
     source: 'egg',
     hint: 'Hatch a Sea Egg from the Punchie Machine',
-    bonus: { xpMultiplier: 1.05, tokenChance: 0, streakShield: 0 },
-    bonusLabel: '+5% XP per punch',
+    bonus: { xpMultiplier: 1.02, tokenChance: 0, streakShield: 0 },
+    bonusLabel: '+2% XP per punch',
     palette: {
       cream: '#E0EEFF',
       body:  '#5B8FD9',
@@ -68,25 +73,43 @@ export const BUNNY_VARIANTS = {
     rarity: 'cute',
     source: 'egg',
     hint: 'Hatch a Choco Egg from the Punchie Machine',
-    bonus: { xpMultiplier: 1, tokenChance: 0.12, streakShield: 0 },
-    bonusLabel: '+12% chance of bonus token on pass complete',
+    bonus: { xpMultiplier: 1, tokenChance: 0.04, streakShield: 0 },
+    bonusLabel: '+4% chance of bonus token on pass complete',
     palette: {
       cream: '#AE8275',
-      body:  '#9A6F62',
-      bodyAlt: '#A57A6D',
-      cheek: '#FFB7CE',
+      body:  '#5E3F38',
+      bodyAlt: '#5E3F38',
+      cheek: '#5E3F38',
       dark:  '#5E3F38',
     },
   },
   stardustbun: {
     id: 'stardustbun',
-    name: 'Stardust Bun',
+    name: 'Dust Bun',
+    tagline: 'Soft as ash, quiet as snow.',
+    rarity: 'holo',
+    source: 'egg',
+    hint: 'Hatch a Dust Egg from the Punchie Machine',
+    bonus: { xpMultiplier: 1.05, tokenChance: 0, streakShield: 1 },
+    bonusLabel: '+5% XP · 1-day streak shield',
+    customSvg: dustbunUrl,
+    palette: {
+      cream: '#ACACAA',
+      body:  '#030303',
+      bodyAlt: '#1D1D1D',
+      cheek: '#7E012C',
+      dark:  '#030303',
+    },
+  },
+  twilightbun: {
+    id: 'twilightbun',
+    name: 'Twilight Bun',
     tagline: 'Stitched from the seams of the sky.',
     rarity: 'holo',
     source: 'egg',
-    hint: 'Hatch a Stardust Egg from the Punchie Machine',
-    bonus: { xpMultiplier: 1.12, tokenChance: 0, streakShield: 1 },
-    bonusLabel: '+12% XP · 1-day streak shield',
+    hint: 'Hatch a Twilight Egg from the Punchie Machine',
+    bonus: { xpMultiplier: 1.04, tokenChance: 0.04, streakShield: 0 },
+    bonusLabel: '+4% XP · +4% bonus token chance',
     palette: {
       cream: '#EDE7FF',
       body:  '#9B7CFF',
@@ -98,18 +121,54 @@ export const BUNNY_VARIANTS = {
   goldbun: {
     id: 'goldbun',
     name: 'Golden Bun',
-    tagline: 'Rumored to bring tokens like rain.',
-    rarity: 'secret',
+    tagline: 'A little luck in pocket form.',
+    rarity: 'rare',
     source: 'egg',
-    hint: 'Hatch a Golden Egg (Secret pull from the Punchie Machine)',
-    bonus: { xpMultiplier: 1.08, tokenChance: 0.25, streakShield: 0 },
-    bonusLabel: '+8% XP · +25% bonus token chance',
+    hint: 'Hatch a Golden Egg from the Punchie Machine',
+    bonus: { xpMultiplier: 1.03, tokenChance: 0.03, streakShield: 0 },
+    bonusLabel: '+3% XP · +3% bonus token chance',
     palette: {
       cream: '#FFF6D6',
       body:  '#E5B845',
       bodyAlt: '#F0C75A',
       cheek: '#FFD27A',
       dark:  '#5A3F08',
+    },
+  },
+  midnightbun: {
+    id: 'midnightbun',
+    name: 'Midnight Bun',
+    tagline: 'Whispers in the velvet dark.',
+    rarity: 'secret',
+    source: 'egg',
+    hint: 'Hatch a Midnight Egg from the Punchie Machine',
+    bonus: { xpMultiplier: 1.06, tokenChance: 0.05, streakShield: 1 },
+    bonusLabel: '+6% XP · +5% token · 1-day streak shield',
+    customSvg: midnightbunUrl,
+    palette: {
+      cream: '#1D1D1D',
+      body:  '#D7D7D7',
+      bodyAlt: '#D7D7D7',
+      cheek: '#B8144D',
+      dark:  '#1D1D1D',
+    },
+  },
+  cinnabun: {
+    id: 'cinnabun',
+    name: 'Cinna Bun',
+    tagline: 'Sweet, spicy, impossibly rare.',
+    rarity: 'secret',
+    source: 'egg',
+    hint: 'Hatch a Cinna Egg (Secret pull from the Punchie Machine)',
+    bonus: { xpMultiplier: 1.07, tokenChance: 0.07, streakShield: 1 },
+    bonusLabel: '+7% XP · +7% token · 1-day streak shield',
+    customSvg: cinnabunUrl,
+    palette: {
+      cream: '#FFF8EB',
+      body:  '#7A1738',
+      bodyAlt: '#7A1738',
+      cheek: '#FFB7CE',
+      dark:  '#2F171F',
     },
   },
 };
@@ -143,18 +202,17 @@ export function evaluateUnlockedBunnies(progress = {}, hatched = []) {
   });
 }
 
-let cachedSource = null;
-let inflight = null;
+const sourceCache = new Map();
 
-async function loadSource() {
-  if (cachedSource) return cachedSource;
-  if (inflight) return inflight;
-  inflight = fetch(bunUrl).then((r) => r.text()).then((text) => {
-    cachedSource = text;
-    inflight = null;
+async function loadSourceUrl(url) {
+  const cached = sourceCache.get(url);
+  if (cached) return cached;
+  const promise = fetch(url).then((r) => r.text()).then((text) => {
+    sourceCache.set(url, text);
     return text;
   });
-  return inflight;
+  sourceCache.set(url, promise);
+  return promise;
 }
 
 function applyPalette(svgText, palette) {
@@ -163,14 +221,31 @@ function applyPalette(svgText, palette) {
     .replaceAll(BASE.bodyAlt, palette.bodyAlt)
     .replaceAll(BASE.body, palette.body)
     .replaceAll(BASE.cheek, palette.cheek)
-    .replaceAll(BASE.dark, palette.dark)
-    // Strip the fixed root width/height so the SVG scales to its container.
+    .replaceAll(BASE.dark, palette.dark);
+}
+
+// Namespace the figma-generated `_NUM_NUM` def IDs so multiple bunnies on the
+// same page don't share scatter/clip defs (which would otherwise paint every
+// bunny's fuzzy outline with whichever variant rendered first).
+function namespaceDefIds(svgText, idSuffix) {
+  return svgText.replace(/_(\d+)_(\d+)/g, (m) => `${m}_${idSuffix}`);
+}
+
+function stripRootSize(svgText) {
+  return svgText
     .replace(/<svg([^>]*?)\swidth="\d+"/, '<svg$1')
     .replace(/<svg([^>]*?)\sheight="\d+"/, '<svg$1');
 }
 
 export async function loadBunnySvg(kind) {
   const variant = BUNNY_VARIANTS[kind] || BUNNY_VARIANTS.bun;
-  const source = await loadSource();
-  return applyPalette(source, variant.palette);
+  const sourceUrl = variant.customSvg || bunUrl;
+  let text = await loadSourceUrl(sourceUrl);
+  // Custom SVGs are pre-colored; only the palette-swap base needs recoloring.
+  if (!variant.customSvg && variant.palette) {
+    text = applyPalette(text, variant.palette);
+  }
+  text = namespaceDefIds(text, variant.id);
+  text = stripRootSize(text);
+  return text;
 }

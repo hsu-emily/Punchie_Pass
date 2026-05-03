@@ -1,8 +1,9 @@
 import { useState } from 'react';
-import { ArrowLeft, Egg, Lock, Sparkles } from 'lucide-react';
+import { ArrowLeft, Home, Lock, Sparkles } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import HatchedBunny from '@/features/bunny/HatchedBunny';
 import HatchAnimation from '@/features/bunny/HatchAnimation';
+import GachaItemArt from '@/features/gacha/GachaItemArt';
 import { RARITY_META } from '@/features/gacha/gachaCatalog';
 import { describeNextUpgrade, MAX_PET_UPGRADE } from './petBonus';
 import usePets from './usePets';
@@ -51,9 +52,14 @@ export default function PetsPage() {
   return (
     <div className="pets-page">
       <header className="pets-header">
-        <button className="pets-back" onClick={() => navigate('/student-id')}>
-          <ArrowLeft size={18} /> Student ID
-        </button>
+        <div className="pets-back-group">
+          <button className="pets-back" onClick={() => navigate('/student-id')}>
+            <ArrowLeft size={18} /> Student ID
+          </button>
+          <button className="pets-back" onClick={() => navigate('/dashboard')}>
+            <Home size={16} /> Dashboard
+          </button>
+        </div>
         <h1 className="pets-title">Your Pets</h1>
         <div />
       </header>
@@ -86,9 +92,15 @@ export default function PetsPage() {
                 {v.unlocked ? (
                   <HatchedBunny kind={v.id} size={120} />
                 ) : (
-                  <div className="pets-card-locked-art">
-                    {v.eggsHeld > 0 ? <Egg size={56} /> : <Lock size={42} />}
-                  </div>
+                  v.eggsHeld > 0 ? (
+                    <div className="pets-card-egg-art">
+                      <GachaItemArt item={{ kind: 'egg', ref: v.id, name: v.name }} size={84} />
+                    </div>
+                  ) : (
+                    <div className="pets-card-locked-art">
+                      <Lock size={42} />
+                    </div>
+                  )
                 )}
               </div>
 
@@ -101,7 +113,7 @@ export default function PetsPage() {
                 )}
               </div>
               <div className="pets-card-tag">{v.tagline}</div>
-              <div className="pets-card-bonus">{v.bonusLabel}</div>
+              <div className="pets-card-bonus">{v.effectiveBonusLabel}</div>
 
               {v.unlocked && v.enhanceable && (
                 <div className="pets-card-upgrade">

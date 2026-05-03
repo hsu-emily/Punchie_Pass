@@ -53,7 +53,6 @@ export default function GachaPage() {
     pull,
     pulling,
     error,
-    grantBonusTokens,
   } = useGacha();
   const [phase, setPhase] = useState('idle'); // idle | crank | drop | crack
   const [revealItems, setRevealItems] = useState(null);
@@ -134,16 +133,6 @@ export default function GachaPage() {
           {pullsUsed} pulls all-time · {pityHintFor(pityCounter)}
           {bonusTokens > 0 && ` · ${bonusTokens} bonus`}
         </div>
-        {import.meta.env.DEV && (
-          <button
-            type="button"
-            className="gacha-dev-grant"
-            onClick={() => grantBonusTokens(20).catch((e) => setPendingError(e.message))}
-            title="Dev only — grants 20 bonus tokens"
-          >
-            <TokenIcon size={12} /> +20 (dev)
-          </button>
-        )}
       </div>
 
       <PunchieMachine phase={phase} accent={leadAccent} />
@@ -194,9 +183,26 @@ export default function GachaPage() {
 function PunchieMachine({ phase, accent }) {
   const showCapsule = phase === 'drop' || phase === 'crack';
   const showCoin = phase === 'crank';
+  const [shaking, setShaking] = useState(false);
+  const [bump, setBump] = useState({ key: 0, source: -1 });
+
+  const handleBallClick = (idx) => {
+    setBump({ key: Date.now(), source: idx });
+  };
+
+  const handleMachineClick = () => {
+    setShaking(false);
+    requestAnimationFrame(() => {
+      setShaking(true);
+      setTimeout(() => setShaking(false), 520);
+    });
+  };
 
   return (
-    <div className={`pm-frame ${phase}`}>
+    <div
+      className={`pm-frame ${phase}${shaking ? ' pm-machine-bump' : ''}`}
+      onClick={handleMachineClick}
+    >
       <AnimatePresence>
         {showCoin && (
           <motion.img
@@ -312,52 +318,52 @@ function PunchieMachine({ phase, accent }) {
         </g>
 
         {/* gacha balls inside globe — each jiggles independently, click for a bigger pop */}
-        <Ball delay="0s">
+        <Ball idx={0} delay="0s" bump={bump} onBallClick={handleBallClick}>
           <path opacity="0.4" d="M161.903 338.22C174.793 352.536 196.847 353.692 211.163 340.802C225.479 327.912 226.635 305.857 213.745 291.541C200.855 277.225 178.8 276.07 164.484 288.96C150.168 301.85 149.013 323.904 161.903 338.22Z" fill="white" />
           <path d="M168.727 293.671C174.352 288.607 181.758 285.984 189.317 286.38C196.875 286.776 203.967 290.159 209.031 295.783C214.096 301.408 216.719 308.814 216.323 316.373C215.926 323.931 212.544 331.023 206.919 336.087L168.727 293.671Z" fill="#A5C2F0" />
           <path d="M168.727 293.672C163.102 298.736 159.719 305.828 159.323 313.386C158.927 320.945 161.55 328.351 166.614 333.976C171.679 339.601 178.77 342.983 186.329 343.379C193.887 343.775 201.294 341.153 206.918 336.088L168.727 293.672Z" fill="white" stroke="#9D2A66" strokeWidth="1.68182" />
         </Ball>
-        <Ball delay="-0.3s">
+        <Ball idx={1} delay="-0.3s" bump={bump} onBallClick={handleBallClick}>
           <path opacity="0.4" d="M57.8236 307.76C77.0874 307.76 92.7038 292.144 92.7038 272.88C92.7038 253.616 77.0874 238 57.8236 238C38.5598 238 22.9434 253.616 22.9434 272.88C22.9434 292.144 38.5598 307.76 57.8236 307.76Z" fill="white" />
           <path d="M29.2842 272.879C29.2842 265.31 32.2909 258.051 37.6429 252.7C42.9949 247.348 50.2537 244.341 57.8225 244.341C65.3914 244.341 72.6502 247.348 78.0022 252.7C83.3542 258.051 86.3609 265.31 86.3609 272.879H29.2842Z" fill="#A5C2F0" />
           <path d="M29.2842 272.881C29.2842 280.45 32.2909 287.709 37.6429 293.061C42.9949 298.413 50.2537 301.419 57.8225 301.419C65.3914 301.419 72.6502 298.413 78.0022 293.061C83.3542 287.709 86.3609 280.45 86.3609 272.881H29.2842Z" fill="white" stroke="#9D2A66" strokeWidth="1.68182" />
         </Ball>
-        <Ball delay="-0.6s">
+        <Ball idx={2} delay="-0.6s" bump={bump} onBallClick={handleBallClick}>
           <path opacity="0.4" d="M194.824 218.76C214.087 218.76 229.704 203.144 229.704 183.88C229.704 164.616 214.087 149 194.824 149C175.56 149 159.943 164.616 159.943 183.88C159.943 203.144 175.56 218.76 194.824 218.76Z" fill="white" />
           <path d="M166.284 183.879C166.284 176.31 169.291 169.051 174.643 163.7C179.995 158.348 187.254 155.341 194.823 155.341C202.391 155.341 209.65 158.348 215.002 163.7C220.354 169.051 223.361 176.31 223.361 183.879H166.284Z" fill="#A5C2F0" />
           <path d="M166.284 183.881C166.284 191.45 169.291 198.709 174.643 204.061C179.995 209.413 187.254 212.419 194.823 212.419C202.391 212.419 209.65 209.413 215.002 204.061C220.354 198.709 223.361 191.45 223.361 183.881H166.284Z" fill="white" stroke="#9D2A66" strokeWidth="1.68182" />
         </Ball>
-        <Ball delay="-0.9s">
+        <Ball idx={3} delay="-0.9s" bump={bump} onBallClick={handleBallClick}>
           <path opacity="0.4" d="M291.617 286.321C301.249 303.004 322.581 308.72 339.264 299.088C355.947 289.456 361.663 268.123 352.031 251.441C342.399 234.758 321.067 229.042 304.384 238.674C287.701 248.305 281.985 269.638 291.617 286.321Z" fill="white" />
           <path d="M307.555 244.165C314.109 240.38 321.899 239.355 329.21 241.314C336.521 243.273 342.754 248.056 346.539 254.61C350.323 261.165 351.349 268.955 349.39 276.266C347.431 283.577 342.648 289.81 336.093 293.595L307.555 244.165Z" fill="#FFD27A" />
           <path d="M307.554 244.165C300.999 247.949 296.216 254.183 294.257 261.494C292.298 268.805 293.324 276.594 297.108 283.149C300.892 289.704 307.126 294.487 314.437 296.446C321.748 298.405 329.537 297.379 336.092 293.595L307.554 244.165Z" fill="white" stroke="#9D2A66" strokeWidth="1.68182" />
         </Ball>
-        <Ball delay="-1.2s">
+        <Ball idx={4} delay="-1.2s" bump={bump} onBallClick={handleBallClick}>
           <path opacity="0.4" d="M292.031 325.321C301.663 308.638 295.947 287.305 279.264 277.673C262.581 268.041 241.249 273.757 231.617 290.44C221.985 307.123 227.701 328.456 244.384 338.088C261.067 347.719 282.399 342.003 292.031 325.321Z" fill="white" />
           <path d="M247.554 332.596C240.999 328.812 236.216 322.579 234.257 315.268C232.298 307.957 233.324 300.167 237.108 293.612C240.892 287.057 247.126 282.274 254.437 280.315C261.748 278.356 269.537 279.382 276.092 283.166L247.554 332.596Z" fill="#C5B7FF" />
           <path d="M247.555 332.597C254.109 336.381 261.899 337.407 269.21 335.448C276.521 333.489 282.754 328.706 286.539 322.151C290.323 315.596 291.349 307.806 289.39 300.495C287.431 293.185 282.648 286.951 276.093 283.167L247.555 332.597Z" fill="white" stroke="#9D2A66" strokeWidth="1.68182" />
         </Ball>
-        <Ball delay="-1.5s">
+        <Ball idx={5} delay="-1.5s" bump={bump} onBallClick={handleBallClick}>
           <path opacity="0.4" d="M289.824 244.76C309.087 244.76 324.704 229.144 324.704 209.88C324.704 190.616 309.087 175 289.824 175C270.56 175 254.943 190.616 254.943 209.88C254.943 229.144 270.56 244.76 289.824 244.76Z" fill="white" />
           <path d="M261.284 209.879C261.284 202.31 264.291 195.051 269.643 189.7C274.995 184.348 282.254 181.341 289.823 181.341C297.391 181.341 304.65 184.348 310.002 189.7C315.354 195.051 318.361 202.31 318.361 209.879H261.284Z" fill="#C5B7FF" />
           <path d="M261.284 209.881C261.284 217.45 264.291 224.709 269.643 230.061C274.995 235.413 282.254 238.419 289.823 238.419C297.391 238.419 304.65 235.413 310.002 230.061C315.354 224.709 318.361 217.45 318.361 209.881H261.284Z" fill="white" stroke="#9D2A66" strokeWidth="1.68182" />
         </Ball>
-        <Ball delay="-1.8s">
+        <Ball idx={6} delay="-1.8s" bump={bump} onBallClick={handleBallClick}>
           <path opacity="0.4" d="M100.824 255.76C120.087 255.76 135.704 240.144 135.704 220.88C135.704 201.616 120.087 186 100.824 186C81.5598 186 65.9434 201.616 65.9434 220.88C65.9434 240.144 81.5598 255.76 100.824 255.76Z" fill="white" />
           <path d="M72.2842 220.879C72.2842 213.31 75.2909 206.051 80.6428 200.7C85.9948 195.348 93.2537 192.341 100.823 192.341C108.391 192.341 115.65 195.348 121.002 200.7C126.354 206.051 129.361 213.31 129.361 220.879H72.2842Z" fill="#C5B7FF" />
           <path d="M72.2842 220.881C72.2842 228.45 75.2909 235.709 80.6428 241.061C85.9948 246.413 93.2537 249.419 100.823 249.419C108.391 249.419 115.65 246.413 121.002 241.061C126.354 235.709 129.361 228.45 129.361 220.881H72.2842Z" fill="white" stroke="#9D2A66" strokeWidth="1.68182" />
         </Ball>
-        <Ball delay="-2.1s">
+        <Ball idx={7} delay="-2.1s" bump={bump} onBallClick={handleBallClick}>
           <path opacity="0.4" d="M130.199 338.917C147.208 329.873 153.665 308.753 144.621 291.744C135.578 274.735 114.458 268.278 97.4488 277.322C80.4398 286.366 73.9828 307.486 83.0266 324.495C92.0704 341.504 113.19 347.961 130.199 338.917Z" fill="white" />
           <path d="M88.6245 321.517C85.0712 314.834 84.3181 307.014 86.531 299.775C88.7439 292.537 93.7415 286.475 100.424 282.921C107.107 279.368 114.928 278.615 122.166 280.828C129.404 283.041 135.467 288.038 139.02 294.721L88.6245 321.517Z" fill="#F472B6" />
           <path d="M88.625 321.518C92.1784 328.2 98.2409 333.198 105.479 335.411C112.717 337.624 120.538 336.871 127.221 333.318C133.904 329.764 138.901 323.702 141.114 316.463C143.327 309.225 142.574 301.405 139.021 294.722L88.625 321.518Z" fill="white" stroke="#9D2A66" strokeWidth="1.68182" />
         </Ball>
-        <Ball delay="-2.4s">
+        <Ball idx={8} delay="-2.4s" bump={bump} onBallClick={handleBallClick}>
           <path opacity="0.4" d="M247.264 275.087C263.947 265.456 269.663 244.123 260.031 227.44C250.399 210.757 229.067 205.041 212.384 214.673C195.701 224.305 189.985 245.637 199.617 262.32C209.249 279.003 230.581 284.719 247.264 275.087Z" fill="white" />
           <path d="M205.107 259.15C201.323 252.595 200.297 244.805 202.256 237.494C204.215 230.183 208.998 223.95 215.553 220.165C222.108 216.381 229.897 215.355 237.208 217.314C244.519 219.273 250.753 224.056 254.537 230.611L205.107 259.15Z" fill="#F472B6" />
           <path d="M205.108 259.15C208.893 265.705 215.126 270.488 222.437 272.447C229.748 274.406 237.538 273.381 244.093 269.596C250.647 265.812 255.43 259.578 257.389 252.267C259.348 244.957 258.323 237.167 254.538 230.612L205.108 259.15Z" fill="white" stroke="#9D2A66" strokeWidth="1.68182" />
         </Ball>
-        <Ball delay="-2.7s">
+        <Ball idx={9} delay="-2.7s" bump={bump} onBallClick={handleBallClick}>
           <path opacity="0.4" d="M139.35 278.365C154.53 290.225 176.45 287.534 188.31 272.354C200.17 257.174 197.479 235.253 182.298 223.393C167.118 211.533 145.198 214.225 133.338 229.405C121.478 244.585 124.17 266.505 139.35 278.365Z" fill="white" />
           <path d="M138.335 233.308C142.995 227.344 149.833 223.475 157.346 222.552C164.858 221.63 172.429 223.729 178.394 228.389C184.358 233.049 188.227 239.887 189.149 247.4C190.072 254.912 187.972 262.483 183.312 268.448L138.335 233.308Z" fill="#FFD27A" />
           <path d="M138.334 233.309C133.674 239.273 131.574 246.844 132.497 254.357C133.419 261.869 137.288 268.707 143.253 273.367C149.217 278.027 156.788 280.127 164.3 279.204C171.813 278.282 178.651 274.413 183.311 268.449L138.334 233.309Z" fill="white" stroke="#9D2A66" strokeWidth="1.68182" />
@@ -408,8 +414,23 @@ function PunchieMachine({ phase, accent }) {
   );
 }
 
-function Ball({ delay, children }) {
+function Ball({ idx, delay, bump, onBallClick, children }) {
   const [popping, setPopping] = useState(false);
+  const [bumping, setBumping] = useState(false);
+
+  useEffect(() => {
+    if (!bump?.key || bump.source === idx) return;
+    setBumping(false);
+    const raf = requestAnimationFrame(() => {
+      setBumping(true);
+    });
+    const t = setTimeout(() => setBumping(false), 440);
+    return () => {
+      cancelAnimationFrame(raf);
+      clearTimeout(t);
+    };
+  }, [bump?.key, bump?.source, idx]);
+
   const handleClick = (e) => {
     e.stopPropagation();
     setPopping(false);
@@ -417,10 +438,16 @@ function Ball({ delay, children }) {
       setPopping(true);
       setTimeout(() => setPopping(false), 650);
     });
+    onBallClick?.(idx);
   };
+
+  let cls = 'pm-ball';
+  if (popping) cls += ' pm-ball-pop';
+  else if (bumping) cls += ' pm-ball-bump';
+
   return (
     <g
-      className={`pm-ball${popping ? ' pm-ball-pop' : ''}`}
+      className={cls}
       style={{ animationDelay: delay }}
       onClick={handleClick}
     >

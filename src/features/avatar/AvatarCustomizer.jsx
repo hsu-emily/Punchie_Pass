@@ -93,8 +93,6 @@ const DEFAULT_AVATAR = {
   tier: 'Regular Member',
 };
 
-const TIERS = ['Regular Member', 'Premium Guest'];
-
 const ICON_STROKE = '#EC4899';
 const ICONS = {
   background: (
@@ -310,10 +308,6 @@ export default function AvatarCustomizer({
   };
 
   const activeTabMeta = TABS.find((t) => t.id === activeTab);
-  const cycleTier = () => {
-    const i = TIERS.indexOf(avatar.tier);
-    update({ tier: TIERS[(i + 1) % TIERS.length] || TIERS[0] });
-  };
 
   return (
     <div className="av">
@@ -358,14 +352,6 @@ export default function AvatarCustomizer({
               skin={skin}
               onNameChange={(name) => update({ name })}
             />
-            <button
-              type="button"
-              className="av-tier-toggle"
-              onClick={cycleTier}
-              title="Cycle membership tier"
-            >
-              ✦ Tier: {avatar.tier || 'Regular Member'}
-            </button>
           </div>
 
           {/* Option panel */}

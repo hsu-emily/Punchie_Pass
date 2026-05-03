@@ -311,3 +311,10 @@
   box-shadow: 0 6px 14px rgba(244, 114, 182, 0.30);
 }
 .rro-btn-egg:hover { transform: translateY(-1px); }
+.rro-btn-secondary {
+  background: white;
+  color: #DB2777;
+  border: 2px solid #FBCFE8;
+  box-shadow: 0 4px 10px rgba(236, 72, 153, 0.10);
+}
+.rro-btn-secondary:hover { transform: translateY(-1px); border-color: #F472B6; }

@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { useAuth } from '@/features/auth/useAuth';
 import { getPetBonus } from '@/features/pets/petBonus';
+import usePremium, { PREMIUM_COIN_MULTIPLIER } from '@/features/premium/usePremium';
 import useStreak from './useStreak';
 
 /**
@@ -22,6 +23,7 @@ const PASS_TOKEN_VALUE = { daily: 1, weekly: 4, monthly: 10 };
 
 export default function useUserProgress(habits) {
   const { profile } = useAuth();
+  const { premium } = usePremium();
   const activeKind = profile?.bunny?.kind || 'bun';
   const upgradeLv = profile?.pets?.upgrades?.[activeKind] || 0;
   const { streakShield } = getPetBonus(activeKind, upgradeLv);
@@ -45,10 +47,11 @@ export default function useUserProgress(habits) {
       (h) => (h.currentPunches || 0) >= (h.targetPunches || 10)
     );
     const completedPasses = completed.length;
-    const passTokens = completed.reduce((acc, h) => {
+    const basePassTokens = completed.reduce((acc, h) => {
       const freq = h.frequency || h.timeWindow || 'daily';
       return acc + (PASS_TOKEN_VALUE[freq] ?? 1);
     }, 0);
+    const passTokens = premium ? basePassTokens * PREMIUM_COIN_MULTIPLIER : basePassTokens;
     return {
       totalPunches,
       completedPasses,
@@ -58,5 +61,5 @@ export default function useUserProgress(habits) {
       shieldUsed,
       punchDates,
     };
-  }, [habits, current, longest, shieldUsed, punchDates]);
+  }, [habits, current, longest, shieldUsed, punchDates, premium]);
 }

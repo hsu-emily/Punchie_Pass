@@ -12,6 +12,7 @@
  */
 
 import {
+  BUNNY_PITY_EVERY,
   DEFAULT_WEIGHTS,
   GACHA_ITEMS,
   PITY_RULES,
@@ -90,11 +91,13 @@ export function pull({
   catalog = GACHA_ITEMS,
   weights = DEFAULT_WEIGHTS,
   pity = PITY_RULES,
+  bunnyPityEvery = BUNNY_PITY_EVERY,
   pityCounter = 0,
   count = 1,
   rng = Math.random,
 } = {}) {
   const byRarity = itemsByRarity(catalog);
+  const eggsByRarity = itemsByRarity(catalog.filter((it) => it.kind === 'egg'));
   const items = [];
   let counter = pityCounter;
 
@@ -103,8 +106,11 @@ export function pull({
     const rolled = rollRarity(weights, rng);
     const floor = pityFloor(counter, pity);
     const finalRarity = applyFloor(rolled, floor);
-    const item = pickItemAtRarity(finalRarity, byRarity, rng);
-    if (item) items.push({ ...item, rolledRarity: rolled, awardedRarity: finalRarity });
+    const bunnyPity = bunnyPityEvery > 0 && counter % bunnyPityEvery === 0;
+    const item = bunnyPity
+      ? pickItemAtRarity(finalRarity, eggsByRarity, rng)
+      : pickItemAtRarity(finalRarity, byRarity, rng);
+    if (item) items.push({ ...item, rolledRarity: rolled, awardedRarity: item.rarity });
     // Reset pity counter when a high-tier rule triggered, so each rule
     // ladder operates independently.
     for (const rule of pity) {

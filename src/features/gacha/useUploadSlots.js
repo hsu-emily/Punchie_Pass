@@ -11,13 +11,19 @@ import { useCallback } from 'react';
 import { doc, increment, updateDoc } from 'firebase/firestore';
 import { db } from '@/services/firebase';
 import { useAuth } from '@/features/auth/useAuth';
+import usePremium, { PREMIUM_BONUS_UPLOAD_SLOTS } from '@/features/premium/usePremium';
 import { uploadSlotCost } from './gachaCatalog';
 
 export default function useUploadSlots() {
   const { user, profile } = useAuth();
-  const slotsUnlocked = profile?.uploads?.slotsUnlocked ?? 1;
+  const { premium } = usePremium();
+  const baseSlotsUnlocked = profile?.uploads?.slotsUnlocked ?? 1;
+  // Premium grants bonus slots on top of the user's earned/base slots so the
+  // bonus disappears cleanly if a subscription lapses, without touching the
+  // stored slot count.
+  const slotsUnlocked = baseSlotsUnlocked + (premium ? PREMIUM_BONUS_UPLOAD_SLOTS : 0);
   const shards = profile?.gacha?.shards || 0;
-  const nextSlotIndex = slotsUnlocked + 1;
+  const nextSlotIndex = baseSlotsUnlocked + 1;
   const nextSlotCost = uploadSlotCost(nextSlotIndex);
   const canUnlockNext = shards >= nextSlotCost;
 

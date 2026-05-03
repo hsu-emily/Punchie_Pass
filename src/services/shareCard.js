@@ -177,7 +177,7 @@ export function shareCard(blob, habit) {
     if (navigator.canShare({ files: [file] })) {
       navigator.share({
         title: `My ${habit.title} Progress`,
-        text: `I've completed ${habit.currentPunches}/${habit.targetPunches} punches! 🎉`,
+        text: `Check out my habit tracking progress! ${habit.currentPunches}/${habit.targetPunches} punches completed 🎉`,
         files: [file]
       }).catch(() => {
         // Fallback to download

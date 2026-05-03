@@ -5,7 +5,10 @@
   box-shadow: 0 8px 18px rgba(220, 60, 130, 0.08);
   font-family: 'Fredoka', system-ui, sans-serif;
   color: #2A1E22;
-  display: inline-block;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  min-width: 0;
 }
 
 .ch-header {
@@ -34,6 +37,7 @@
 .ch-grid {
   display: flex;
   gap: 4px;
+  justify-content: center;
 }
 
 .ch-col {

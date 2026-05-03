@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { doc, serverTimestamp, setDoc } from 'firebase/firestore';
-import { useNavigate } from 'react-router-dom';
+import { Navigate, useNavigate } from 'react-router-dom';
 import { db } from '@/services/firebase';
 import { useAuth } from '@/features/auth/useAuth';
 import { useHabitStore } from '@/features/habits/habitStore';
@@ -9,9 +9,10 @@ import CreatePunchCard, { FIRST_ICON_ID } from '@/features/punchpass/CreatePunch
 import '@/features/auth/guards.css';
 import HatchScene from './steps/HatchScene';
 import NameBunny from './steps/NameBunny';
+import PremiumOffer from './steps/PremiumOffer';
 
 export default function OnboardingFlow() {
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const navigate = useNavigate();
   const addHabit = useHabitStore((s) => s.addHabit);
   const [step, setStep] = useState(0);
@@ -30,11 +31,19 @@ export default function OnboardingFlow() {
     customIcons: [],
   });
   const [saving, setSaving] = useState(false);
+  const savingRef = useRef(false);
+
+  // Onboarding is one-and-done. If the profile already says it's complete,
+  // bounce to the dashboard so users can't replay the flow by typing /onboarding.
+  if (profile?.onboardingCompleted) {
+    return <Navigate to="/dashboard" replace />;
+  }
 
   const next = () => setStep((s) => s + 1);
 
   const finish = async () => {
-    if (!user) return;
+    if (!user || savingRef.current) return;
+    savingRef.current = true;
     setSaving(true);
     try {
       await Promise.all([
@@ -46,6 +55,7 @@ export default function OnboardingFlow() {
             // Starter bunny is permanently theirs — even if its progression
             // condition isn't independently met (HatchScene picks at random).
             pets: { hatched: [bunnyKind] },
+            gacha: { bonusTokens: 10, bonusEvaluatedPasses: 0 },
             onboardingCompleted: true,
             updatedAt: serverTimestamp(),
           },
@@ -67,6 +77,7 @@ export default function OnboardingFlow() {
       navigate('/dashboard');
     } catch (err) {
       console.error('Failed to save onboarding:', err);
+      savingRef.current = false;
       setSaving(false);
     }
   };
@@ -101,6 +112,8 @@ export default function OnboardingFlow() {
         />
       );
     case 3:
+      return <PremiumOffer onContinue={next} />;
+    case 4:
       return (
         <CreatePunchCard
           pass={pass}

@@ -375,7 +375,7 @@ export default function CelebrationPage() {
           await navigator.share({
             files: [file],
             title: `I completed ${habit.title}!`,
-            text: `Check out my completed Punchie Pass!`,
+            text: `Check out my habit tracking progress!`,
           });
           return;
         }

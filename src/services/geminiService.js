@@ -1,6 +1,14 @@
 // Enhanced geminiService with conversation support for ReflectionModal
 // This file adds conversational AI features while maintaining compatibility with existing code
 
+// =============================================================================
+// AI FEATURES DISABLED FOR DEBUGGING
+// All Gemini calls are short-circuited; functions return their fallback values
+// or throw a clear "AI disabled" error so callers can handle gracefully.
+// To re-enable: remove the early-return in callGemini below.
+// =============================================================================
+const AI_DISABLED = true;
+
 const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
 
 const MODELS = [
@@ -13,6 +21,13 @@ const MODELS = [
 let currentModelIndex = 0;
 
 async function callGemini(userPrompt, options = {}) {
+  // AI disabled — short-circuit before making any network call.
+  if (AI_DISABLED) {
+    console.warn('[geminiService] AI features are disabled.');
+    throw new Error('AI features are disabled');
+  }
+
+  /* eslint-disable no-unreachable */
   if (!GEMINI_API_KEY) {
     throw new Error('API key not configured');
   }
@@ -81,6 +96,7 @@ async function callGemini(userPrompt, options = {}) {
     console.error('❌ Error:', error.message);
     throw error;
   }
+  /* eslint-enable no-unreachable */
 }
 
 function parseJSON(text) {

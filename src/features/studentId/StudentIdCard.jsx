@@ -19,10 +19,12 @@ export default function StudentIdCard({
   progressPct = 0,
   idNumber,
   memberSince,
-  tier = 'Regular Member',
+  tier,
+  premium = false,
   skin = 'default',
   onNameChange,
 }) {
+  const tierLabel = tier || (premium ? 'Premium Member ★' : 'Regular Member');
   const bg = avatar?.background || '#FBCFE8';
   const stageBg = `linear-gradient(180deg, ${bg} 0%, #fff5fa 60%, ${bg}80 100%)`;
   const memberLabel = new Date(memberSince || Date.now())
@@ -32,9 +34,15 @@ export default function StudentIdCard({
     .replace(/\//g, ' · ');
 
   return (
-    <div className={`psid-card psid-skin-${skin}`}>
+    <div className={`psid-card psid-skin-${skin} ${premium ? 'is-premium' : ''}`}>
       <HeartStamp className="psid-heart tl" />
       <HeartStamp className="psid-heart br" />
+      {premium && (
+        <div className="psid-premium-badge" aria-label="Premium member">
+          <span className="psid-premium-spark">✦</span>
+          <span>PREMIUM</span>
+        </div>
+      )}
 
       <div className="psid-header">
         <div className="psid-stamp"><span className="psid-stamp-p">P</span></div>
@@ -90,7 +98,9 @@ export default function StudentIdCard({
 
           <div className="psid-row">
             <span className="psid-row-label">区分 · TIER</span>
-            <span className="psid-row-value psid-tier-text">{tier}</span>
+            <span className={`psid-row-value psid-tier-text ${premium ? 'psid-tier-premium' : ''}`}>
+              {tierLabel}
+            </span>
           </div>
 
           <div className="psid-row">
@@ -114,7 +124,7 @@ export default function StudentIdCard({
       </div>
 
       <div className="psid-footer">
-        <span className="psid-footer-text">★ ALWAYS PUNCHIE WORLD ★</span>
+        <span className="psid-footer-text">★ https://punchiepass.study/ ★</span>
         <div className="psid-barcode">
           {Array.from({ length: 22 }).map((_, i) => (
             <span key={i} className="psid-barcode-bar" />

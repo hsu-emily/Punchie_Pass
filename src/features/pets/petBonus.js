@@ -41,6 +41,21 @@ export function getPetBonus(activeKind, upgradeLevel = 0) {
   };
 }
 
+/** Render a bonus object as a human-readable label (e.g. "+4% XP · 1-day streak shield"). */
+export function formatBonus(bonus) {
+  const parts = [];
+  if (bonus.xpMultiplier > 1.0005) {
+    parts.push(`+${Math.round((bonus.xpMultiplier - 1) * 100)}% XP`);
+  }
+  if (bonus.tokenChance > 0.0005) {
+    parts.push(`+${Math.round(bonus.tokenChance * 100)}% bonus token`);
+  }
+  if (bonus.streakShield > 0) {
+    parts.push(`${bonus.streakShield}-day streak shield`);
+  }
+  return parts.join(' · ');
+}
+
 /** What the *next* upgrade would add — used by the Pets page tooltip. */
 export function describeNextUpgrade(activeKind, currentLevel = 0) {
   if (currentLevel >= MAX_PET_UPGRADE) return null;

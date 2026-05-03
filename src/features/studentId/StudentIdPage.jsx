@@ -10,6 +10,7 @@ import useUserLevel from '@/features/progress/useUserLevel';
 import { evaluateUnlockedBunnies } from '@/features/bunny/bunnyVariants';
 import AvatarCustomizer from '@/features/avatar/AvatarCustomizer';
 import useGacha from '@/features/gacha/useGacha';
+import usePremium from '@/features/premium/usePremium';
 import StudentIdCard from './StudentIdCard';
 import './StudentIdPage.css';
 
@@ -39,6 +40,7 @@ export default function StudentIdPage() {
   const [busy, setBusy] = useState(null);
   const [editing, setEditing] = useState(false);
   const [skinsOpen, setSkinsOpen] = useState(true);
+  const { premium, expiresAt } = usePremium();
 
   useEffect(() => {
     if (user) fetchHabits(user.uid);
@@ -146,6 +148,7 @@ export default function StudentIdPage() {
         await navigator.share({
           files: [file],
           title: `${bunnyName}'s Punchie Pass Student ID`,
+          text: `Check out my habit tracking progress!`,
         });
       } else if (navigator.clipboard?.write) {
         await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
@@ -181,7 +184,7 @@ export default function StudentIdPage() {
         <button className="sid-back" onClick={() => navigate('/dashboard')}>
           <ArrowLeft size={18} /> Dashboard
         </button>
-        <h1 className="sid-title">Your Student ID</h1>
+        <h1 className="sid-title">Punchie World ID</h1>
         <div className="sid-spacer" />
       </header>
 
@@ -199,6 +202,7 @@ export default function StudentIdPage() {
             idNumber={idNumber}
             memberSince={memberSince}
             skin={activeSkin}
+            premium={premium}
           />
         </div>
 
@@ -256,6 +260,9 @@ export default function StudentIdPage() {
       <p className="sid-meta">
         Lv {level} · {xpInLevel}/{xpForNext} XP to Lv {level + 1} · {completedPasses} passes ·
         longest streak {longestStreak}d
+        {premium && expiresAt && (
+          <> · premium renews {new Date(expiresAt).toLocaleDateString()}</>
+        )}
       </p>
     </div>
   );

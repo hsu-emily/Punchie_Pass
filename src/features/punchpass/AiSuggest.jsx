@@ -1,3 +1,19 @@
+// =============================================================================
+// AI FEATURES DISABLED FOR DEBUGGING
+// AiTitleSuggest and AiRewardSuggest now render nothing. The original
+// implementation is preserved below in a block comment for easy re-enabling.
+// =============================================================================
+
+export function AiTitleSuggest() {
+  return null;
+}
+
+export function AiRewardSuggest() {
+  return null;
+}
+
+/* eslint-disable */
+/*
 import { useEffect, useRef, useState } from 'react';
 import {
   generateRewardIdeas,
@@ -196,3 +212,5 @@ export function AiRewardSuggest({ habitTitle, onApply }) {
     </span>
   );
 }
+*/
+/* eslint-enable */

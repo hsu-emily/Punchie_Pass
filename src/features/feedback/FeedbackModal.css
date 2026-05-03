@@ -1,0 +1,185 @@
+.fbm-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(40, 16, 30, 0.55);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  z-index: 1000;
+  animation: fbmFade 180ms ease-out;
+}
+
+@keyframes fbmFade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.fbm-modal {
+  position: relative;
+  width: min(440px, 100%);
+  background:
+    radial-gradient(circle at 0% 0%, #ffe4f0 0%, transparent 55%),
+    radial-gradient(circle at 100% 100%, #e0eaff 0%, transparent 55%),
+    #fff8fc;
+  border-radius: 22px;
+  border: 1px solid rgba(244, 114, 182, 0.25);
+  box-shadow: 0 30px 80px rgba(220, 60, 130, 0.28);
+  padding: 28px 26px 24px;
+  font-family: 'Fredoka', system-ui, sans-serif;
+  color: #2A1E22;
+  animation: fbmPop 220ms cubic-bezier(0.2, 0.9, 0.3, 1.2);
+}
+
+@keyframes fbmPop {
+  from { transform: translateY(8px) scale(0.96); opacity: 0; }
+  to { transform: translateY(0) scale(1); opacity: 1; }
+}
+
+.fbm-close {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(255, 255, 255, 0.7);
+  color: #61283B;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+.fbm-close:hover { background: white; }
+
+.fbm-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: 'Press Start 2P', monospace;
+  font-size: 9px;
+  letter-spacing: 1.2px;
+  color: #EC4899;
+  margin-bottom: 12px;
+}
+
+.fbm-title {
+  font-family: 'Instrument Sans', sans-serif;
+  font-size: 24px;
+  font-weight: 700;
+  line-height: 1.2;
+  color: #61283B;
+  margin: 0 0 6px;
+}
+
+.fbm-body {
+  font-size: 14px;
+  color: #8B6F77;
+  line-height: 1.45;
+  margin: 0 0 18px;
+}
+
+.fbm-categories {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+.fbm-cat {
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(244, 114, 182, 0.4);
+  background: white;
+  color: #61283B;
+  font-family: inherit;
+  font-size: 12px;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+.fbm-cat:hover:not(:disabled) { background: #FFF3F8; }
+.fbm-cat.is-active {
+  background: linear-gradient(135deg, #F472B6, #EC4899);
+  color: white;
+  border-color: transparent;
+}
+.fbm-cat:disabled { opacity: 0.55; cursor: not-allowed; }
+
+.fbm-textarea {
+  width: 100%;
+  border-radius: 12px;
+  border: 1px solid rgba(244, 114, 182, 0.4);
+  background: white;
+  padding: 12px 14px;
+  font-family: inherit;
+  font-size: 14px;
+  color: #2A1E22;
+  resize: vertical;
+  min-height: 120px;
+  outline: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.fbm-textarea:focus {
+  border-color: #EC4899;
+  box-shadow: 0 0 0 3px rgba(236, 72, 153, 0.15);
+}
+
+.fbm-counter {
+  text-align: right;
+  font-size: 11px;
+  color: #8B6F77;
+  margin-top: 4px;
+}
+
+.fbm-cta {
+  display: block;
+  width: 100%;
+  margin-top: 14px;
+  padding: 12px 20px;
+  border-radius: 999px;
+  border: none;
+  background: linear-gradient(135deg, #F472B6, #EC4899);
+  color: white;
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 6px 14px rgba(236, 72, 153, 0.30);
+  transition: transform 0.1s ease, box-shadow 0.15s ease;
+}
+.fbm-cta:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 20px rgba(236, 72, 153, 0.35);
+}
+.fbm-cta:disabled { opacity: 0.6; cursor: not-allowed; }
+
+.fbm-error {
+  background: #FEE2E2;
+  color: #B91C3C;
+  border-radius: 10px;
+  padding: 8px 12px;
+  font-size: 13px;
+  margin-top: 10px;
+  text-align: center;
+}
+
+.fbm-thanks {
+  text-align: center;
+  padding: 8px 0;
+}
+
+.fbm-thanks-icon {
+  font-size: 36px;
+  color: #EC4899;
+  margin-bottom: 8px;
+  animation: fbmSpin 1.6s ease-in-out;
+}
+
+@keyframes fbmSpin {
+  0% { transform: scale(0.4) rotate(-30deg); opacity: 0; }
+  50% { transform: scale(1.2) rotate(15deg); opacity: 1; }
+  100% { transform: scale(1) rotate(0); opacity: 1; }
+}

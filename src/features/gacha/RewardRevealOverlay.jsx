@@ -10,13 +10,13 @@
  */
 import { useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { Backpack, FastForward, PawPrint } from 'lucide-react';
+import { Backpack, FastForward, PawPrint, Sparkles } from 'lucide-react';
 import GachaItemArt from './GachaItemArt';
 import { RARITY_META } from './gachaCatalog';
 import { POP_URL, playOneShot } from './sounds';
 import './RewardRevealOverlay.css';
 
-export default function RewardRevealOverlay({ items, onGoToInventory, onGoToPets }) {
+export default function RewardRevealOverlay({ items, onClose, onGoToInventory, onGoToPets }) {
   const [idx, setIdx] = useState(0);
   const [stage, setStage] = useState('capsule'); // capsule | revealed | summary
 
@@ -76,6 +76,7 @@ export default function RewardRevealOverlay({ items, onGoToInventory, onGoToPets
             key="summary"
             items={items}
             hasEgg={hasEgg}
+            onPullMore={onClose}
             onGoToInventory={onGoToInventory}
             onGoToPets={onGoToPets}
           />
@@ -189,7 +190,7 @@ function RevealedStage({ item, counter, isLast, onNext, onSkip }) {
   );
 }
 
-function SummaryStage({ items, hasEgg, onGoToInventory, onGoToPets }) {
+function SummaryStage({ items, hasEgg, onPullMore, onGoToInventory, onGoToPets }) {
   return (
     <motion.div
       className="rro-panel rro-panel-summary"
@@ -216,8 +217,11 @@ function SummaryStage({ items, hasEgg, onGoToInventory, onGoToPets }) {
             <PawPrint size={16} /> Hatch egg
           </button>
         )}
-        <button className="rro-btn rro-btn-primary" onClick={onGoToInventory}>
+        <button className="rro-btn rro-btn-secondary" onClick={onGoToInventory}>
           <Backpack size={16} /> View inventory
+        </button>
+        <button className="rro-btn rro-btn-primary" onClick={onPullMore}>
+          <Sparkles size={16} /> Pull more
         </button>
       </div>
     </motion.div>

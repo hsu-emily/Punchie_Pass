@@ -32,9 +32,15 @@ export const DEFAULT_WEIGHTS = {
 };
 
 export const PITY_RULES = [
-  { everyN: 10, floor: 'rare' },
   { everyN: 50, floor: 'holo' },
 ];
+
+/**
+ * Bunny pity — every Nth pull is forced to be an egg (kind=egg). The egg's
+ * rarity is rolled from the normal weights but restricted to the egg pool,
+ * falling down the rarity ladder if a tier has no eggs.
+ */
+export const BUNNY_PITY_EVERY = 10;
 
 export const PULL_COST = 1;
 export const PULL_BUNDLES = [1, 10];
@@ -133,9 +139,12 @@ export const GACHA_ITEMS = [
 
   // ── Eggs → bunny variants (kawaii pets) ──
   { id: 'egg.sea',      kind: 'egg', rarity: 'cute',   ref: 'seabun',      name: 'Sea Egg' },
-  { id: 'egg.choco',    kind: 'egg', rarity: 'rare',   ref: 'chocobun',    name: 'Choco Egg' },
-  { id: 'egg.stardust', kind: 'egg', rarity: 'holo',   ref: 'stardustbun', name: 'Stardust Egg' },
-  { id: 'egg.golden',   kind: 'egg', rarity: 'secret', ref: 'goldbun',     name: 'Golden Egg' },
+  { id: 'egg.choco',    kind: 'egg', rarity: 'cute',   ref: 'chocobun',    name: 'Choco Egg' },
+  { id: 'egg.stardust', kind: 'egg', rarity: 'holo',   ref: 'stardustbun', name: 'Dust Egg' },
+  { id: 'egg.twilight', kind: 'egg', rarity: 'holo',   ref: 'twilightbun', name: 'Twilight Egg' },
+  { id: 'egg.golden',   kind: 'egg', rarity: 'rare',   ref: 'goldbun',     name: 'Golden Egg' },
+  { id: 'egg.midnight', kind: 'egg', rarity: 'secret', ref: 'midnightbun', name: 'Midnight Egg' },
+  { id: 'egg.cinna',    kind: 'egg', rarity: 'secret', ref: 'cinnabun',    name: 'Cinna Egg' },
 ];
 
 export const GACHA_KINDS = [...new Set(GACHA_ITEMS.map((i) => i.kind))];
