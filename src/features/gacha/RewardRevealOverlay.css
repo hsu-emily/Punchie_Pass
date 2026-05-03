@@ -1,9 +1,9 @@
 .rro-backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(97, 40, 59, 0.45);
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
+  background: rgba(97, 40, 59, 0.55);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -12,6 +12,168 @@
   font-family: 'Fredoka', system-ui, sans-serif;
 }
 
+/* ── Bare capsule stage (no panel) ─────────────────────── */
+.rro-bare-stage {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  padding: 20px;
+}
+
+.rro-counter {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 11px;
+  letter-spacing: 1.5px;
+  color: white;
+  text-shadow: 0 2px 8px rgba(97, 40, 59, 0.5);
+}
+
+.rro-tap-hint {
+  margin: 6px 0 0;
+  font-family: 'Press Start 2P', monospace;
+  font-size: 9px;
+  letter-spacing: 1px;
+  color: white;
+  text-shadow: 0 2px 8px rgba(97, 40, 59, 0.5);
+  animation: rro-pulse 1.4s ease-in-out infinite;
+}
+@keyframes rro-pulse {
+  0%, 100% { opacity: 0.7; }
+  50%      { opacity: 1; }
+}
+
+.rro-bigcapsule {
+  position: relative;
+  width: 220px;
+  height: 220px;
+  background: transparent;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  filter: drop-shadow(0 18px 32px rgba(220, 60, 130, 0.35))
+          drop-shadow(0 0 28px var(--rarity, #F472B6));
+}
+.rro-capsule-svg { width: 100%; height: 100%; display: block; }
+
+.rro-sparkle-field {
+  position: absolute;
+  inset: -10%;
+  pointer-events: none;
+}
+.rro-sparkle {
+  position: absolute;
+  font-size: 18px;
+  color: #FFD27A;
+  text-shadow: 0 0 8px rgba(255, 210, 122, 0.6);
+}
+
+/* ── Revealed item stage (no panel) ────────────────────── */
+.rro-reveal-stage {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+  padding: 20px;
+}
+
+.rro-crack-wrap {
+  position: relative;
+  width: min(320px, 80vw);
+  height: min(320px, 80vw);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.rro-crack-half {
+  position: absolute;
+  width: 220px;
+  height: 220px;
+  pointer-events: none;
+}
+.rro-crack-top    { top: calc(50% - 110px); left: calc(50% - 110px); }
+.rro-crack-bottom { top: calc(50% - 110px); left: calc(50% - 110px); }
+
+.rro-revealed-item {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  z-index: 2;
+}
+.rro-revealed-art {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.rro-revealed-rarity {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 10px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  text-shadow: 0 2px 8px rgba(97, 40, 59, 0.4);
+}
+.rro-revealed-name {
+  font-size: 22px;
+  font-weight: 700;
+  color: white;
+  text-shadow: 0 2px 12px rgba(97, 40, 59, 0.6);
+  text-align: center;
+  max-width: 280px;
+  line-height: 1.15;
+}
+
+.rro-reveal-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.rro-skip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 16px;
+  border-radius: 999px;
+  border: 1.5px solid rgba(255, 255, 255, 0.7);
+  background: rgba(255, 255, 255, 0.15);
+  color: white;
+  font-family: inherit;
+  font-size: 13px;
+  cursor: pointer;
+  backdrop-filter: blur(4px);
+  transition: background 0.15s ease;
+}
+.rro-skip:hover { background: rgba(255, 255, 255, 0.25); }
+
+/* ── Confetti burst ─────────────────────────────────────── */
+.rro-card-confetti {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: visible;
+}
+.rro-confetti {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 7px;
+  height: 7px;
+  transform: translate(-50%, -50%);
+  animation: rro-confetti-burst 1s ease-out forwards;
+}
+@keyframes rro-confetti-burst {
+  0%   { transform: translate(-50%, -50%) scale(0.4); opacity: 0; }
+  20%  { opacity: 1; }
+  100% {
+    transform: translate(calc(-50% + var(--cx)), calc(-50% + var(--cy))) scale(0.7) rotate(220deg);
+    opacity: 0;
+  }
+}
+
+/* ── Summary panel (white "you obtained") ───────────────── */
 .rro-panel {
   position: relative;
   width: min(720px, 100%);
@@ -27,23 +189,6 @@
   padding: 28px 22px 22px;
   text-align: center;
 }
-
-.rro-close {
-  position: absolute;
-  top: 14px;
-  right: 14px;
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  border: 1.5px solid #F9A8D4;
-  background: white;
-  color: #61283B;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-}
-.rro-close:hover { background: #FCE7F3; }
 
 .rro-eyebrow {
   font-family: 'Press Start 2P', monospace;
@@ -91,12 +236,9 @@
   align-items: center;
   gap: 4px;
   text-align: center;
-  cursor: pointer;
   font-family: inherit;
   overflow: visible;
-  transition: opacity 0.2s ease;
 }
-.rro-card:disabled { cursor: default; }
 
 .rro-card-ribbon {
   position: absolute;
@@ -136,61 +278,6 @@
   text-transform: uppercase;
   margin-top: 2px;
 }
-.rro-card-pity {
-  font-family: 'Press Start 2P', monospace;
-  font-size: 7px;
-  color: #FFB347;
-  margin-top: 4px;
-}
-
-.rro-card.is-flipped {
-  background: linear-gradient(180deg, #fff 60%, #FCE7F3 100%);
-}
-.rro-card.is-flipped .rro-card-art { opacity: 0.6; }
-
-.rro-stamp {
-  position: absolute;
-  top: 38%;
-  left: 50%;
-  transform: translate(-50%, -50%) rotate(-10deg);
-  background: white;
-  border: 2.5px solid #EC4899;
-  color: #EC4899;
-  padding: 8px 14px;
-  border-radius: 12px;
-  font-family: 'Press Start 2P', monospace;
-  font-size: 10px;
-  letter-spacing: 1px;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  box-shadow: 0 6px 14px rgba(220, 60, 130, 0.28);
-  pointer-events: none;
-}
-
-.rro-card-confetti {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  overflow: visible;
-}
-.rro-confetti {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 6px;
-  height: 6px;
-  transform: translate(-50%, -50%);
-  animation: rro-confetti-burst 0.85s ease-out forwards;
-}
-@keyframes rro-confetti-burst {
-  0%   { transform: translate(-50%, -50%) scale(0.4); opacity: 0; }
-  20%  { opacity: 1; }
-  100% {
-    transform: translate(calc(-50% + var(--cx)), calc(-50% + var(--cy))) scale(0.7) rotate(220deg);
-    opacity: 0;
-  }
-}
 
 .rro-actions {
   display: flex;
@@ -203,7 +290,7 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 10px 18px;
+  padding: 11px 22px;
   border-radius: 999px;
   border: none;
   font-family: inherit;
@@ -212,12 +299,6 @@
   cursor: pointer;
   transition: transform 0.1s ease, box-shadow 0.15s ease;
 }
-.rro-btn-ghost {
-  background: white;
-  color: #61283B;
-  border: 1.5px solid #F9A8D4;
-}
-.rro-btn-ghost:hover { background: #FCE7F3; }
 .rro-btn-primary {
   background: linear-gradient(135deg, #F472B6, #EC4899);
   color: white;
@@ -230,11 +311,3 @@
   box-shadow: 0 6px 14px rgba(244, 114, 182, 0.30);
 }
 .rro-btn-egg:hover { transform: translateY(-1px); }
-
-.rro-allset {
-  margin: 12px 0 0;
-  font-family: 'Press Start 2P', monospace;
-  font-size: 10px;
-  color: #EC4899;
-  letter-spacing: 0.8px;
-}

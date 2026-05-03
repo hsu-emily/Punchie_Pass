@@ -9,6 +9,7 @@ import useUserProgress from '@/features/habits/useUserProgress';
 import useUserLevel from '@/features/progress/useUserLevel';
 import { evaluateUnlockedBunnies } from '@/features/bunny/bunnyVariants';
 import AvatarCustomizer from '@/features/avatar/AvatarCustomizer';
+import useGacha from '@/features/gacha/useGacha';
 import StudentIdCard from './StudentIdCard';
 import './StudentIdPage.css';
 
@@ -54,12 +55,16 @@ export default function StudentIdPage() {
   const memberSince = profile?.studentId?.memberSince?.toDate?.() ||
     user?.metadata?.creationTime;
   const activeSkin = profile?.studentId?.skin || 'default';
-  // TEMP: every skin unlocked while we polish the new variants. Revert by
-  // restoring the inventory-derived Set once the designs are locked in.
-  const ownedSkins = useMemo(
-    () => new Set(ID_SKINS.map((s) => s.id)),
-    []
-  );
+  const { inventory } = useGacha();
+  // 'default' is always free; everything else must be pulled from the gacha.
+  const ownedSkins = useMemo(() => {
+    const owned = new Set(['default']);
+    for (const skin of ID_SKINS) {
+      if (skin.id === 'default') continue;
+      if (inventory?.[`idSkin.${skin.id}`]) owned.add(skin.id);
+    }
+    return owned;
+  }, [inventory]);
 
   const handleSelectSkin = async (skinId) => {
     if (!user || skinId === activeSkin || !ownedSkins.has(skinId)) return;

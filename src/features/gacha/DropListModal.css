@@ -166,3 +166,136 @@
   padding: 3px 8px;
   border-radius: 999px;
 }
+
+/* ── Edit toolbar ──────────────────────────────────────── */
+.dlm-toolbar {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin: 8px 0 14px;
+}
+.dlm-edit-btn,
+.dlm-reset-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  border-radius: 999px;
+  border: 1.5px solid #F9A8D4;
+  background: white;
+  color: #61283B;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+.dlm-edit-btn:hover,
+.dlm-reset-btn:hover { background: #FCE7F3; }
+.dlm-edit-btn.is-active {
+  background: linear-gradient(135deg, #F472B6, #EC4899);
+  color: white;
+  border-color: transparent;
+  box-shadow: 0 4px 12px rgba(236, 72, 153, 0.30);
+}
+.dlm-reset-btn { color: #B83A6E; border-color: #FBCFE8; }
+
+/* ── Edit list rows ────────────────────────────────────── */
+.dlm-edit-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.dlm-edit-row {
+  display: grid;
+  grid-template-columns: 28px 48px 1fr auto;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  background: white;
+  border: 1px solid #FCE7F3;
+  border-left: 4px solid #F9A8D4;
+  border-radius: 12px;
+}
+.dlm-edit-index {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 9px;
+  color: #8B6F77;
+  text-align: center;
+}
+.dlm-edit-art {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.dlm-edit-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+.dlm-edit-name {
+  width: 100%;
+  padding: 6px 8px;
+  border: 1.5px solid #FCE7F3;
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  color: #61283B;
+  background: #fff8fc;
+  outline: none;
+}
+.dlm-edit-name:focus { border-color: #F472B6; background: white; }
+.dlm-edit-meta {
+  display: flex;
+  gap: 8px;
+  font-size: 11px;
+}
+.dlm-edit-rarity-btn {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 8px;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  padding: 3px 8px;
+  border: 1.5px solid currentColor;
+  border-radius: 999px;
+  background: white;
+  cursor: pointer;
+  transition: background 0.15s ease, transform 0.1s ease;
+}
+.dlm-edit-rarity-btn:hover {
+  background: #FCE7F3;
+  transform: translateY(-1px);
+}
+.dlm-edit-rarity-btn:active { transform: translateY(0); }
+.dlm-edit-kind {
+  color: #8B6F77;
+  font-size: 11px;
+}
+.dlm-edit-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.dlm-edit-controls button {
+  width: 28px;
+  height: 22px;
+  border-radius: 6px;
+  border: 1px solid #F9A8D4;
+  background: white;
+  color: #61283B;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.12s ease;
+}
+.dlm-edit-controls button:hover:not(:disabled) { background: #FCE7F3; }
+.dlm-edit-controls button:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}

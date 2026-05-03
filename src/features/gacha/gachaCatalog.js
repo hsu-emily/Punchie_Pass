@@ -74,8 +74,9 @@ export function uploadSlotCost(nextSlotIndex) {
  */
 export const GACHA_ITEMS = [
   // ── Cursors (src/assets/cursors/{ref}/) ──
-  { id: 'cursor.star', kind: 'cursor', rarity: 'cute', ref: 'star', name: 'Star Cursor' },
-  { id: 'cursor.wand', kind: 'cursor', rarity: 'rare', ref: 'wand', name: 'Wand Cursor' },
+  { id: 'cursor.star',  kind: 'cursor', rarity: 'cute', ref: 'star',  name: 'Star Cursor' },
+  { id: 'cursor.wand',  kind: 'cursor', rarity: 'rare', ref: 'wand',  name: 'Wand Cursor' },
+  { id: 'cursor.heart', kind: 'cursor', rarity: 'holo', ref: 'heart', name: 'Heart Cursor' },
 
   // ── Punch icons (src/assets/icons/{bucket}/{n}.png) ──
   // pink/* — common (8 of 11; 3, 4, 5 stay free defaults if you want)
@@ -88,8 +89,8 @@ export const GACHA_ITEMS = [
   { id: 'icon.pink.10', kind: 'icon', rarity: 'common', ref: 'pink/10', name: 'Pink Stamp 10' },
   { id: 'icon.pink.11', kind: 'icon', rarity: 'common', ref: 'pink/11', name: 'Pink Stamp 11' },
   { id: 'icon.pink.12', kind: 'icon', rarity: 'common', ref: 'pink/12', name: 'Pink Stamp 12' },
-  { id: 'icon.pink.13', kind: 'icon', rarity: 'common', ref: 'pink/13', name: 'Pink Stamp 13' },
-  { id: 'icon.pink.28', kind: 'icon', rarity: 'common', ref: 'pink/28', name: 'Pink Stamp 28' },
+  { id: 'icon.pink.13',    kind: 'icon', rarity: 'common', ref: 'pink/13',    name: 'Pink Stamp 13' },
+  { id: 'icon.pink.bunny', kind: 'icon', rarity: 'common', ref: 'pink/bunny', name: 'Bunny Stamp' },
 
   // blue/* — cute
   { id: 'icon.blue.1', kind: 'icon', rarity: 'cute', ref: 'blue/1', name: 'Blue Stamp 1' },
@@ -124,7 +125,11 @@ export const GACHA_ITEMS = [
 
   // ── ID skins (alt looks for the StudentIdCard) ──
   // `ref` is the skin id consumed by StudentIdCard's `psid-skin-{ref}` class.
-  { id: 'idSkin.holo', kind: 'idSkin', rarity: 'holo',   ref: 'holo', name: 'Holographic ID' },
+  { id: 'idSkin.holo',     kind: 'idSkin', rarity: 'holo',   ref: 'holo',     name: 'Holographic ID' },
+  { id: 'idSkin.wishz',    kind: 'idSkin', rarity: 'rare',   ref: 'wishz',    name: 'Frosty Blue ID' },
+  { id: 'idSkin.inari',    kind: 'idSkin', rarity: 'rare',   ref: 'inari',    name: 'Maroon ID' },
+  { id: 'idSkin.lottsa',   kind: 'idSkin', rarity: 'holo',   ref: 'lottsa',   name: 'Princess Pink ID' },
+  { id: 'idSkin.babymoon', kind: 'idSkin', rarity: 'rare',   ref: 'babymoon', name: 'Beige ID' },
 
   // ── Eggs → bunny variants (kawaii pets) ──
   { id: 'egg.sea',      kind: 'egg', rarity: 'cute',   ref: 'seabun',      name: 'Sea Egg' },

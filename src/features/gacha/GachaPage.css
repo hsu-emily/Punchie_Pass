@@ -113,8 +113,8 @@
 /* ── Punchie Machine ─────────────────────────────────────── */
 .pm-frame {
   position: relative;
-  width: min(370px, 82vw);
-  margin: 36px auto 28px;
+  width: min(300px, 78vw);
+  margin: 24px auto 60px;
   filter: drop-shadow(0 24px 36px rgba(219, 39, 119, 0.18));
 }
 
@@ -122,6 +122,7 @@
   width: 100%;
   height: auto;
   overflow: visible;
+  display: block;
 }
 
 /* Soft pink halo behind the machine */
@@ -151,13 +152,53 @@
 }
 
 /* Idle: gentle globe bob keeps the machine feeling alive */
-.pm-frame.idle .pm-svg circle[fill="url(#pmGlobe)"] {
+.pm-frame.idle .pm-svg path[fill="url(#pmGlobe)"] {
   animation: pm-globe-bob 4s ease-in-out infinite;
-  transform-origin: 110px 86px;
+  transform-origin: 188px 204px;
+  transform-box: fill-box;
 }
 @keyframes pm-globe-bob {
   0%, 100% { transform: translateY(0) scale(1); }
-  50%      { transform: translateY(-1px) scale(1.005); }
+  50%      { transform: translateY(-2px) scale(1.005); }
+}
+
+/* Each gacha ball jiggles independently around its own centre. */
+.pm-svg .pm-ball {
+  animation: pm-ball-jiggle 2.4s ease-in-out infinite;
+  transform-box: fill-box;
+  transform-origin: center;
+  cursor: pointer;
+}
+@keyframes pm-ball-jiggle {
+  0%, 100% { transform: translate(0, 0) rotate(0deg); }
+  20%      { transform: translate(0.5px, -1px) rotate(-1.5deg); }
+  50%      { transform: translate(-0.5px, 1px) rotate(1.8deg); }
+  80%      { transform: translate(0.8px, -0.5px) rotate(-1deg); }
+}
+
+/* On click: a bigger one-shot pop, then back to gentle jiggle. */
+.pm-svg .pm-ball.pm-ball-pop {
+  animation: pm-ball-pop 0.65s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+@keyframes pm-ball-pop {
+  0%   { transform: scale(1) rotate(0deg) translateY(0); }
+  18%  { transform: scale(1.22) rotate(-16deg) translateY(-4px); }
+  38%  { transform: scale(0.9) rotate(14deg) translateY(3px); }
+  58%  { transform: scale(1.12) rotate(-9deg) translateY(-2px); }
+  78%  { transform: scale(0.96) rotate(5deg) translateY(0); }
+  100% { transform: scale(1) rotate(0deg) translateY(0); }
+}
+
+/* Token coin drop (during crank) */
+.pm-coin {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  width: 38px;
+  height: 38px;
+  pointer-events: none;
+  z-index: 3;
+  filter: drop-shadow(0 4px 6px rgba(180, 100, 30, 0.4));
 }
 
 /* Falling / cracking capsule overlay */
