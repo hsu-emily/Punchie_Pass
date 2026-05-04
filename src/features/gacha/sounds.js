@@ -3,7 +3,7 @@
  * audio is a file-system change with no code edit needed.
  *
  * Audio lives at:
- *   src/features/gacha/sounds/gatcha.mp3   (loops while the machine winds up)
+ *   src/features/gacha/sounds/gatcha.mp3   (one-shot while the machine winds up)
  *   src/features/gacha/sounds/reveal.mp3   (one-shot when the capsule cracks)
  *
  * Browsers block autoplay until the user has interacted with the page —
@@ -38,15 +38,16 @@ export function playOneShot(url, { volume = 0.7 } = {}) {
 }
 
 /**
- * Starts a looping music bed. Returns a stop() function that fades out and
- * cleans up the audio element. Safe to call when URL is null.
+ * Plays a sound once and returns a stop() function that fades out and cleans
+ * up the audio element. Does not loop — if the clip ends before stop() is
+ * called, it stays silent. Safe to call when URL is null.
  */
-export function playLoop(url, { volume = 0.45, fadeOutMs = 250 } = {}) {
+export function playStoppable(url, { volume = 0.45, fadeOutMs = 250 } = {}) {
   if (!url) return () => {};
   let a;
   try {
     a = new Audio(url);
-    a.loop = true;
+    a.loop = false;
     a.volume = volume;
     a.play().catch(() => {});
   } catch {

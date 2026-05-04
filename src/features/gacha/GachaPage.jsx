@@ -20,7 +20,7 @@ import RewardRevealOverlay from './RewardRevealOverlay';
 import TokenIcon from './TokenIcon';
 import coinUrl from '@/assets/coin.webp';
 import { PITY_RULES, PULL_BUNDLES, RARITY_META } from './gachaCatalog';
-import { POP_URL, WINDUP_URL, playLoop, playOneShot } from './sounds';
+import { POP_URL, WINDUP_URL, playOneShot, playStoppable } from './sounds';
 import './GachaPage.css';
 
 function pityHintFor(counter) {
@@ -81,7 +81,7 @@ export default function GachaPage() {
     setPhase('crank');
 
     // Wind-up music begins immediately. Stops at end of crack.
-    stopWindupRef.current = playLoop(WINDUP_URL);
+    stopWindupRef.current = playStoppable(WINDUP_URL);
 
     try {
       const itemsPromise = pull(count);
