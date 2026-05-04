@@ -270,7 +270,7 @@ export default function PunchCardPreview({
                     opacity: slotOpacity,
                   }}
                 >
-                  {typeof punch.icon === 'string' && (punch.icon.includes('.png') || punch.icon.includes('.svg') || punch.icon.startsWith('http') || punch.icon.startsWith('/')) ? (
+                  {typeof punch.icon === 'string' && (punch.icon.includes('.png') || punch.icon.includes('.webp') || punch.icon.includes('.svg') || punch.icon.startsWith('http') || punch.icon.startsWith('/')) ? (
                     <img
                       src={punch.icon}
                       alt=""
