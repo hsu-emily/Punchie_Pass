@@ -18,7 +18,7 @@ import useGacha from './useGacha';
 import DropListModal from './DropListModal';
 import RewardRevealOverlay from './RewardRevealOverlay';
 import TokenIcon from './TokenIcon';
-import coinUrl from '@/assets/coin.png';
+import coinUrl from '@/assets/coin.webp';
 import { PITY_RULES, PULL_BUNDLES, RARITY_META } from './gachaCatalog';
 import { POP_URL, WINDUP_URL, playLoop, playOneShot } from './sounds';
 import './GachaPage.css';

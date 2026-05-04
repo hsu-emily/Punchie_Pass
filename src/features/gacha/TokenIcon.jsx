@@ -2,7 +2,7 @@
  * TokenIcon — renders the Punchie token (coin.png) at any size.
  * Single source so swapping art is one file edit.
  */
-import coinUrl from '@/assets/coin.png';
+import coinUrl from '@/assets/coin.webp';
 
 export default function TokenIcon({ size = 16, style, className }) {
   return (

@@ -1,11 +1,11 @@
 import { Link } from 'react-router-dom';
 import MascotBunny from '@/features/bunny/MascotBunny';
 import { useAuth } from '@/features/auth/useAuth';
-import windowsPink from '@/assets/punch_cards/WindowsPink.png';
-import lacePink from '@/assets/punch_cards/LacePink.png';
-import digiCam from '@/assets/punch_cards/DigiCam.png';
-import coin from '@/assets/coin.png';
-import shard from '@/assets/shard.png';
+import windowsPink from '@/assets/punch_cards/WindowsPink.webp';
+import lacePink from '@/assets/punch_cards/LacePink.webp';
+import digiCam from '@/assets/punch_cards/DigiCam.webp';
+import coin from '@/assets/coin.webp';
+import shard from '@/assets/shard.webp';
 import './Home.css';
 
 export default function Home() {

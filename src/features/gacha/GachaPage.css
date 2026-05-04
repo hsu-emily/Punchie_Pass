@@ -12,7 +12,7 @@
     radial-gradient(circle at 80% 0%, #ffe4f0 0%, transparent 45%),
     radial-gradient(circle at 0% 100%, #dcebff 0%, transparent 45%),
     #fff8fc;
-  padding: 96px 16px 96px;
+  padding: 56px 16px 24px;
   font-family: 'Fredoka', system-ui, sans-serif;
   color: #2A1E22;
   display: flex;
@@ -26,7 +26,7 @@
   max-width: 1080px;
   display: flex;
   justify-content: center;
-  margin-bottom: 24px;
+  margin-bottom: 8px;
 }
 
 /* Back + inventory links float at the page corners so they never crowd the
@@ -48,25 +48,25 @@
 
 .gacha-page > .gacha-header > .gacha-back:first-of-type {
   position: fixed;
-  top: 48px;
-  left: 32px;
+  top: 24px;
+  left: 24px;
   z-index: 20;
 }
 .gacha-inv-link {
   position: fixed;
-  top: 48px;
-  right: 32px;
+  top: 24px;
+  right: 24px;
   z-index: 20;
 }
 
 .gacha-title {
   font-family: 'Instrument Sans', sans-serif;
-  font-size: 72px;
+  font-size: 48px;
   font-weight: 700;
-  margin: 32px 0 0;
+  margin: 8px 0 0;
   color: #61283B;
   letter-spacing: normal;
-  line-height: 1.2;
+  line-height: 1.1;
   text-align: center;
   white-space: nowrap;
 }
@@ -76,8 +76,8 @@
   padding: 4px 0;
   display: flex;
   flex-direction: column;
-  gap: 4px;
-  margin-bottom: 18px;
+  gap: 2px;
+  margin-bottom: 8px;
 }
 .gacha-token-row {
   display: flex;
@@ -91,12 +91,12 @@
   color: var(--g-pink);
 }
 .gacha-token-num {
-  font-size: 26px;
+  font-size: 22px;
   font-weight: 700;
   color: var(--g-pink-ink);
 }
 .gacha-token-meta {
-  font-size: 12px;
+  font-size: 11px;
   color: var(--g-mute);
 }
 
@@ -126,8 +126,8 @@
 /* ── Punchie Machine ─────────────────────────────────────── */
 .pm-frame {
   position: relative;
-  width: min(300px, 78vw);
-  margin: 24px auto 60px;
+  width: min(260px, 62vw);
+  margin: 8px auto 16px;
   filter: drop-shadow(0 24px 36px rgba(219, 39, 119, 0.18));
 }
 
@@ -293,19 +293,19 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  gap: 18px;
+  gap: 12px;
   flex-wrap: wrap;
-  margin-top: 8px;
-  margin-bottom: 18px;
+  margin-top: 4px;
+  margin-bottom: 8px;
 }
 
 .gacha-pull-btn,
 .gacha-droplist-btn {
-  min-height: 58px;
+  min-height: 46px;
   border-radius: 999px;
-  padding: 0 24px;
+  padding: 0 18px;
   font-family: inherit;
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 800;
   display: inline-flex;
   align-items: center;

@@ -3,25 +3,25 @@
 // when convenient, refactor it to call buildAvatarLayers below so the
 // rule of "what shows on the canvas" lives in one place.
 
-const faceModules = import.meta.glob('@/assets/avatar/face/*.png', { eager: true });
-const earModules = import.meta.glob('@/assets/avatar/face/ears/*.png', { eager: true });
-const clothesModules = import.meta.glob('@/assets/avatar/clothes/*.png', { eager: true });
-const hairFrontModules = import.meta.glob('@/assets/avatar/hair_front/**/*.png', { eager: true });
-const hairBackModules = import.meta.glob('@/assets/avatar/hair_back/**/*.png', { eager: true });
-const eyeColorModules = import.meta.glob('@/assets/avatar/eyes/colors/*.png', { eager: true });
-const eyeOverlayModules = import.meta.glob('@/assets/avatar/eyes/eye_overlay.png', { eager: true });
-const doubleEyelidModules = import.meta.glob('@/assets/avatar/eyes/double_eyelid.png', { eager: true });
-const eyebrowModules = import.meta.glob('@/assets/avatar/eyebrows/*.png', { eager: true });
-const hatModules = import.meta.glob('@/assets/avatar/hat/*.png', { eager: true });
-const noseModules = import.meta.glob('@/assets/avatar/nose/*.png', { eager: true });
-const mouthModules = import.meta.glob('@/assets/avatar/mouth/*.png', { eager: true });
-const accessoryModules = import.meta.glob('@/assets/avatar/accessories/*.png', { eager: true });
-const blushModules = import.meta.glob('@/assets/avatar/blush/*.png', { eager: true });
+const faceModules = import.meta.glob('@/assets/avatar/face/*.webp', { eager: true });
+const earModules = import.meta.glob('@/assets/avatar/face/ears/*.webp', { eager: true });
+const clothesModules = import.meta.glob('@/assets/avatar/clothes/*.webp', { eager: true });
+const hairFrontModules = import.meta.glob('@/assets/avatar/hair_front/**/*.webp', { eager: true });
+const hairBackModules = import.meta.glob('@/assets/avatar/hair_back/**/*.webp', { eager: true });
+const eyeColorModules = import.meta.glob('@/assets/avatar/eyes/colors/*.webp', { eager: true });
+const eyeOverlayModules = import.meta.glob('@/assets/avatar/eyes/eye_overlay.webp', { eager: true });
+const doubleEyelidModules = import.meta.glob('@/assets/avatar/eyes/double_eyelid.webp', { eager: true });
+const eyebrowModules = import.meta.glob('@/assets/avatar/eyebrows/*.webp', { eager: true });
+const hatModules = import.meta.glob('@/assets/avatar/hat/*.webp', { eager: true });
+const noseModules = import.meta.glob('@/assets/avatar/nose/*.webp', { eager: true });
+const mouthModules = import.meta.glob('@/assets/avatar/mouth/*.webp', { eager: true });
+const accessoryModules = import.meta.glob('@/assets/avatar/accessories/*.webp', { eager: true });
+const blushModules = import.meta.glob('@/assets/avatar/blush/*.webp', { eager: true });
 
 function buildMap(modules) {
   const map = {};
   for (const path in modules) {
-    const filename = path.split('/').pop().replace(/\.png$/, '');
+    const filename = path.split('/').pop().replace(/\.webp$/, '');
     map[filename] = modules[path].default;
   }
   return map;
@@ -34,7 +34,7 @@ const HAIR_FRONT = {};
 for (const path in hairFrontModules) {
   const parts = path.split('/');
   const style = parts[parts.length - 2];
-  const filename = parts[parts.length - 1].replace(/\.png$/, '');
+  const filename = parts[parts.length - 1].replace(/\.webp$/, '');
   const color = filename.split(/[-_]/)[0];
   if (!HAIR_FRONT[style]) HAIR_FRONT[style] = {};
   HAIR_FRONT[style][color] = hairFrontModules[path].default;
@@ -53,7 +53,7 @@ const HAIR_BACK = {};
 for (const path in hairBackModules) {
   const parts = path.split('/');
   const style = parts[parts.length - 2];
-  const filename = parts[parts.length - 1].replace(/\.png$/, '');
+  const filename = parts[parts.length - 1].replace(/\.webp$/, '');
   const color = filename.split(/[-_]/)[0];
   if (!HAIR_BACK[style]) HAIR_BACK[style] = {};
   HAIR_BACK[style][color] = hairBackModules[path].default;

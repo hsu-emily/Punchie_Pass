@@ -1,6 +1,6 @@
 import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { getCursor, DEFAULT_PUNCH_CURSOR_ID } from "@/assets/cursors/cursors";
-import defaultPunchIcon from "@/assets/icons/punch.png";
+import defaultPunchIcon from "@/assets/icons/punch.webp";
 
 // Card layouts in cardLayouts.config.js (font sizes, punch circle sizes, gaps)
 // were calibrated against this rendered card size. The inner stage is rendered

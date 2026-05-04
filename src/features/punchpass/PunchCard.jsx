@@ -1,5 +1,5 @@
 import { forwardRef, useMemo } from 'react';
-import defaultPunchIcon from '@/assets/icons/punch.png';
+import defaultPunchIcon from '@/assets/icons/punch.webp';
 import { getCardLayout } from '@/features/punchpass/cardLayouts.config';
 import PunchCardPreview from '@/features/punchpass/PunchCardPreview';
 
@@ -7,28 +7,33 @@ import PunchCardPreview from '@/features/punchpass/PunchCardPreview';
 // (dashboard, create form, zoom modal, celebration, layout editor) goes
 // through this component so the same config produces the same visual.
 
-const cardModules = import.meta.glob('@/assets/punch_cards/*.png', { eager: true });
-const flatIconModules = import.meta.glob('@/assets/icons/*.png', { eager: true });
-const bucketIconModules = import.meta.glob('@/assets/icons/*/*.png', { eager: true });
+const cardModules = import.meta.glob('@/assets/punch_cards/*.webp', { eager: true });
+const flatIconModules = import.meta.glob('@/assets/icons/*.webp', { eager: true });
+const bucketIconModules = import.meta.glob('@/assets/icons/*/*.webp', { eager: true });
+
+// Assets are .webp on disk, but user data and the gacha catalog reference
+// them by their original `.png` filename (e.g. `'WindowsPink.png'`). Keys
+// are stored in their `.png` form so existing data keeps resolving.
+const toPngKey = (filename) => filename.replace(/\.webp$/i, '.png');
 
 const CARD_MAP = {};
 for (const path in cardModules) {
   const filename = path.split('/').pop();
-  CARD_MAP[filename] = cardModules[path].default;
+  CARD_MAP[toPngKey(filename)] = cardModules[path].default;
 }
 
 const ICON_BY_FILENAME = {};
 const ICON_BY_ID = {};
 for (const path in flatIconModules) {
   const filename = path.split('/').pop();
-  ICON_BY_FILENAME[filename] = flatIconModules[path].default;
+  ICON_BY_FILENAME[toPngKey(filename)] = flatIconModules[path].default;
 }
 ICON_BY_ID['default/punch'] = defaultPunchIcon;
 for (const path in bucketIconModules) {
   const parts = path.split('/');
   const filename = parts.pop();
   const bucket = parts.pop();
-  const num = filename.replace('.png', '');
+  const num = filename.replace(/\.webp$/i, '');
   ICON_BY_ID[`${bucket}/${num}`] = bucketIconModules[path].default;
 }
 

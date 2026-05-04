@@ -20,6 +20,7 @@ import useUserLevel from '@/features/progress/useUserLevel';
 import useGacha from '@/features/gacha/useGacha';
 import TokenIcon from '@/features/gacha/TokenIcon';
 import CalendarHeatmap from './CalendarHeatmap';
+import DailyCheckIn from './DailyCheckIn';
 import './DashboardCards.css';
 
 function deriveIdNumber(uid) {
@@ -64,6 +65,8 @@ export default function DashboardCards({ habits }) {
   return (
     <section className="dc-section">
       <div className="dc-eyebrow">★ Your Pass ★</div>
+
+      <DailyCheckIn />
 
       <div className="dc-grid">
         {/* ── Card 1: Student ID preview ───────────────────────── */}

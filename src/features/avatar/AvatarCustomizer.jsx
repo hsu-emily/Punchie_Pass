@@ -8,19 +8,19 @@ import './AvatarCustomizer.css';
 
 // Tile thumbnails for the option panel. Avatar layer composition itself lives
 // in @/features/avatar/avatarLayers.js (used by AvatarPreview).
-const clothesModules = import.meta.glob('@/assets/avatar/clothes/*.png', { eager: true });
-const hairBackModules = import.meta.glob('@/assets/avatar/hair_back/**/*.png', { eager: true });
-const hairFrontModules = import.meta.glob('@/assets/avatar/hair_front/**/*.png', { eager: true });
-const eyebrowModules = import.meta.glob('@/assets/avatar/eyebrows/*.png', { eager: true });
-const hatModules = import.meta.glob('@/assets/avatar/hat/*.png', { eager: true });
-const noseModules = import.meta.glob('@/assets/avatar/nose/*.png', { eager: true });
-const mouthModules = import.meta.glob('@/assets/avatar/mouth/*.png', { eager: true });
-const accessoryModules = import.meta.glob('@/assets/avatar/accessories/*.png', { eager: true });
+const clothesModules = import.meta.glob('@/assets/avatar/clothes/*.webp', { eager: true });
+const hairBackModules = import.meta.glob('@/assets/avatar/hair_back/**/*.webp', { eager: true });
+const hairFrontModules = import.meta.glob('@/assets/avatar/hair_front/**/*.webp', { eager: true });
+const eyebrowModules = import.meta.glob('@/assets/avatar/eyebrows/*.webp', { eager: true });
+const hatModules = import.meta.glob('@/assets/avatar/hat/*.webp', { eager: true });
+const noseModules = import.meta.glob('@/assets/avatar/nose/*.webp', { eager: true });
+const mouthModules = import.meta.glob('@/assets/avatar/mouth/*.webp', { eager: true });
+const accessoryModules = import.meta.glob('@/assets/avatar/accessories/*.webp', { eager: true });
 
 function buildMap(modules) {
   const map = {};
   for (const path in modules) {
-    const filename = path.split('/').pop().replace(/\.png$/, '');
+    const filename = path.split('/').pop().replace(/\.webp$/, '');
     map[filename] = modules[path].default;
   }
   return map;
@@ -37,7 +37,7 @@ const HAIR_BACK = {};
 for (const path in hairBackModules) {
   const parts = path.split('/');
   const style = parts[parts.length - 2];
-  const filename = parts[parts.length - 1].replace(/\.png$/, '');
+  const filename = parts[parts.length - 1].replace(/\.webp$/, '');
   const color = filename.split(/[-_]/)[0];
   if (!HAIR_BACK[style]) HAIR_BACK[style] = {};
   HAIR_BACK[style][color] = hairBackModules[path].default;
@@ -47,7 +47,7 @@ const HAIR_FRONT = {};
 for (const path in hairFrontModules) {
   const parts = path.split('/');
   const style = parts[parts.length - 2];
-  const filename = parts[parts.length - 1].replace(/\.png$/, '');
+  const filename = parts[parts.length - 1].replace(/\.webp$/, '');
   const color = filename.split(/[-_]/)[0];
   if (!HAIR_FRONT[style]) HAIR_FRONT[style] = {};
   HAIR_FRONT[style][color] = hairFrontModules[path].default;

@@ -4,20 +4,24 @@ import { getCardImageUrl } from '@/features/punchpass/PunchCard';
 import PunchCardPreview from '@/features/punchpass/PunchCardPreview';
 import { cardLayouts, getCardLayout } from '@/features/punchpass/cardLayouts.config';
 
-const punchCardModules = import.meta.glob('@/assets/punch_cards/*.png', { eager: true });
+// Assets are .webp on disk; cardLayouts config + user data use the original
+// `.png` filename as the identifier, so we normalize back when listing names.
+const toPngKey = (filename) => filename.replace(/\.webp$/i, '.png');
+
+const punchCardModules = import.meta.glob('@/assets/punch_cards/*.webp', { eager: true });
 const cardNames = Object.keys(punchCardModules)
-  .map((p) => p.split('/').pop())
+  .map((p) => toPngKey(p.split('/').pop()))
   .sort();
 
-const flatIconModules = import.meta.glob('@/assets/icons/*.png', { eager: true });
-const bucketIconModules = import.meta.glob('@/assets/icons/*/*.png', { eager: true });
+const flatIconModules = import.meta.glob('@/assets/icons/*.webp', { eager: true });
+const bucketIconModules = import.meta.glob('@/assets/icons/*/*.webp', { eager: true });
 const iconChoices = [
-  ...Object.keys(flatIconModules).map((p) => p.split('/').pop()),
+  ...Object.keys(flatIconModules).map((p) => toPngKey(p.split('/').pop())),
   ...Object.keys(bucketIconModules).map((p) => {
     const parts = p.split('/');
     const file = parts.pop();
     const bucket = parts.pop();
-    return `${bucket}/${file.replace('.png', '')}`;
+    return `${bucket}/${file.replace(/\.webp$/i, '')}`;
   }),
 ].sort();
 
@@ -350,18 +354,18 @@ function LivePreview({ habit, layout }) {
   );
 }
 
-const flatIcons = import.meta.glob('@/assets/icons/*.png', { eager: true });
-const bucketIcons = import.meta.glob('@/assets/icons/*/*.png', { eager: true });
+const flatIcons = import.meta.glob('@/assets/icons/*.webp', { eager: true });
+const bucketIcons = import.meta.glob('@/assets/icons/*/*.webp', { eager: true });
 const ICON_LOOKUP = {};
 for (const path in flatIcons) {
   const filename = path.split('/').pop();
-  ICON_LOOKUP[filename] = flatIcons[path].default;
+  ICON_LOOKUP[toPngKey(filename)] = flatIcons[path].default;
 }
 for (const path in bucketIcons) {
   const parts = path.split('/');
   const filename = parts.pop();
   const bucket = parts.pop();
-  const num = filename.replace('.png', '');
+  const num = filename.replace(/\.webp$/i, '');
   ICON_LOOKUP[`${bucket}/${num}`] = bucketIcons[path].default;
 }
 function resolveIconForEditor(idOrName) {

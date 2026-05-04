@@ -1,9 +1,8 @@
 import { useRef, useState } from 'react';
-import { doc, serverTimestamp, setDoc } from 'firebase/firestore';
+import { collection, doc, serverTimestamp, setDoc } from 'firebase/firestore';
 import { Navigate, useNavigate } from 'react-router-dom';
 import { db } from '@/services/firebase';
 import { useAuth } from '@/features/auth/useAuth';
-import { useHabitStore } from '@/features/habits/habitStore';
 import AvatarCustomizer from '@/features/avatar/AvatarCustomizer';
 import CreatePunchCard, { FIRST_ICON_ID } from '@/features/punchpass/CreatePunchCard';
 import '@/features/auth/guards.css';
@@ -14,7 +13,6 @@ import PremiumOffer from './steps/PremiumOffer';
 export default function OnboardingFlow() {
   const { user, profile } = useAuth();
   const navigate = useNavigate();
-  const addHabit = useHabitStore((s) => s.addHabit);
   const [step, setStep] = useState(0);
   const [bunnyName, setBunnyName] = useState('');
   const [bunnyKind, setBunnyKind] = useState('bun');
@@ -46,34 +44,41 @@ export default function OnboardingFlow() {
     savingRef.current = true;
     setSaving(true);
     try {
-      await Promise.all([
-        setDoc(
-          doc(db, 'users', user.uid),
-          {
-            bunny: { name: bunnyName, kind: bunnyKind, avatar },
-            studentId: { memberSince: serverTimestamp() },
-            // Starter bunny is permanently theirs — even if its progression
-            // condition isn't independently met (HatchScene picks at random).
-            pets: { hatched: [bunnyKind] },
-            gacha: { bonusTokens: 10, bonusEvaluatedPasses: 0 },
-            onboardingCompleted: true,
-            updatedAt: serverTimestamp(),
-          },
-          { merge: true }
-        ),
-        addHabit(user.uid, {
-          title: (pass.title || '').trim() || 'My first habit',
-          description: pass.description || '',
-          frequency: pass.frequency,
-          reward: pass.reward,
-          cardImage: pass.cardImage,
-          iconId: pass.icon1Id || pass.iconId,
-          icon1Id: pass.icon1Id || pass.iconId,
-          icon2Id: pass.icon2Id || pass.icon1Id || pass.iconId,
-          customIcons: pass.customIcons || [],
-          targetPunches: 10,
-        }),
-      ]);
+      // Deterministic doc id so retrying after a failure overwrites the same
+      // habit instead of creating a duplicate.
+      const firstHabitRef = doc(collection(db, 'users', user.uid, 'habits'), 'onboarding-first');
+      await setDoc(firstHabitRef, {
+        title: (pass.title || '').trim() || 'My first habit',
+        description: pass.description || '',
+        frequency: pass.frequency,
+        reward: pass.reward,
+        cardImage: pass.cardImage,
+        iconId: pass.icon1Id || pass.iconId,
+        icon1Id: pass.icon1Id || pass.iconId,
+        icon2Id: pass.icon2Id || pass.icon1Id || pass.iconId,
+        customIcons: pass.customIcons || [],
+        targetPunches: 10,
+        userId: user.uid,
+        currentPunches: 0,
+        logs: [],
+        createdAt: new Date().toISOString(),
+      });
+      // Only flip onboardingCompleted after the habit write succeeds — otherwise
+      // the route guard would send the user to the dashboard with no first habit.
+      await setDoc(
+        doc(db, 'users', user.uid),
+        {
+          bunny: { name: bunnyName, kind: bunnyKind, avatar },
+          studentId: { memberSince: serverTimestamp() },
+          // Starter bunny is permanently theirs — even if its progression
+          // condition isn't independently met (HatchScene picks at random).
+          pets: { hatched: [bunnyKind] },
+          gacha: { bonusTokens: 10, bonusEvaluatedPasses: 0 },
+          onboardingCompleted: true,
+          updatedAt: serverTimestamp(),
+        },
+        { merge: true }
+      );
       navigate('/dashboard');
     } catch (err) {
       console.error('Failed to save onboarding:', err);

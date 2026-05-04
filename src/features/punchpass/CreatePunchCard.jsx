@@ -5,19 +5,23 @@ import { getCardLayout } from '@/features/punchpass/cardLayouts.config';
 import { storage } from '@/services/firebase';
 // AI features disabled for debugging — AiSuggest components return null.
 // import { AiTitleSuggest, AiRewardSuggest } from './AiSuggest';
-import defaultPunchIcon from '@/assets/icons/punch.png';
+import defaultPunchIcon from '@/assets/icons/punch.webp';
 import { CURSOR_LIST, DEFAULT_PUNCH_CURSOR_ID } from '@/assets/cursors/cursors';
 import useGacha from '@/features/gacha/useGacha';
 import useUploadSlots from '@/features/gacha/useUploadSlots';
 import ShardIcon from '@/features/gacha/ShardIcon';
 import './CreatePunchCard.css';
 
-const iconModules = import.meta.glob('@/assets/icons/*/*.png', { eager: true });
-const cardImageModules = import.meta.glob('@/assets/punch_cards/*.png', { eager: true });
+const iconModules = import.meta.glob('@/assets/icons/*/*.webp', { eager: true });
+const cardImageModules = import.meta.glob('@/assets/punch_cards/*.webp', { eager: true });
+// Assets are .webp on disk; user data and the gacha catalog still reference
+// them by their original `.png` filename (e.g. `'WindowsPink.png'`).
+const toPngKey = (filename) => filename.replace(/\.webp$/i, '.png');
+
 const CARD_IMAGE_URLS = {};
 for (const path in cardImageModules) {
   const filename = path.split('/').pop();
-  CARD_IMAGE_URLS[filename] = cardImageModules[path].default;
+  CARD_IMAGE_URLS[toPngKey(filename)] = cardImageModules[path].default;
 }
 
 // Bucketed icons: id = "bucket/number" (e.g. "pink/4")
@@ -27,7 +31,7 @@ for (const path in iconModules) {
   const parts = path.split('/');
   const filename = parts.pop();
   const bucket = parts.pop();
-  const num = filename.replace('.png', '');
+  const num = filename.replace(/\.webp$/i, '');
   const id = `${bucket}/${num}`;
   if (!ICONS_BY_BUCKET[bucket]) ICONS_BY_BUCKET[bucket] = [];
   ICONS_BY_BUCKET[bucket].push({ id, num, url: iconModules[path].default });

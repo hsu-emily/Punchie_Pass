@@ -1,4 +1,4 @@
-import mascotUrl from '@/assets/logo.png';
+import mascotUrl from '@/assets/logo.webp';
 
 /**
  * MascotBunny — the hand-drawn pink-bow bunny used as the brand mascot

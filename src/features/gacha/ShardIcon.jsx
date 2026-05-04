@@ -1,4 +1,4 @@
-import shardUrl from '@/assets/shard.png';
+import shardUrl from '@/assets/shard.webp';
 
 export default function ShardIcon({ size = 14, style, className }) {
   return (

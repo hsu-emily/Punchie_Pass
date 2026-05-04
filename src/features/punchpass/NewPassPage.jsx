@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/features/auth/useAuth';
 import { useHabitStore } from '@/features/habits/habitStore';
@@ -29,6 +29,7 @@ export default function NewPassPage() {
   const { premium } = usePremium();
   const [pass, setPass] = useState(DEFAULT_PASS);
   const [saving, setSaving] = useState(false);
+  const savingRef = useRef(false);
   const [paywallOpen, setPaywallOpen] = useState(false);
 
   // Defensive guard — Dashboard is the normal entry point but anyone landing
@@ -41,11 +42,12 @@ export default function NewPassPage() {
   const showPaywall = paywallOpen || overFreeLimit;
 
   const handleSubmit = async () => {
-    if (!user || saving) return;
+    if (!user || savingRef.current) return;
     if (!premium && habits.length >= FREE_HABIT_LIMIT) {
       setPaywallOpen(true);
       return;
     }
+    savingRef.current = true;
     setSaving(true);
     try {
       await addHabit(user.uid, {
@@ -64,6 +66,7 @@ export default function NewPassPage() {
       navigate('/dashboard');
     } catch (err) {
       console.error('Failed to create pass:', err);
+      savingRef.current = false;
       setSaving(false);
     }
   };

@@ -1,0 +1,49 @@
+.rotate-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: linear-gradient(160deg, #FFE6F2 0%, #FFF5FA 60%, #F2E8FF 100%);
+}
+
+.rotate-overlay-card {
+  background: white;
+  border: 2px dashed #F8BBD0;
+  border-radius: 22px;
+  padding: 28px 22px;
+  max-width: 320px;
+  text-align: center;
+  box-shadow: 0 12px 32px rgba(220, 60, 130, 0.18);
+}
+
+.rotate-overlay-icon {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 12px;
+  animation: rotateOverlayWiggle 2.4s ease-in-out infinite;
+}
+
+@keyframes rotateOverlayWiggle {
+  0%, 100% { transform: rotate(0deg); }
+  45%      { transform: rotate(-12deg); }
+  55%      { transform: rotate(-12deg); }
+}
+
+.rotate-overlay-title {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 13px;
+  letter-spacing: 0.6px;
+  color: #61283B;
+  margin: 0 0 8px;
+  line-height: 1.4;
+}
+
+.rotate-overlay-msg {
+  font-size: 13px;
+  color: #7A4258;
+  margin: 0;
+  line-height: 1.5;
+}

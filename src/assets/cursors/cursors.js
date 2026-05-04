@@ -1,6 +1,6 @@
 // Each subfolder of src/assets/cursors/ that contains cursor.png + click.png
 // becomes a selectable cursor. sound.mp3 (optional) plays on click.
-const imageModules = import.meta.glob('@/assets/cursors/*/*.png', { eager: true });
+const imageModules = import.meta.glob('@/assets/cursors/*/*.webp', { eager: true });
 const soundModules = import.meta.glob('@/assets/cursors/*/sound.mp3', { eager: true });
 
 const CURSORS = {};
@@ -9,8 +9,8 @@ for (const path in imageModules) {
   const filename = parts.pop();
   const id = parts.pop();
   if (!CURSORS[id]) CURSORS[id] = { id, label: id, cursor: null, click: null, sound: null };
-  if (filename === 'cursor.png') CURSORS[id].cursor = imageModules[path].default;
-  else if (filename === 'click.png') CURSORS[id].click = imageModules[path].default;
+  if (filename === 'cursor.webp') CURSORS[id].cursor = imageModules[path].default;
+  else if (filename === 'click.webp') CURSORS[id].click = imageModules[path].default;
 }
 for (const path in soundModules) {
   const parts = path.split('/');

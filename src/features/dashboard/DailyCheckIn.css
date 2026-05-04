@@ -1,0 +1,125 @@
+.dci-banner {
+  width: 100%;
+  max-width: 880px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 14px;
+  border-radius: 18px;
+  background-image: linear-gradient(180deg, #fff8fc 0%, #ffeaf3 100%);
+  border: 1.5px solid #FBCFE8;
+  box-shadow: 0 4px 14px rgba(220, 60, 130, 0.08);
+  font-family: 'Fredoka', system-ui, sans-serif;
+  color: #2A1E22;
+}
+
+.dci-banner.is-claimed {
+  background-image: linear-gradient(180deg, #fff 0%, #fafafa 100%);
+  border-color: #E4E4E7;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.dci-text {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+  min-width: 0;
+  flex-wrap: wrap;
+}
+
+.dci-spark {
+  color: #DB2777;
+  flex-shrink: 0;
+}
+.dci-banner.is-claimed .dci-spark { color: #A1A1AA; }
+
+.dci-headline {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 9px;
+  letter-spacing: 0.06em;
+  color: #DB2777;
+  text-transform: uppercase;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.dci-banner.is-claimed .dci-headline { color: #A1A1AA; }
+
+.dci-streak {
+  font-size: 11px;
+  color: #8B6F77;
+  flex-shrink: 0;
+}
+
+.dci-pips {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+.dci-pip {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #fff;
+  border: 1.5px solid #FBCFE8;
+}
+
+.dci-pip.is-filled {
+  background: linear-gradient(180deg, #F9A8D4 0%, #F472B6 100%);
+  border-color: #EC4899;
+}
+
+.dci-pip.is-today {
+  border-color: #DB2777;
+  box-shadow: 0 0 0 2px rgba(236, 72, 153, 0.35);
+}
+
+.dci-cta {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border-radius: 999px;
+  border: none;
+  background: #EC4899;
+  color: white;
+  font-family: inherit;
+  font-weight: 600;
+  font-size: 12px;
+  cursor: pointer;
+  transition: transform 0.1s ease, box-shadow 0.15s ease;
+}
+.dci-cta:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 10px rgba(236, 72, 153, 0.35);
+}
+.dci-cta:disabled {
+  background: #E4E4E7;
+  color: #71717A;
+  cursor: default;
+  box-shadow: none;
+}
+
+.dci-error {
+  font-size: 12px;
+  color: #B91C1C;
+  flex-basis: 100%;
+}
+
+@media (max-width: 560px) {
+  .dci-banner {
+    flex-direction: column;
+    align-items: stretch;
+    text-align: center;
+    gap: 10px;
+  }
+  .dci-text { justify-content: center; }
+  .dci-pips { margin-left: 0; justify-content: center; }
+}
