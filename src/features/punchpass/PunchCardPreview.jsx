@@ -74,15 +74,17 @@ export default function PunchCardPreview({
   const stagePixelWidth = DESIGN_WIDTH * scale;
   const stagePixelHeight = DESIGN_HEIGHT * scale;
 
-  // Track mouse down/up for cursor change
+  // Track mouse down/up to swap the cursor image while clicking. Skip on
+  // touch-primary devices: CSS cursors don't render there, and synthetic
+  // mouse events from touches would just trigger re-renders for nothing —
+  // multiplied by every card in the dashboard carousel.
   useEffect(() => {
-    const handleMouseDown = () => {
-      setIsClicking(true);
-    };
+    if (!showCursor) return;
+    if (typeof window === 'undefined') return;
+    if (window.matchMedia?.('(pointer: coarse)').matches) return;
 
-    const handleMouseUp = () => {
-      setIsClicking(false);
-    };
+    const handleMouseDown = () => setIsClicking(true);
+    const handleMouseUp = () => setIsClicking(false);
 
     window.addEventListener('mousedown', handleMouseDown);
     window.addEventListener('mouseup', handleMouseUp);
@@ -91,7 +93,7 @@ export default function PunchCardPreview({
       window.removeEventListener('mousedown', handleMouseDown);
       window.removeEventListener('mouseup', handleMouseUp);
     };
-  }, []);
+  }, [showCursor]);
 
   // Use values directly from placement objects (no Medium/Large distinction)
 
@@ -192,6 +194,7 @@ export default function PunchCardPreview({
         src={cardImage}
         alt=""
         draggable={false}
+        decoding="async"
         style={{
           position: 'absolute',
           inset: 0,
@@ -270,31 +273,22 @@ export default function PunchCardPreview({
                     opacity: slotOpacity,
                   }}
                 >
-                  {typeof punch.icon === 'string' && (punch.icon.includes('.png') || punch.icon.includes('.webp') || punch.icon.includes('.svg') || punch.icon.startsWith('http') || punch.icon.startsWith('/')) ? (
-                    <img
-                      src={punch.icon}
-                      alt=""
-                      className="object-contain"
-                      style={{ 
-                        width: currentPunchGrid.punchIconSize, 
-                        height: currentPunchGrid.punchIconSize,
-                        maxWidth: '100%',
-                        maxHeight: '100%',
-                      }}
-                    />
-                  ) : (
-                    <span 
-                      style={{ 
-                        fontSize: currentPunchGrid.punchIconSize,
-                        lineHeight: 1,
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                      }}
-                    >
-                      {punch.icon || '○'}
-                    </span>
-                  )}
+                  <img
+                    src={punch.icon}
+                    alt=""
+                    draggable={false}
+                    decoding="async"
+                    loading="lazy"
+                    className="object-contain"
+                    style={{
+                      width: currentPunchGrid.punchIconSize,
+                      height: currentPunchGrid.punchIconSize,
+                      maxWidth: '100%',
+                      maxHeight: '100%',
+                      pointerEvents: 'none',
+                      userSelect: 'none',
+                    }}
+                  />
                 </div>
               );
             })}

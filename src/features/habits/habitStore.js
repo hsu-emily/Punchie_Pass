@@ -53,85 +53,76 @@ export const useHabitStore = create((set, get) => ({
     }
   },
 
-  // Punch habit (increment)
+  // Punch habit (increment) — applies the change locally first so the punch
+  // animation fires on tap, then syncs to Firestore. If the write fails we
+  // roll the local state back to the snapshot we captured before the update.
   punchHabit: async (habitId) => {
     const { userId } = get();
     const habit = get().habits.find(h => h.id === habitId);
     if (!habit || !userId || habit.currentPunches >= habit.targetPunches) return false;
     if (!get().canPunchToday(habit)) return false;
 
+    const newPunches = habit.currentPunches + 1;
+    const now = new Date().toISOString();
+    const log = { date: now, punchNumber: newPunches };
+    const newLogs = [...(habit.logs || []), log];
+
+    set(state => ({
+      habits: state.habits.map(h =>
+        h.id === habitId
+          ? { ...h, currentPunches: newPunches, logs: newLogs, lastPunchedAt: now }
+          : h
+      )
+    }));
+
     try {
-      const newPunches = habit.currentPunches + 1;
-      const habitRef = habitDoc(userId, habitId);
-
-      const log = {
-        date: new Date().toISOString(),
-        punchNumber: newPunches
-      };
-
-      await updateDoc(habitRef, {
+      await updateDoc(habitDoc(userId, habitId), {
         currentPunches: newPunches,
-        logs: [...(habit.logs || []), log],
-        lastPunchedAt: new Date().toISOString()
+        logs: newLogs,
+        lastPunchedAt: now,
       });
-
-      set(state => ({
-        habits: state.habits.map(h =>
-          h.id === habitId
-            ? { ...h, currentPunches: newPunches, logs: [...(h.logs || []), log], lastPunchedAt: new Date().toISOString() }
-            : h
-        )
-      }));
-
       return newPunches === habit.targetPunches;
     } catch (error) {
       console.error('Error punching habit:', error);
-      set({ error: error.message });
+      set(state => ({
+        error: error.message,
+        habits: state.habits.map(h => (h.id === habitId ? habit : h)),
+      }));
       return false;
     }
   },
 
-  // Undo last punch (decrement)
+  // Undo last punch (decrement) — same optimistic pattern as punchHabit.
   undoPunch: async (habitId) => {
     const { userId } = get();
     const habit = get().habits.find(h => h.id === habitId);
     if (!habit || !userId || habit.currentPunches <= 0) return false;
 
+    const newPunches = Math.max(0, habit.currentPunches - 1);
+    const updatedLogs = habit.logs && habit.logs.length > 0 ? habit.logs.slice(0, -1) : [];
+    const lastPunchedAt = updatedLogs.length > 0 ? updatedLogs[updatedLogs.length - 1].date : null;
+
+    set(state => ({
+      habits: state.habits.map(h =>
+        h.id === habitId
+          ? { ...h, currentPunches: newPunches, logs: updatedLogs, lastPunchedAt }
+          : h
+      )
+    }));
+
     try {
-      const newPunches = Math.max(0, habit.currentPunches - 1);
-      const habitRef = habitDoc(userId, habitId);
-
-      const updatedLogs = habit.logs && habit.logs.length > 0
-        ? habit.logs.slice(0, -1)
-        : [];
-
-      await updateDoc(habitRef, {
+      await updateDoc(habitDoc(userId, habitId), {
         currentPunches: newPunches,
         logs: updatedLogs,
-        lastPunchedAt: updatedLogs.length > 0
-          ? updatedLogs[updatedLogs.length - 1].date
-          : null
+        lastPunchedAt,
       });
-
-      set(state => ({
-        habits: state.habits.map(h =>
-          h.id === habitId
-            ? {
-                ...h,
-                currentPunches: newPunches,
-                logs: updatedLogs,
-                lastPunchedAt: updatedLogs.length > 0
-                  ? updatedLogs[updatedLogs.length - 1].date
-                  : null
-              }
-            : h
-        )
-      }));
-
       return true;
     } catch (error) {
       console.error('Error undoing punch:', error);
-      set({ error: error.message });
+      set(state => ({
+        error: error.message,
+        habits: state.habits.map(h => (h.id === habitId ? habit : h)),
+      }));
       return false;
     }
   },

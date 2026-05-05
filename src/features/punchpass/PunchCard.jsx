@@ -1,4 +1,4 @@
-import { forwardRef, useMemo } from 'react';
+import { forwardRef, memo, useMemo } from 'react';
 import defaultPunchIcon from '@/assets/icons/punch.webp';
 import { getCardLayout } from '@/features/punchpass/cardLayouts.config';
 import PunchCardPreview from '@/features/punchpass/PunchCardPreview';
@@ -175,4 +175,4 @@ const PunchCard = forwardRef(function PunchCard(
   );
 });
 
-export default PunchCard;
+export default memo(PunchCard);

@@ -1,11 +1,11 @@
 import { motion } from 'framer-motion';
 import { Download, RotateCcw, Share2, Trash2 } from 'lucide-react';
-import { useRef, useState } from 'react';
+import { memo, useRef, useState } from 'react';
 import { useHabitStore } from "@/features/habits/habitStore";
 import { downloadCard, generateShareableCard, shareCard } from "@/services/shareCard";
 import PunchCard from '@/features/punchpass/PunchCard';
 
-export default function HabitCard({ habit, onPunch, hideControls = false }) {
+function HabitCard({ habit, onPunch, hideControls = false }) {
   const { resetHabit, deleteHabit, canPunchToday } = useHabitStore();
   const cardRef = useRef(null);
   const [sharing, setSharing] = useState(false);
@@ -156,3 +156,11 @@ export default function HabitCard({ habit, onPunch, hideControls = false }) {
     </motion.div>
   );
 }
+
+// Skip re-renders when only the inline `onPunch` closure changed but the
+// underlying habit didn't — the closure captures `habit.id` which is stable,
+// so the new closure would punch the same habit anyway.
+export default memo(HabitCard, (prev, next) => (
+  prev.habit === next.habit &&
+  prev.hideControls === next.hideControls
+));
